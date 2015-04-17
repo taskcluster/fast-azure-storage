@@ -1,13 +1,13 @@
 suite("Table", function() {
-  var azure   = require('../');
   var assert  = require('assert');
+  var Promise = require('promise');
+  var azure   = require('../');
+  var utils   = require('../lib/utils');
 
   // Create azure table client
   var table = new azure.Table({
-    credentials: {
-      accountId:  process.env.AZURE_STORAGE_ACCOUNT,
-      accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
-    }
+    accountId:  process.env.AZURE_STORAGE_ACCOUNT,
+    accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
   });
 
   // Table name for testing
@@ -575,4 +575,179 @@ suite("Table", function() {
     });
   });
 
+
+  test("Shared-Access-Signature (fixed string, w. start)", function() {
+    var sas = table.sas(tableName, {
+      start:    new Date(Date.now() - 15 * 60 * 1000),
+      expiry:   new Date(Date.now() + 30 * 60 * 1000),
+      permissions: {
+        read:   true,
+        add:    true,
+        update: true,
+        delete: true
+      }
+    });
+    var table2 = new azure.Table({
+      accountId:    table.options.accountId,
+      sas:          sas
+    });
+    var pk = 'test-pk-' + Math.random();
+    var rk = 'rk';
+    return table2.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             rk,
+      value:              'some-value',
+    });
+  });
+
+  test("Shared-Access-Signature (forbid add)", function() {
+    var sas = table.sas(tableName, {
+      start:    new Date(Date.now() - 15 * 60 * 1000),
+      expiry:   new Date(Date.now() + 30 * 60 * 1000),
+      permissions: {
+        read:   true,
+        add:    false,
+        update: true,
+        delete: true
+      }
+    });
+    var table2 = new azure.Table({
+      accountId:    table.options.accountId,
+      sas:          sas
+    });
+    var pk = 'test-pk-' + Math.random();
+    var rk = 'rk';
+    return table2.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             rk,
+      value:              'some-value',
+    }).catch(function(err) {
+      // Apparently it's not a 403, don't know why they return ResourceNotFound
+      assert(400 <= err.statusCode && err.statusCode < 500);
+    });
+  });
+
+  test("Shared-Access-Signature (will refresh)", function() {
+    var refreshCount = 0;
+    var refreshSAS = function() {
+      refreshCount += 1;
+      return table.sas(tableName, {
+        expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+        permissions: {
+          read:   true,
+          add:    true,
+          update: true,
+          delete: true
+        }
+      });
+    };
+    var table2 = new azure.Table({
+      accountId:        table.options.accountId,
+      sas:              refreshSAS,
+      minSASAuthExpiry: 15 * 60 * 1000
+    });
+    var pk = 'test-pk-' + Math.random();
+    return table2.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             'rk1',
+      value:              'some-value',
+    }).then(function() {
+      assert(refreshCount === 1);
+      return utils.sleep(200);
+    }).then(function() {
+      return table2.insertEntity(tableName, {
+        PartitionKey:       pk,
+        RowKey:             'rk2',
+        value:              'some-value',
+      });
+    }).then(function() {
+      assert(refreshCount === 2);
+    });
+  });
+
+  test("Shared-Access-Signature (won't refresh on every call)", function() {
+    var refreshCount = 0;
+    var refreshSAS = function() {
+      refreshCount += 1;
+      return table.sas(tableName, {
+        expiry:   new Date(Date.now() + 20 * 60 * 1000),
+        permissions: {
+          read:   true,
+          add:    true,
+          update: true,
+          delete: true
+        }
+      });
+    };
+    var table2 = new azure.Table({
+      accountId:        table.options.accountId,
+      sas:              refreshSAS,
+      minSASAuthExpiry: 15 * 60 * 1000
+    });
+    var pk = 'test-pk-' + Math.random();
+    return table2.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             'rk1',
+      value:              'some-value',
+    }).then(function() {
+      assert(refreshCount === 1);
+      return utils.sleep(200);
+    }).then(function() {
+      return table2.insertEntity(tableName, {
+        PartitionKey:       pk,
+        RowKey:             'rk2',
+        value:              'some-value',
+      });
+    }).then(function() {
+      assert(refreshCount === 1);
+    });
+  });
+
+  test("Shared-Access-Signature (async refresh)", function() {
+    var refreshCount = 0;
+    var refreshSAS = function() {
+      refreshCount += 1;
+      return utils.sleep(100).then(function() {
+        return table.sas(tableName, {
+          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+          permissions: {
+            read:   true,
+            add:    true,
+            update: true,
+            delete: true
+          }
+        });
+      });
+    };
+    var table2 = new azure.Table({
+      accountId:        table.options.accountId,
+      sas:              refreshSAS,
+      minSASAuthExpiry: 15 * 60 * 1000
+    });
+    var pk = 'test-pk-' + Math.random();
+    return table2.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             'rk1',
+      value:              'some-value',
+    }).then(function() {
+      assert(refreshCount === 1);
+      return utils.sleep(200);
+    }).then(function() {
+      return Promise.all([
+        table2.insertEntity(tableName, {
+          PartitionKey:       pk,
+          RowKey:             'rk2',
+          value:              'some-value',
+        }),
+        table2.insertEntity(tableName, {
+          PartitionKey:       pk,
+          RowKey:             'rk3',
+          value:              'some-value',
+        })
+      ]);
+    }).then(function() {
+      // Refreshes should only happen once, not twice in parallel
+      assert(refreshCount === 2);
+    });
+  });
 });
