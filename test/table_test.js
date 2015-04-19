@@ -2,7 +2,6 @@ suite("Table", function() {
   var assert  = require('assert');
   var Promise = require('promise');
   var azure   = require('../');
-  var utils   = require('../lib/utils');
 
   // Create azure table client
   var table = new azure.Table({
@@ -11,7 +10,8 @@ suite("Table", function() {
   });
 
   // Table name for testing
-  var tableName = 'fastAzureStorageTestTable';
+  var tableName     = 'fastAzureStorageTestTable';
+  var tempTableName = "fastAzureStorageTmpTestTable";
 
   test("createTable", function() {
     return table.createTable(tableName).catch(function(err) {
@@ -23,7 +23,6 @@ suite("Table", function() {
   });
 
   test("createTable, deleteTable", function() {
-    var tempTableName = "fastAzureStorageTmpTestTable";
     return table.createTable(tempTableName).then(function() {
       return table.deleteTable(tempTableName);
     }).catch(function(err) {
@@ -653,7 +652,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return azure.utils.sleep(200);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -691,7 +690,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return azure.utils.sleep(200);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -707,7 +706,7 @@ suite("Table", function() {
     var refreshCount = 0;
     var refreshSAS = function() {
       refreshCount += 1;
-      return utils.sleep(100).then(function() {
+      return azure.utils.sleep(100).then(function() {
         return table.sas(tableName, {
           expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
           permissions: {
@@ -731,7 +730,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return azure.utils.sleep(200);
     }).then(function() {
       return Promise.all([
         table2.insertEntity(tableName, {
