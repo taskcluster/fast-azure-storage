@@ -4,10 +4,8 @@ suite("Queue", function() {
 
   // Create azure queue client
   var queue = new azure.Queue({
-    credentials: {
-      accountId:  process.env.AZURE_STORAGE_ACCOUNT,
-      accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
-    }
+    accountId:  process.env.AZURE_STORAGE_ACCOUNT,
+    accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
   });
 
   test("createQueue", function() {
