@@ -2,6 +2,7 @@ suite("Table", function() {
   var assert  = require('assert');
   var Promise = require('promise');
   var azure   = require('../');
+  var utils   = require('../lib/utils');
 
   // Create azure table client
   var table = new azure.Table({
@@ -652,7 +653,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -690,7 +691,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -706,7 +707,7 @@ suite("Table", function() {
     var refreshCount = 0;
     var refreshSAS = function() {
       refreshCount += 1;
-      return azure.utils.sleep(100).then(function() {
+      return utils.sleep(100).then(function() {
         return table.sas(tableName, {
           expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
           permissions: {
@@ -730,7 +731,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return Promise.all([
         table2.insertEntity(tableName, {
@@ -747,6 +748,32 @@ suite("Table", function() {
     }).then(function() {
       // Refreshes should only happen once, not twice in parallel
       assert(refreshCount === 2);
+    });
+  });
+
+  test("Retries up to 5 times", function() {
+    var request = utils.request;
+    var requestCount = 0;
+    utils.request = function() {
+      requestCount += 1;
+      return utils.sleep(100).then(function() {
+        var err = new Error('ECONNRESET');
+        err.code = 'ECONNRESET';
+        throw err;
+      });
+    };
+    var pk = 'test-pk-' + Math.random();
+    return table.insertEntity(tableName, {
+      PartitionKey:       pk,
+      RowKey:             'rk1',
+      value:              'some-value',
+    }).then(function() {
+      utils.request = request;
+      assert(false, "Expected an error");
+    }, function(err) {
+      utils.request = request;
+      assert(err.code === 'ECONNRESET');
+      assert(requestCount === 6, "Expected 1 request + 5 retries");
     });
   });
 });

@@ -2,6 +2,7 @@ suite("Queue", function() {
   var assert  = require('assert');
   var Promise = require('promise');
   var azure   = require('../');
+  var utils   = require('../lib/utils');
 
   // Create azure queue client
   var queue = new azure.Queue({
@@ -62,7 +63,6 @@ suite("Queue", function() {
       assert(myQueue.metadata.purpose === 'testing');
     });
   });
-
 
   test("getMetadata", function() {
     return queue.getMetadata(queueName).then(function(result) {
@@ -243,7 +243,7 @@ suite("Queue", function() {
     });
     return queue2.putMessage(queueName, 'my-message').then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return queue2.putMessage(queueName, 'my-message')
     }).then(function() {
@@ -272,7 +272,7 @@ suite("Queue", function() {
     });
     return queue2.putMessage(queueName, 'my-message').then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return queue2.putMessage(queueName, 'my-message')
     }).then(function() {
@@ -284,7 +284,7 @@ suite("Queue", function() {
     var refreshCount = 0;
     var refreshSAS = function() {
       refreshCount += 1;
-      return azure.utils.sleep(100).then(function() {
+      return utils.sleep(100).then(function() {
         return queue.sas(queueName, {
           expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
           permissions: {
@@ -303,7 +303,7 @@ suite("Queue", function() {
     });
     return queue2.putMessage(queueName, 'my-message').then(function() {
       assert(refreshCount === 1);
-      return azure.utils.sleep(200);
+      return utils.sleep(200);
     }).then(function() {
       return Promise.all([
         queue2.putMessage(queueName, 'my-message-1'),
@@ -311,6 +311,27 @@ suite("Queue", function() {
       ]);
     }).then(function() {
       assert(refreshCount === 2);
+    });
+  });
+
+  test("Retries up to 5 times", function() {
+    var request = utils.request;
+    var requestCount = 0;
+    utils.request = function() {
+      requestCount += 1;
+      return utils.sleep(100).then(function() {
+        var err = new Error('ECONNRESET');
+        err.code = 'ECONNRESET';
+        throw err;
+      });
+    };
+    return queue.clearMessages(queueName).then(function() {
+      utils.request = request;
+      assert(false, "Expected an error");
+    }, function(err) {
+      utils.request = request;
+      assert(err.code === 'ECONNRESET');
+      assert(requestCount === 6, "Expected 1 request + 5 retries");
     });
   });
 });
