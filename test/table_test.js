@@ -245,7 +245,7 @@ suite("Table", function() {
   test("updateEntity (Insert or Replace) - insert", function() {
     var pk = 'test-pk-' + Math.random();
     var rk = 'rk';
-    return table.updateEntity(tableName, pk, rk, {
+    return table.updateEntity(tableName, {
       PartitionKey: pk,
       RowKey:       rk,
       value:        'my-string'
@@ -268,7 +268,7 @@ suite("Table", function() {
       RowKey:       rk,
       value:        'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         value:        'new-string'
@@ -292,7 +292,7 @@ suite("Table", function() {
       RowKey:       rk,
       value:        'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         value:        'new-string'
@@ -311,7 +311,7 @@ suite("Table", function() {
   test("updateEntity (Replace if exists) - missing", function() {
     var pk = 'test-pk-' + Math.random();
     var rk = 'rk';
-    return table.updateEntity(tableName, pk, rk, {
+    return table.updateEntity(tableName, {
       PartitionKey: pk,
       RowKey:       rk,
       value:        'new-string'
@@ -333,7 +333,7 @@ suite("Table", function() {
       RowKey:       rk,
       value:        'old-string'
     }).then(function(eTagAfterInsert) {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         value:        'new-string'
@@ -357,7 +357,7 @@ suite("Table", function() {
       RowKey:       rk,
       value:        'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         value:        'new-string'
@@ -377,7 +377,7 @@ suite("Table", function() {
   test("updateEntity (Insert or Merge) - insert", function() {
     var pk = 'test-pk-' + Math.random();
     var rk = 'rk';
-    return table.updateEntity(tableName, pk, rk, {
+    return table.updateEntity(tableName, {
       PartitionKey: pk,
       RowKey:       rk,
       value:        'my-string'
@@ -401,7 +401,7 @@ suite("Table", function() {
       newvalue:     'old-string',
       oldvalue:     'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         newvalue:     'new-string'
@@ -427,7 +427,7 @@ suite("Table", function() {
       newvalue:     'old-string',
       oldvalue:     'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         newvalue:     'new-string'
@@ -447,7 +447,7 @@ suite("Table", function() {
   test("updateEntity (Merge if exists) - missing", function() {
     var pk = 'test-pk-' + Math.random();
     var rk = 'rk';
-    return table.updateEntity(tableName, pk, rk, {
+    return table.updateEntity(tableName, {
       PartitionKey: pk,
       RowKey:       rk,
       newvalue:     'new-string'
@@ -470,7 +470,7 @@ suite("Table", function() {
       newvalue:     'old-string',
       oldvalue:     'old-string'
     }).then(function(eTagAfterInsert) {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         newvalue:     'new-string'
@@ -496,7 +496,7 @@ suite("Table", function() {
       newvalue:     'old-string',
       oldvalue:     'old-string'
     }).then(function() {
-      return table.updateEntity(tableName, pk, rk, {
+      return table.updateEntity(tableName, {
         PartitionKey: pk,
         RowKey:       rk,
         newvalue:     'new-string'
