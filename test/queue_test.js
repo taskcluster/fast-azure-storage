@@ -13,11 +13,13 @@ suite("Queue", function() {
   var queueName     = 'fast-azure-test-queue';
   var tempQueueName = 'fast-azure-test-tmp-queue';
 
-  test("createQueue", function() {
-    return queue.createQueue(queueName);
+  test("createQueue w. meta-data", function() {
+    return queue.createQueue(queueName, {
+      purpose:    'testing'
+    });
   });
 
-  test("createQueue/deleteQueue", function() {
+  test("createQueue without metadata, deleteQueue", function() {
     return queue.createQueue(tempQueueName).then(function() {
       return queue.deleteQueue(tempQueueName);
     }).catch(function(err) {
@@ -29,7 +31,9 @@ suite("Queue", function() {
   });
 
   test("listQueues w. meta-data", function() {
-    return queue.listQueues({metadata: true}).then(function(result) {
+    return queue.listQueues({
+      metadata: true
+    }).then(function(result) {
       assert(result.queues.length > 0);
     });
   });
@@ -42,6 +46,38 @@ suite("Queue", function() {
     });
   });
 
+  test("listQueues w. prefix, meta-data", function() {
+    return queue.listQueues({
+      prefix:   queueName.substr(0, queueName.length - 5),
+      metadata: true
+    }).then(function(result) {
+      assert(result.queues.length > 0);
+      var myQueue = null;
+      result.queues.forEach(function(queue) {
+        if (queue.name === queueName) {
+          myQueue = queue;
+        }
+      });
+      assert(myQueue, "Expected to find the test queue");
+      assert(myQueue.metadata.purpose === 'testing');
+    });
+  });
+
+
+  test("getMetadata", function() {
+    return queue.getMetadata(queueName).then(function(result) {
+      assert(result.metadata.purpose === 'testing');
+    });
+  });
+
+  test("setMetadata", function() {
+    // Don't actually want to change the meta-data as it would affect the
+    // createQueue test case...
+    return queue.setMetadata(queueName, {
+      purpose:  'testing'
+    });
+  });
+
   test("putMessage", function() {
     return queue.putMessage(queueName, 'my-message');
   });
@@ -50,6 +86,13 @@ suite("Queue", function() {
     return queue.putMessage(queueName, 'my-message2', {
       visibilityTimeout:    60,
       TTL:                  120
+    });
+  });
+
+  test("getMetadata (messageCount > 0)", function() {
+    return queue.getMetadata(queueName).then(function(result) {
+      assert(typeof(result.messageCount) === 'number');
+      assert(result.messageCount > 0);
     });
   });
 
