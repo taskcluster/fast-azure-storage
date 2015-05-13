@@ -776,4 +776,72 @@ suite("Table", function() {
       assert(requestCount === 6, "Expected 1 request + 5 retries");
     });
   });
+
+  test("azure.Table.Operators.string (plain)", function() {
+    var val = azure.Table.Operators.string("test");
+    var expected = "'test'";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.string (quote)", function() {
+    var val = azure.Table.Operators.string("that's");
+    var expected = "'that''s'";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.number (int)", function() {
+    var val = azure.Table.Operators.number(42);
+    var expected = "42";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.number (-int)", function() {
+    var val = azure.Table.Operators.number(-42);
+    var expected = "-42";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.number (float)", function() {
+    var val = azure.Table.Operators.number(3.14);
+    var expected = "3.14";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.bool (true)", function() {
+    var val = azure.Table.Operators.bool(true);
+    var expected = "true";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.bool (false)", function() {
+    var val = azure.Table.Operators.bool(false);
+    var expected = "false";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.bool (undefined)", function() {
+    var val = azure.Table.Operators.bool(undefined);
+    var expected = "false";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.bool (null)", function() {
+    var val = azure.Table.Operators.bool(null);
+    var expected = "false";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.date", function() {
+    var d = new Date('2015-05-13T06:37:32.150Z');
+    var val = azure.Table.Operators.date(d);
+    var expected = "datetime'2015-05-13T06:37:32.150Z'";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
+
+  test("azure.Table.Operators.guid", function() {
+    var uuid = 'de305d54-75b4-431b-adb2-eb6b9e546014';
+    var val = azure.Table.Operators.guid(uuid);
+    var expected = "guid'de305d54-75b4-431b-adb2-eb6b9e546014'";
+    assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
+  });
 });
