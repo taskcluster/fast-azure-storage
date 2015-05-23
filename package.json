@@ -6,7 +6,7 @@
   "license":      "MPL-2.0",
   "main":         "lib/index.js",
   "scripts": {
-    "test":       "mocha test/*.js",
+    "test":       "mocha test/*.js && eslint lib/",
     "docs":       "jsdoc -c docs.json"
   },
   "repository": {
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "mocha":                            "^2.2.1",
-    "jsdoc":                            "^3.3.0-beta3"
+    "jsdoc":                            "^3.3.0-beta3",
+    "eslint":                           "^0.17.1"
   }
 }
