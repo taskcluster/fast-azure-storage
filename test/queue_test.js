@@ -70,6 +70,15 @@ suite("Queue", function() {
     });
   });
 
+  test("getMetadata (from non-existent queue)", function() {
+    return queue.getMetadata(queueName + '-missing').then(function() {
+      assert(false, "Expected an error here");
+    }, function(err) {
+      // Bug in azure API means that we don't get an error code here
+      assert(err.statusCode === 404, "Expected 404");
+    });
+  });
+
   test("setMetadata", function() {
     // Don't actually want to change the meta-data as it would affect the
     // createQueue test case...
