@@ -74,7 +74,7 @@ suite("Queue", function() {
     return queue.getMetadata(queueName + '-missing').then(function() {
       assert(false, "Expected an error here");
     }, function(err) {
-      // Bug in azure API means that we don't get an error code here
+      // Because this is a HEAD request, we don't get anything but status code
       assert(err.statusCode === 404, "Expected 404");
     });
   });
