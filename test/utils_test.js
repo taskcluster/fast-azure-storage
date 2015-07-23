@@ -2,6 +2,59 @@ suite("Utils", function() {
   var assert  = require('assert');
   var Promise = require('promise');
   var utils   = require('../lib/utils');
+  var https   = require('https');
+  var fs      = require('fs');
+  var path    = require('path');
+
+  // Server for testing utils.request
+  var server = null;
+  before(function() {
+    server = https.createServer({
+      key:  fs.readFileSync(path.join(__dirname, 'certs', 'server.key')),
+      cert: fs.readFileSync(path.join(__dirname, 'certs', 'server.crt'))
+    });
+
+    server.on('request', function (req, res) {
+      if (req.url === '/hello') {
+        res.writeHead(200, {
+          'content-type': 'plain/text'
+        });
+        res.end("Hello World");
+      }
+
+      if (req.url === '/delayed-header') {
+        setTimeout(function() {
+          res.writeHead(200, {
+            'content-type': 'plain/text'
+          });
+          res.end("Delayed Hello");
+        }, 500);
+      }
+
+      if (req.url === '/delayed-body') {
+        res.writeHead(200, {
+          'content-type': 'plain/text'
+        });
+        setTimeout(function() {
+          res.end("Delayed Hello");
+        }, 500);
+      }
+    });
+
+    return new Promise(function(accept, reject) {
+      server.on('listening', accept);
+      server.on('error', reject);
+      server.listen(61037);
+    });
+  });
+
+  after(function() {
+    return new Promise(function(accept, reject) {
+      server.on('close', accept);
+      server.on('error', reject);
+      server.close();
+    });
+  });
 
   test("sleep", function() {
     var start = Date.now();
@@ -94,6 +147,77 @@ suite("Utils", function() {
       transientErrorCodes:  ['MyTransientError']
     }).then(function() {
       assert(count === 4, "Expected that only the last time worked");
+    });
+  });
+
+  test("request", function() {
+    return utils.request({
+      host:               'localhost',
+      port:               61037,
+      method:             'get',
+      path:               '/hello',
+      headers:            {},
+      rejectUnauthorized: false
+    }, undefined, 700).then(function(res) {
+      assert(res.payload === 'Hello World', "Expected a greeting!");
+    });
+  });
+
+  test("request (delayed-header)", function() {
+    return utils.request({
+      host:               'localhost',
+      port:               61037,
+      method:             'get',
+      path:               '/delayed-header',
+      headers:            {},
+      rejectUnauthorized: false
+    }, undefined, 700).then(function(res) {
+      assert(res.payload === 'Delayed Hello', "Expected a greeting!");
+    });
+  });
+
+  test("request (delayed-body)", function() {
+    return utils.request({
+      host:               'localhost',
+      port:               61037,
+      method:             'get',
+      path:               '/delayed-body',
+      headers:            {},
+      rejectUnauthorized: false
+    }, undefined, 700).then(function(res) {
+      assert(res.payload === 'Delayed Hello', "Expected a greeting!");
+    });
+  });
+
+  test("request (delayed-header - timeout)", function() {
+    return utils.request({
+      host:               'localhost',
+      port:               61037,
+      method:             'get',
+      path:               '/delayed-header',
+      headers:            {},
+      rejectUnauthorized: false
+    }, undefined, 300).then(function() {
+      assert(false, "Expected an error");
+    }, function(err) {
+      assert(utils.TRANSIENT_HTTP_ERROR_CODES.indexOf(err.code) !== -1,
+             "Expected a transient error");
+    });
+  });
+
+  test("request (delayed-body - timeout)", function() {
+    return utils.request({
+      host:               'localhost',
+      port:               61037,
+      method:             'get',
+      path:               '/delayed-body',
+      headers:            {},
+      rejectUnauthorized: false
+    }, undefined, 300).then(function() {
+      assert(false, "Expected an error");
+    }, function(err) {
+      assert(utils.TRANSIENT_HTTP_ERROR_CODES.indexOf(err.code) !== -1,
+             "Expected a transient error");
     });
   });
 
