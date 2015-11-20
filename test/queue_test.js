@@ -211,6 +211,32 @@ suite("Queue", function() {
     });
   });
 
+  test("clear, put, get, update, delete messages", function() {
+    var savedMessage;
+    return queue.clearMessages(queueName).then(function() {
+      return queue.putMessage(queueName, 'my-message7');
+    }).then(function() {
+      return queue.getMessages(queueName, {
+        visibilityTimeout:    120
+      });
+    }).then(function(messages) {
+      assert(messages.length > 0);
+      var msg = savedMessage = messages.pop();
+      assert(msg.messageText === 'my-message7');
+      return queue.updateMessage(
+        queueName, 'my-message8',
+        msg.messageId, msg.popReceipt, {
+        visibilityTimeout: 120
+      });
+    }).then(function(updateResult) {
+      return queue.deleteMessage(
+        queueName,
+        savedMessage.messageId,
+        updateResult.popReceipt
+      );
+    });
+  });
+
   test("Shared-Access-Signature (fixed string, w. start)", function() {
     var sas = queue.sas(queueName, {
       start:    new Date(Date.now() - 15 * 60 * 1000),
