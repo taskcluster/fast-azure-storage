@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>lib/queue.js - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.1</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>lib/queue.js <small>File</small></h1>
+</div>
+
+<div class="file">
+    <pre class="prettyprint linenums">
+&#x27;use strict&#x27;;
+
+var assert      = require(&#x27;assert&#x27;);
+var debug       = require(&#x27;debug&#x27;)(&#x27;azure:queue&#x27;);
+var Promise     = require(&#x27;promise&#x27;);
+var querystring = require(&#x27;querystring&#x27;);
+var crypto      = require(&#x27;crypto&#x27;);
+var events      = require(&#x27;events&#x27;);
+var util        = require(&#x27;util&#x27;);
+var agent       = require(&#x27;./agent&#x27;);
+var utils       = require(&#x27;./utils&#x27;);
+var xml         = require(&#x27;./xml-parser&#x27;);
+
+/*
+ * Azure storage service version
+ * @const
+ */
+var SERVICE_VERSION = &#x27;2015-04-05&#x27;;
+
+/* Transient error codes (we&#x27;ll retry request when encountering these codes */
+var TRANSIENT_ERROR_CODES = [
+  // Error code for when we encounter a 5xx error, but the XML document doesn&#x27;t
+  // have a code property, or we fail to parse the XML payload. This is unlikely
+  // to happen unless you have an HTTP proxy that returns 5xx for some reason.
+  &#x27;InternalErrorWithoutCode&#x27;,
+
+  // Azure error codes we should retry on according to azure docs
+  &#x27;InternalError&#x27;,
+  &#x27;ServerBusy&#x27;
+].concat(utils.TRANSIENT_HTTP_ERROR_CODES);
+
+/*
+ * List of x-ms-* headers supported in lexicographical order, used for
+ * construction of the canonicalized headers.
+ */
+var X_MS_HEADERS_SUPPORTED = [
+  &#x27;x-ms-client-request-id&#x27;,
+  &#x27;x-ms-date&#x27;,
+  &#x27;x-ms-version&#x27;
+].sort();
+
+/*
+ * List of query-string parameter supported in lexicographical order, used for
+ * construction of the canonicalized resource.
+ */
+var QUERY_PARAMS_SUPPORTED = [
+  &#x27;timeout&#x27;,
+  &#x27;comp&#x27;,
+  &#x27;prefix&#x27;,
+  &#x27;marker&#x27;,
+  &#x27;maxresults&#x27;,
+  &#x27;include&#x27;,
+  &#x27;messagettl&#x27;,
+  &#x27;visibilitytimeout&#x27;,
+  &#x27;numofmessages&#x27;,
+  &#x27;peekonly&#x27;,
+  &#x27;popreceipt&#x27;
+].sort();
+
+/*
+ * Authorize the request with shared key
+ * Intended to define &#x60;Queue.prototype.authorize&#x60;.
+ */
+var authorizeWithSharedKey = function (method, path, query, headers) {
+  // Find account id
+  var accountId = this.options.accountId;
+
+  // Build string to sign
+  var stringToSign = (
+    method + &#x27;\n&#x27; +
+    (headers[&#x27;content-encoding&#x27;]     || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;content-language&#x27;]     || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;content-length&#x27;]       || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;content-md5&#x27;]          || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;content-type&#x27;]         || &#x27;&#x27;) + &#x27;\n&#x27; +
+    &#x27;\n&#x27; + // we always include x-ms-date, so we never specify date header
+    (headers[&#x27;if-modified-since&#x27;]    || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;if-match&#x27;]             || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;if-none-match&#x27;]        || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;if-unmodified-since&#x27;]  || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;range&#x27;]                || &#x27;&#x27;)
+  );
+
+  // Check if we have meta-data header fields, if we don&#x27;t we can use a
+  // presorted list of headers which doesn&#x27;t involve any allocations.
+  // Otherwise, we callback to building a list of &#x27;x-ms-&#x27; prefixed headers and
+  // sorting it.
+  var hasMetadata = false;
+  for (var field in headers) {
+    hasMetadata = hasMetadata || /^x-ms-meta/.test(field);
+  }
+  var fields;
+  if (hasMetadata) {
+    // Construct fields as a sorted list of &#x27;x-ms-&#x27; prefixed headers
+    fields = [];
+    for (var field in headers) {
+      if (/^x-ms-/.test(field)) {
+        fields.push(field);
+      }
+    }
+    fields.sort();
+  } else {
+    // Fields used in most API methods presorted in lexicographical order.
+    fields = X_MS_HEADERS_SUPPORTED;
+  }
+
+  // Add lines for canonicalized headers using presorted list of fields
+  var N = fields.length;
+  for(var i = 0; i &lt; N; i++) {
+    var field = fields[i];
+    var value = headers[field];
+    if (value) {
+      stringToSign += &#x27;\n&#x27; + field + &#x27;:&#x27; + value;
+    }
+  }
+
+  // Added lines from canonicalized resource and query-string parameters
+  // supported by this library in lexicographical order as presorted in
+  // QUERY_PARAMS_SUPPORTED
+  stringToSign += &#x27;\n/&#x27; + accountId + path;
+  var M = QUERY_PARAMS_SUPPORTED.length;
+  for(var j = 0; j &lt; M; j++) {
+    var param = QUERY_PARAMS_SUPPORTED[j];
+    var value = query[param];
+    if (value) {
+      stringToSign += &#x27;\n&#x27; + param + &#x27;:&#x27; + value;
+    }
+  }
+
+  // Compute signature
+  var signature = crypto
+                    .createHmac(&#x27;sha256&#x27;, this._accessKey)
+                    .update(stringToSign)
+                    .digest(&#x27;base64&#x27;);
+
+  // Set authorization header
+  headers.authorization = &#x27;SharedKey &#x27; + accountId + &#x27;:&#x27; + signature;
+
+  // Encode query string
+  var qs = querystring.stringify(query);
+
+  // Construct request options
+  return Promise.resolve({
+    host:       this.hostname,
+    method:     method,
+    path:       (qs.length &gt; 0 ? path + &#x27;?&#x27; + qs : path),
+    headers:    headers,
+    agent:      this.options.agent,
+  });
+}
+
+/*
+ * Authorize the request with a shared-access-signature that is refreshed with
+ * the a function given as &#x60;options.sas&#x60;.
+ * Intended to define &#x60;Queue.prototype.authorize&#x60;.
+ */
+function authorizeWithRefreshSAS(method, path, query, headers) {
+  var self = this;
+  // Check if we should refresh SAS
+  if (Date.now() &gt; this._nextSASRefresh &amp;&amp; this._nextSASRefresh !== 0) {
+    debug(&quot;Refreshing shared-access-signature&quot;);
+    // Avoid refreshing more than once
+    this._nextSASRefresh = 0;
+    // Refresh SAS
+    this._sas = Promise.resolve(this.options.sas());
+    // Update _nextSASRefresh when the SAS has been refreshed
+    this._sas.then(function(sas) {
+      sas = querystring.parse(sas);
+      // Find next sas refresh time
+      self._nextSASRefresh = (
+        new Date(sas.se).getTime() - self.options.minSASAuthExpiry
+      );
+      debug(&quot;Refreshed shared-access-signature, will refresh in %s ms&quot;,
+            self._nextSASRefresh);
+      // Throw an error if the signature expiration comes too soon
+      if (Date.now() &gt; self._nextSASRefresh) {
+        throw new Error(&quot;Refreshed SAS, but got a Shared-Access-Signature &quot; +
+                        &quot;that expires less than options.minSASAuthExpiry &quot; +
+                        &quot;from now, signature expiry: &quot; + sas.se);
+      }
+    }).catch(function(err) {
+      // If we have an error freshing SAS that&#x27;s bad and we&#x27;ll emit it; for most
+      // apps it&#x27;s probably best to ignore this error and just crash.
+      self.emit(&#x27;error&#x27;, err);
+    });
+  }
+
+  // Construct request options, whenever the &#x60;_sas&#x60; promise is resolved.
+  return this._sas.then(function(sas) {
+    // Serialize query-string
+    var qs = querystring.stringify(query);
+    if (qs.length &gt; 0) {
+      qs += &#x27;&amp;&#x27;;
+    }
+    qs += sas
+    return {
+      host:       self.hostname,
+      method:     method,
+      path:       path + &#x27;?&#x27; + qs,
+      headers:    headers,
+      agent:      self.options.agent,
+    };
+  });
+}
+
+/*
+ * Authorize the request with a shared-access-signature that is given with
+ * &#x60;options.sas&#x60; as string.
+ * Intended to define &#x60;Queue.prototype.authorize&#x60;.
+ */
+function authorizeWithSAS(method, path, query, headers) {
+  // Serialize query-string
+  var qs = querystring.stringify(query);
+  if (qs.length &gt; 0) {
+    qs += &#x27;&amp;&#x27;;
+  }
+  qs += this.options.sas;
+  // Construct request options
+  return Promise.resolve({
+    host:       this.hostname,
+    method:     method,
+    path:       path + &#x27;?&#x27; + qs,
+    headers:    headers,
+    agent:      this.options.agent,
+  });
+}
+
+/**
+ * Queue client class for interacting with Azure Queue Storage.
+ *
+ * @class Queue
+ * @constructor
+ * @param {object} options - options on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   // Value for the x-ms-version header fixing the API version
+ *   version:              SERVICE_VERSION,
+ *
+ *   // Value for the x-ms-client-request-id header identifying the client
+ *   clientId:             &#x27;fast-azure-storage&#x27;,
+ *
+ *   // Server-side request timeout
+ *   timeout:              30 * 1000,
+ *
+ *   // Delay between client- and server-side timeout
+ *   clientTimeoutDelay:   500,
+ *
+ *   // HTTP Agent to use (defaults to a global azure.Agent instance)
+ *   agent:                azure.Agent.globalAgent,
+ *
+ *   // Max number of request retries
+ *   retries:              5,
+ *
+ *   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+ *   delayFactor:          100,
+ *
+ *   // Maximum retry delay in ms (defaults to 30 seconds)
+ *   maxDelay:             30 * 1000,
+ *
+ *   // Error codes for which we should retry
+ *   transientErrorCodes:  TRANSIENT_ERROR_CODES,
+ *
+ *   // Azure storage accountId (required)
+ *   accountId:            undefined,
+ *
+ *   // Azure shared accessKey, required unless options.sas is given
+ *   accessKey:            undefined,
+ *
+ *   // Function that returns SAS string or promise for SAS string, in which
+ *   // case we will refresh SAS when a request occurs less than
+ *   // minSASAuthExpiry from signature expiry. This property may also be a
+ *   // SAS string.
+ *   sas:                  undefined,
+ *
+ *   // Minimum SAS expiry before refreshing SAS credentials, if a function for
+ *   // refreshing SAS credentials is given as options.sas
+ *   minSASAuthExpiry:     15 * 60 * 1000
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+function Queue(options) {
+  // Initialize EventEmitter parent class
+  events.EventEmitter.call(this);
+
+  // Set default options
+  this.options = {
+    version:              SERVICE_VERSION,
+    clientId:             &#x27;fast-azure-storage&#x27;,
+    timeout:              30 * 1000,
+    clientTimeoutDelay:   500,
+    agent:                agent.globalAgent,
+    retries:              5,
+    delayFactor:          100,
+    maxDelay:             30 * 1000,
+    transientErrorCodes:  TRANSIENT_ERROR_CODES,
+    accountId:            undefined,
+    accessKey:            undefined,
+    sas:                  undefined,
+    minSASAuthExpiry:     15 * 60 * 1000,
+  };
+
+  // Overwrite default options
+  for (var key in options) {
+    if (options.hasOwnProperty(key) &amp;&amp; options[key] !== undefined) {
+      this.options[key] = options[key];
+    }
+  }
+
+  // Validate options
+  assert(this.options.accountId, &quot;&#x60;options.accountId&#x60; must be given&quot;);
+
+  // Construct hostname
+  this.hostname = this.options.accountId + &#x27;.queue.core.windows.net&#x27;;
+
+  // Compute &#x60;timeout&#x60; for client-side timeout (in ms), and &#x60;timeoutInSeconds&#x60;
+  // for server-side timeout in seconds.
+  this.timeout = this.options.timeout + this.options.clientTimeoutDelay;
+  this.timeoutInSeconds = Math.floor(this.options.timeout / 1000);
+
+  // Define &#x60;this.authorize&#x60;
+  if (this.options.accessKey) {
+    // If set authorize to use shared key signatures
+    this.authorize = authorizeWithSharedKey;
+    // Decode accessKey
+    this._accessKey = new Buffer(this.options.accessKey, &#x27;base64&#x27;);
+  } else if (this.options.sas instanceof Function) {
+    // Set authorize to use shared-access-signatures with refresh function
+    this.authorize = authorizeWithRefreshSAS;
+    // Set state with _nextSASRefresh = -1, we&#x27;ll refresh on the first request
+    this._nextSASRefresh = -1;
+    this._sas = &#x27;&#x27;;
+  } else if (typeof(this.options.sas) === &#x27;string&#x27;) {
+    // Set authorize to use shared-access-signature as hardcoded
+    this.authorize = authorizeWithSAS;
+  } else {
+    throw new Error(&quot;Either options.accessKey, options.sas as function or &quot; +
+                    &quot;options.sas as string must be given!&quot;);
+  }
+};
+
+// Export Queue
+module.exports = Queue;
+
+// Subclass EventEmitter
+util.inherits(Queue, events.EventEmitter);
+
+/**
+ * Generate a SAS string on the form &#x60;&#x27;key1=val1&amp;key2=val2&amp;...&#x27;&#x60;.
+ *
+ * @method sas
+ * @param {string} queue - Name of queue that this SAS string applies to.
+ * @param {object} options - Options for the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   start:           new Date(), // Time from which signature is valid
+ *   expiry:          new Date(), // Expiration of signature (required)
+ *   permissions: {               // Set of permissions delegated (required)
+ *     read:          false,      // Read meta-data and peek messages
+ *     add:           false,      // Add new messages
+ *     update:        false,      // Update messages (after get messages)
+ *     process:       false       // Process messages (get and delete messages)
+ *   },
+ *   accessPolicy:    &#x27;...&#x27;       // Reference to stored access policy
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {string} Shared-Access-Signature on string form.
+ */
+Queue.prototype.sas = function sas(queue, options) {
+  assert(options, &quot;options is required&quot;);
+  assert(options.expiry instanceof Date,
+         &quot;options.expiry must be a Date object&quot;);
+  assert(options.permissions, &quot;options.permissions is required&quot;);
+
+  // Check that we have credentials
+  if (!this.options.accountId ||
+      !this.options.accessKey) {
+    throw new Error(&quot;accountId and accessKey are required for SAS creation!&quot;);
+  }
+
+  // Construct permissions string (in correct order)
+  var permissions = &#x27;&#x27;;
+  if (options.permissions.read)     permissions += &#x27;r&#x27;;
+  if (options.permissions.add)      permissions += &#x27;a&#x27;;
+  if (options.permissions.update)   permissions += &#x27;u&#x27;;
+  if (options.permissions.process)  permissions += &#x27;p&#x27;;
+
+  // Construct query-string with required parameters
+  var query = {
+    sv:   SERVICE_VERSION,
+    se:   utils.dateToISOWithoutMS(options.expiry),
+    sp:   permissions,
+    spr:  &#x27;https&#x27;,
+    sig:  null
+  };
+
+  // Add optional parameters to query-string
+  if (options.start) {
+    assert(options.start instanceof Date,
+           &quot;if specified start must be a Date object&quot;);
+    query.st = utils.dateToISOWithoutMS(options.start);
+  }
+  if (options.accessPolicy) {
+    query.se = options.accessPolicy;
+  }
+
+  // Construct string to sign
+  var stringToSign = [
+    query.sp,
+    query.st  || &#x27;&#x27;,
+    query.se,
+    &#x27;/queue/&#x27; + this.options.accountId.toLowerCase() + &#x27;/&#x27; + queue,
+    query.si  || &#x27;&#x27;,
+    &#x27;&#x27;, // TODO: Support signed IP addresses
+    query.spr,
+    query.sv
+  ].join(&#x27;\n&#x27;);
+
+  // Compute signature
+  query.sig = crypto
+                .createHmac(&#x27;sha256&#x27;, this._accessKey)
+                .update(stringToSign)
+                .digest(&#x27;base64&#x27;);
+
+  // Return Shared-Access-Signature as query-string
+  return querystring.stringify(query);
+};
+
+/**
+ * Construct authorized request options by adding signature or
+ * shared-access-signature, return promise for the request options.
+ *
+ * @protected
+ * @method authorize
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on queue resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @returns {Promise} A promise for an options object compatible with
+ * &#x60;https.request&#x60;.
+ */
+Queue.prototype.authorize = function(method, path, query, headers) {
+  throw new Error(&quot;authorize is not implemented, must be defined!&quot;);
+};
+
+/**
+ * Make a signed request to &#x60;path&#x60; using &#x60;method&#x60; in upper-case and all &#x60;query&#x60;
+ * parameters and &#x60;headers&#x60; keys in lower-case. The request will carry &#x60;data&#x60;
+ * as payload and will be retried using the configured retry policy,
+ *
+ * @private
+ * @method request
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on queue resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @param {string} data - String data to send as UTF-8 payload.
+ * @return {Promise} A promise for HTTPS response with &#x60;payload&#x60; property as
+ * string containing the response payload.
+ */
+Queue.prototype.request = function request(method, path, query, headers, data) {
+  // Set timeout, if not provided
+  if (query.timeout === undefined) {
+    query.timeout = this.timeoutInSeconds;
+  }
+
+  // Set date, version and client-request-id headers
+  headers[&#x27;x-ms-date&#x27;]              = new Date().toUTCString();
+  headers[&#x27;x-ms-version&#x27;]           = this.options.version;
+  headers[&#x27;x-ms-client-request-id&#x27;] = this.options.clientId;
+
+  // Set content-length, if data is given
+  if (data &amp;&amp; data.length &gt; 0) {
+    headers[&#x27;content-length&#x27;] = Buffer.byteLength(data, &#x27;utf-8&#x27;);
+  }
+
+  // Construct authorized request options with shared key signature or
+  // shared-access-signature.
+  var self = this;
+  return this.authorize(method, path, query, headers).then(function(options) {
+    // Retry with retry policy
+    return utils.retry(function(retry) {
+      debug(&quot;Request: %s %s, retry: %s&quot;, method, path, retry);
+
+      // Construct a promise chain first handling the request, and then parsing
+      // any potential error message
+      return utils.request(options, data, self.timeout).then(function(res) {
+        // Accept the response if it&#x27;s 2xx, otherwise we construct and
+        // throw an error
+        if (200 &lt;= res.statusCode &amp;&amp; res.statusCode &lt; 300) {
+          return res;
+        }
+
+        // Parse error message
+        var data = xml.queueParseError(res);
+
+        // Construct error object
+        var err         = new Error(data.message);
+        err.name        = data.code + &#x27;Error&#x27;;
+        err.code        = data.code;
+        err.statusCode  = res.statusCode;
+        err.detail      = data.detail;
+        err.payload     = res.payload;
+        err.retries     = retry;
+
+        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
+              err.code, method, path, retry);
+
+        // Throw the constructed error
+        throw err;
+      });
+    }, self.options);
+  });
+};
+
+/**
+ * List queues under the storage account.
+ *
+ * @method listQueues
+ * @param {object} options -  &#x60;options&#x60; on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   prefix:          &#x27;&#x27;,     // Prefix of queues to list
+ *   marker:          &#x27;&#x27;,     // Marker to list queues from
+ *   maxResults:      5000,   // Max number of results
+ *   metadata:        false   // Whether or not to include metadata
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   queues: [
+ *     {
+ *       name:       &#x27;...&#x27;,      // Name of queue
+ *       metadata:   {}          // Meta-data dictionary if requested
+ *     }
+ *   ],
+ *   prefix:         &#x27;...&#x27;,      // prefix given in options (if given)
+ *   marker:         &#x27;...&#x27;,      // marker given in options (if given)
+ *   maxResults:     5000,       // maxResults given in options (if given)
+ *   nextMarker:     &#x27;...&#x27;       // Next marker if not at end of list
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Queue.prototype.listQueues = function listQueues(options) {
+  // Ensure options
+  options = options || {};
+
+  // Construct query string
+  var query = {
+    comp: &#x27;list&#x27;
+  };
+  if (options.prefix)     query.prefix      = options.prefix;
+  if (options.marker)     query.marker      = options.marker;
+  if (options.maxResults) query.maxresults  = options.maxResults;
+  if (options.metadata)   query.include     = &#x27;metadata&#x27;;
+
+  // Send request with retry policy
+  return this.request(&#x27;GET&#x27;, &#x27;/&#x27;, query, {}).then(xml.queueParseListQueues);
+};
+
+// TODO: Implement someday when we need it:
+// Queue.prototype.getServiceProperties = function getServiceProperties() {};
+// Queue.prototype.setServiceProperties = function setServiceProperties() {};
+// Queue.prototype.getServiceStats = function getServiceStats() {};
+// Queue.prototype.setServiceStats = function setServiceStats() {};
+
+/**
+ * Create queue with given &#x60;name&#x60;, returns promise that resolves to &#x60;true&#x60;, if
+ * the queue didn&#x27;t already exist. Do not rely on this behavior unless you
+ * disable the retry logic. Note, if queue exists with different
+ * meta-data an error will be thrown.
+ *
+ * @method createQueue
+ * @param {string} queue - Name of queue to create.
+ * @param {object} metadata - Mapping from metadata keys to values.
+ * @returns {Promise} A promise that queue has been created.
+ */
+Queue.prototype.createQueue = function createQueue(name, metadata) {
+  // Construct headers
+  var headers = {};
+  for(var key in metadata) {
+    if (metadata.hasOwnProperty(key)) {
+      headers[&#x27;x-ms-meta-&#x27; + key] = metadata[key];
+    }
+  }
+  return this.request(&#x27;PUT&#x27;, &#x27;/&#x27; + name, {}, headers).then(function(res) {
+    // Queue was created
+    if (res.statusCode === 201) {
+      return true;
+    }
+
+    // Identical queue already existed, or was created in a failed request
+    // that we retried.
+    if (res.statusCode === 204) {
+      return false;
+    }
+
+    throw new Error(&quot;createQueue: Unexpected statusCode: &quot; + res.statusCode);
+  });
+};
+
+/**
+ * Delete queue, return promise queue is deleted.
+ * Note, Azure may take a while to garbage collect the queue, see documentation
+ * for relevant details, if you plan to recreate the queue again.
+ *
+ * @method deleteQueue
+ * @param {string} queue - Name of queue to delete.
+ * @returns {Promise} A promise that the queue has been marked for deletion.
+ */
+Queue.prototype.deleteQueue = function deleteQueue(name) {
+  return this.request(&#x27;DELETE&#x27;, &#x27;/&#x27; + name, {}, {}).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;deleteQueue: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+/**
+ * Get meta-data for given &#x60;queue&#x60;. This includes approximate message count,
+ * note that the approximate message is an upper-bound on the number of messages
+ * in the queue.
+ *
+ * Warning, this is a &#x60;HEAD&#x60; request, so if the queue is missing you get an
+ * error with &#x60;err.statusCode = 404&#x60;, but &#x60;err.code&#x60; property will be
+ * &#x60;ErrorWithoutCode&#x60;. The same goes for all other error codes.
+ *
+ * @method getMetadata
+ * @param {string} queue - Name of queue to get meta-data from.
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   messageCount:   50,         // Upper-bound on message count
+ *   metadata: {                 // Mapping from meta-data keys to values
+ *     &#x27;&lt;key&gt;&#x27;:      &#x27;&lt;value&gt;&#x27;,  // Meta-data key/value pair
+ *     ...
+ *   }
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Queue.prototype.getMetadata = function getMetadata(queue) {
+  // Construct path for queue
+  var path = &#x27;/&#x27; + queue;
+  // Construct query-string
+  var query = {comp: &#x27;metadata&#x27;};
+  // Send request with retry policy
+  return this.request(&#x27;HEAD&#x27;, path, query, {}).then(function(res) {
+    if (res.statusCode !== 200) {
+      throw new Error(&quot;getMetadata: Unexpected statusCode: &quot; + res.statusCode);
+    }
+    // Extract meta-data
+    var metadata = {};
+    for(var field in res.headers) {
+      if (/x-ms-meta-/.test(field)) {
+        metadata[field.substr(10)] = res.headers[field];
+      }
+    }
+    return {
+      messageCount: parseInt(res.headers[&#x27;x-ms-approximate-messages-count&#x27;]),
+      metadata:     metadata
+    };
+  });
+};
+
+/**
+ * Set meta-data for given &#x60;queue&#x60;, note that this overwrites all existing
+ * meta-data key/value pairs.
+ *
+ * @method setMetadata
+ * @param {string} queue - Name of queue to set meta-data on.
+ * @param {object} metadata - Mapping from meta-data keys to values.
+ * @returns {Promise} A promise that the meta-data was set.
+ */
+Queue.prototype.setMetadata = function setMetadata(queue, metadata) {
+  // Construct path for queue
+  var path = &#x27;/&#x27; + queue;
+  // Construct query-string
+  var query = {comp: &#x27;metadata&#x27;};
+  // Construct headers
+  var headers = {};
+  for(var key in metadata) {
+    if (metadata.hasOwnProperty(key)) {
+      headers[&#x27;x-ms-meta-&#x27; + key] = metadata[key];
+    }
+  }
+  // Send request with retry policy
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;setMetadata: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+// TODO: Implement someday when we need it:
+// Queue.prototype.getQueueACL = function getQueueACL() {};
+// Queue.prototype.setQueueACL = function setQueueACL() {};
+
+/**
+ * Put a message with XML-safe &#x60;text&#x60; into &#x60;queue&#x60; with TTL and visibility-
+ * timeout, as given in &#x60;options&#x60;.
+ *
+ * Notice that the &#x60;text&#x60; must be XML-safe, for JSON it&#x27;s useful to base64
+ * encode the message. This is what many other libraries does, so make sense for
+ * interoperability. Encoding this way is trivial in node.js:
+ * &#x60;&#x60;&#x60;js
+ * var text = new Buffer(JSON.stringify(jsonMessage)).toString(&#x27;base64&#x27;);
+ * &#x60;&#x60;&#x60;
+ *
+ * @method putMessage
+ * @param {string} queue - Name of queue to put message into.
+ * @param {string} text - XML-safe string to send.
+ * @param {object} options - options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds
+ *   messageTTL:           7 * 24 * 60 * 60  // Message Time-To-Live in seconds
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise that the messages was inserted in the queue.
+ */
+Queue.prototype.putMessage = function putMessage(queue, text, options) {
+  // Construct path for queue
+  var path = &#x27;/&#x27; + queue + &#x27;/messages&#x27;;
+  // Construct query-string
+  var query = {};
+  if (options &amp;&amp; options.visibilityTimeout !== undefined) {
+    query.visibilitytimeout = &#x27;&#x27; + options.visibilityTimeout;
+  }
+  if (options &amp;&amp; options.messageTTL !== undefined) {
+    query.messagettl = &#x27;&#x27; + options.messageTTL;
+  }
+  // Construct payload
+  var data = &#x27;&lt;QueueMessage&gt;&lt;MessageText&gt;&#x27; + text +
+             &#x27;&lt;/MessageText&gt;&lt;/QueueMessage&gt;&#x27;;
+  // Send request with retry policy
+  return this.request(&#x27;POST&#x27;, path, query, {}, data).then(function(res) {
+    if (res.statusCode !== 201) {
+      throw new Error(&quot;putMessage: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+/**
+ * Peek messages from &#x60;queue&#x60;, returns up to &#x60;options.numberOfMessages&#x60;, note,
+ * that Azure Queue Storage only allows up to 32 messages at once.
+ *
+ * Note, Azure may return zero messages giving you an empty array. This is not
+ * necessarily proof the that the queue is empty. See REST documentation for
+ * consistency levels.
+ *
+ * @method peekMessages
+ * @param {string} queue - Name of queue to peek messages from.
+ * @param {object} options - &#x60;options&#x60; on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   numberOfMessages:       1    // Max number of messages to peek
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an array of messages on the following form:
+ * &#x60;&#x60;&#x60;js
+ * [
+ *   {
+ *     messageId:        &#x27;...&#x27;,      // Message id as string
+ *     insertionTime:    new Date(), // Insertion time as Date object
+ *     expirationTime:   new Date(), // Expiration time as Date object
+ *     dequeueCount:     1,          // Message dequeue count
+ *     messageText:      &#x27;...&#x27;       // Message text (however, you encoded it)
+ *   },
+ *   ...
+ * ]
+ * &#x60;&#x60;&#x60;
+ */
+Queue.prototype.peekMessages = function peekMessages(queue, options) {
+  // Construct path
+  var path = &#x27;/&#x27; + queue + &#x27;/messages&#x27;;
+
+  // Construct query string from options
+  var query = {peekonly: &#x27;true&#x27;};
+  if (options &amp;&amp; options.numberOfMessages !== undefined) {
+    query.numofmessages = &#x27;&#x27; + options.numberOfMessages;
+  }
+
+  // Send request with retry policy
+  return this.request(&#x27;GET&#x27;, path, query, {}).then(xml.queueParsePeekMessages);
+};
+
+/**
+ * Get messages from &#x60;queue&#x60;, returns up to &#x60;options.numberOfMessages&#x60; of
+ * messages, note, that Azure Queue Storage only allows up to 32 messages per
+ * request.
+ * See, &#x60;deleteMessage&#x60; for how to delete messages once you have processed them.
+ *
+ * Note, Azure may return zero messages giving you an empty array. This is not
+ * necessarily proof the that the queue is empty. See REST documentation for
+ * consistency levels.
+ *
+ * @method getMessages
+ * @param {string} queue - Name of queue to get messages from.
+ * @param {object} options - &#x60;options&#x60; on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   numberOfMessages:       1,   // Max number of messages to claim (max 32)
+ *   visibilityTimeout:      30   // Seconds to messages becomes visible again
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an array of messages on the following form:
+ * &#x60;&#x60;&#x60;js
+ * [
+ *   {
+ *     messageId:        &#x27;...&#x27;,      // Message id as string
+ *     insertionTime:    new Date(), // Insertion time as Date object
+ *     expirationTime:   new Date(), // Expiration time as Date object
+ *     dequeueCount:     1,          // Message dequeue count
+ *     messageText:      &#x27;...&#x27;,      // Message text (however, you encoded it)
+ *     popReceipt:       &#x27;...&#x27;,      // Opaque string for deleting the message
+ *     timeNextVisible:  new Date()  // Next time visible as Date object
+ *   },
+ *   ...
+ * ]
+ * &#x60;&#x60;&#x60;
+ */
+Queue.prototype.getMessages = function getMessages(queue, options) {
+  // Construct path
+  var path = &#x27;/&#x27; + queue + &#x27;/messages&#x27;;
+
+  // Construct query string from options
+  var query = {};
+  if (options &amp;&amp; options.numberOfMessages !== undefined) {
+    query.numofmessages = &#x27;&#x27; + options.numberOfMessages;
+  }
+  if (options &amp;&amp; options.visibilityTimeout !== undefined) {
+    query.visibilitytimeout = &#x27;&#x27; + options.visibilityTimeout;
+  }
+
+  // Send request with retry policy
+  return this.request(&#x27;GET&#x27;, path, query, {}).then(xml.queueParseGetMessages);
+};
+
+/**
+ * Delete a message from &#x60;queue&#x60; using &#x60;messageId&#x60; and &#x60;popReceipt&#x60;
+ *
+ * @method deleteMessage
+ * @param {string} queue - Name of queue to delete message from
+ * @param {string} messageId - Message identifier for message to delete, this
+ * identifier is given when you call &#x60;getMessages&#x60;.
+ * @param {string} popReceipt - Opaque token &#x60;popReceipt&#x60; that was given by
+ * &#x60;getMessages&#x60; when you received the message.
+ * @returns {Promise} A promise that the message has been deleted.
+ */
+Queue.prototype.deleteMessage = function deleteMessage(queue, messageId,
+                                                       popReceipt) {
+  assert(messageId, &quot;messageId must be given!&quot;);
+
+  // Construct path
+  var path = &#x27;/&#x27; + queue + &#x27;/messages/&#x27; + messageId;
+
+  // Construct query-string
+  var query = {popreceipt: popReceipt};
+
+  // Send request with retry policy
+  return this.request(&#x27;DELETE&#x27;, path, query, {}).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;deleteMessage: Unexpected statusCode: &quot; +
+                      res.statusCode);
+    }
+  });
+};
+
+/**
+ * Clear all messages from &#x60;queue&#x60;, note this may timeout if there is a lot of
+ * messages in the queue, in this case you&#x27;ll get a error with the code:
+ * &#x60;OperationTimedOut&#x60;, and you should retry until the operation is successful.
+ * See Azure Queue Storage REST API documentation for details.
+ *
+ * @method clearMessages
+ * @param {string} queue - Name of queue to clear all messages from.
+ * @returns {Promise} A promise that messages have been cleared.
+ */
+Queue.prototype.clearMessages = function clearMessages(queue) {
+  // Construct path
+  var path = &#x27;/&#x27; + queue + &#x27;/messages&#x27;;
+  return this.request(&#x27;DELETE&#x27;, path, {}, {}).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;deleteMessage: Unexpected statusCode: &quot; +
+                      res.statusCode);
+    }
+  });
+};
+
+/**
+ * Update a message from &#x60;queue&#x60; with XML-safe &#x60;text&#x60; and visibility-timeout,
+ * as given in &#x60;options&#x60;.
+ *
+ * Notice that the &#x60;text&#x60; must be XML-safe, for JSON it&#x27;s useful to base64
+ * encode the message. This is what many other libraries does, so make sense for
+ * interoperability. Encoding this way is trivial in node.js:
+ * &#x60;&#x60;&#x60;js
+ * var text = new Buffer(JSON.stringify(jsonMessage)).toString(&#x27;base64&#x27;);
+ * &#x60;&#x60;&#x60;
+ *
+ * @method updateMessage
+ * @param {string} queue - Name of queue in which you wish to update a message.
+ * @param {string} text - XML-safe UTF-8 text to set on the message.
+ * @param {string} messageId - MessageId as received from &#x60;getMessages&#x60;.
+ * @param {string} popReceipt - Opaque token as given by &#x60;getMessages&#x60;.
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds
+ * }
+ * &#x60;&#x60;&#x60;
+ * @return {Promise} A promise that the message has been updated.
+ */
+Queue.prototype.updateMessage = function updateMessage(queue, text, messageId,
+                                                       popReceipt, options) {
+  // Construct path for queue
+  var path = &#x27;/&#x27; + queue + &#x27;/messages/&#x27; + messageId;
+  // Construct query-string
+  var query = {popreceipt: popReceipt};
+  if (options &amp;&amp; options.visibilityTimeout !== undefined) {
+    query.visibilitytimeout = &#x27;&#x27; + options.visibilityTimeout;
+  }
+  // Construct payload
+  var data = &#x27;&lt;QueueMessage&gt;&lt;MessageText&gt;&#x27; + text +
+             &#x27;&lt;/MessageText&gt;&lt;/QueueMessage&gt;&#x27;;
+  // Send request with retry policy
+  return this.request(&#x27;PUT&#x27;, path, query, {}, data).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;updateMessage: Unexpected statusCode: &quot;
+                      + res.statusCode);
+    }
+    return {
+      popReceipt: res.headers[&#x27;x-ms-popreceipt&#x27;]
+    };
+  });
+};
+
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>

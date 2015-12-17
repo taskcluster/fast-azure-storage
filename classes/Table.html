@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Table - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.1</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>Table</h1>
+</div>
+
+
+
+	<div class="well well-small">
+            Module: <a href="../modules/azure.html">azure</a>
+    </div>
+
+
+
+<div class="yuidoc-class-description">
+<p>Table client class for interacting with Azure Table Storage.</p>
+<p>Subclasses <code>EventEmitter</code> and emits the <code>error</code> event on failure to refresh
+shared-access-signature, if <code>options.sas</code> is a function.</p>
+
+</div>
+
+<!-- table of contents -->
+
+<div id="class-toc" class="page-section">
+	<h2>Table of Contents</h2>
+    <ul>
+		<li>
+			<strong>Methods</strong>
+			<ul>
+				<li><a href="#method-authorize"><span class="im">authorize</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span>)</a></li>
+				<li><a href="#method-createTable"><span class="im">createTable</span>(<span class="ia">name</span>)</a></li>
+				<li><a href="#method-deleteEntity"><span class="im">deleteEntity</span>(<span class="ia">table</span><span class="ia">partitionKey</span><span class="ia">rowKey</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-deleteTable"><span class="im">deleteTable</span>(<span class="ia">name</span>)</a></li>
+				<li><a href="#method-filter"><span class="im">filter</span>(<span class="ia">expression</span>)</a></li>
+				<li><a href="#method-getEntity"><span class="im">getEntity</span>(<span class="ia">table</span><span class="ia">partitionKey</span><span class="ia">rowKey</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-insertEntity"><span class="im">insertEntity</span>(<span class="ia">table</span><span class="ia">entity</span>)</a></li>
+				<li><a href="#method-queryEntitites"><span class="im">queryEntitites</span>(<span class="ia">table</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-queryTables"><span class="im">queryTables</span>(<span class="ia">options</span>)</a></li>
+				<li><a href="#method-request"><span class="im">request</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span><span class="ia">json</span>)</a></li>
+				<li><a href="#method-sas"><span class="im">sas</span>(<span class="ia">table</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-updateEntity"><span class="im">updateEntity</span>(<span class="ia">table</span><span class="ia">options</span>)</a></li>
+			</ul>
+		</li>
+
+
+		<li>
+			<strong>Attributes</strong>
+			<ul>
+				<li><a href="#attr-Operators"><span class="iattr">Operators</span></a></li>
+			</ul>
+		</li>
+
+	</ul>
+</div>
+
+<!-- details -->
+
+    <div class="constructor yuidoc-class-constructor page-section">
+        <h2>Constructor</h2>
+        <div class="item-list">
+<div id="method-Table" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>Table</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l152"><code>lib&#x2F;table.js:152</code></a>
+		</p>
+
+
+
+	</div>
+
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  // Value for the <code>x-ms-version</code> header fixing the API version
+  version:              '2014-02-14',
+
+  // OData Service version, must work with API version, refer to azure
+  // documentation. This just specifies the <code>DataServiceVersion</code> header.
+  dataServiceVersion:   '3.0',
+
+  // Value for the x-ms-client-request-id header identifying the client
+  clientId:             'fast-azure-storage',
+
+  // Server-side request timeout
+  timeout:              30 * 1000,
+
+  // Delay between client- and server-side timeout
+  clientTimeoutDelay:   500,
+
+  // Set meta-data level for responses (use full to get eTag in queryEntities)
+  metadata:             'fullmetadata',
+
+  // HTTP Agent to use (defaults to a global azure.Agent instance)
+  agent:                agent.globalAgent,
+
+  // Max number of request retries
+  retries:              5,
+
+  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+  delayFactor:          100,
+
+  // Maximum retry delay in ms (defaults to 30 seconds)
+  maxDelay:             30 * 1000,
+
+  // Error codes for which we should retry
+  transientErrorCodes:  TRANSIENT_ERROR_CODES,
+
+  // Azure storage accountId (required)
+  accountId:            undefined,
+
+  // Azure shared accessKey, required unless options.sas is given
+  accessKey:            undefined,
+
+  // Function that returns SAS string or promise for SAS string, in which
+  // case we will refresh SAS when a request occurs less than
+  // minSASAuthExpiry from signature expiry. This property may also be a
+  // SAS string.
+  sas:                  undefined,
+
+  // Minimum SAS expiry before refreshing SAS credentials, if a function for
+  // refreshing SAS credentials is given as options.sas
+  minSASAuthExpiry:     15 * 60 * 1000
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+
+</div>
+        </div>
+    </div>
+
+    <div id="methods" class="page-section">
+        <h2 class="off-left">Methods</h2>
+        <div class="item-list">
+<div id="method-authorize" class="method item protected">
+	<div class="method-signature">
+	<span class="name"><code>authorize</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag protected">protected</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l393"><code>lib&#x2F;table.js:393</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Construct authorized request options by adding signature or
+shared-access-signature, return promise for the request options.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on table resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an options object compatible with
+<code>https.request</code>.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-createTable" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>createTable</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l538"><code>lib&#x2F;table.js:538</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Create table with given <code>name</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to create.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the table was created.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteEntity" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteEntity</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>partitionKey</code>
+				</li>
+				<li class="arg">
+						<code>rowKey</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l916"><code>lib&#x2F;table.js:916</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Delete entity identified by <code>partitionKey</code> and <code>rowKey</code> from <code>table</code>.
+Options are <strong>required</strong> for this method and takes form as follows:</p>
+<pre class="code prettyprint"><code class="language-js">{
+  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag
+}
+</code></pre>
+<p>Note, <code>options.eTag</code> is <code>'*'</code> will delete the entity regardless of its ETag.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to delete entity from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">partitionKey</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Partition key of entity to delete.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">rowKey</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Row key of entity to delete.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the entity was deleted.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteTable" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteTable</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l561"><code>lib&#x2F;table.js:561</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Delete table with given <code>name</code></p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to delete.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the table was marked for deletion.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-filter" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>filter</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>expression</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">String</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l579"><code>lib&#x2F;table.js:579</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Convert nested array structure to filter string.
+See <code>Table.Operators</code> for details and examples.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">expression</code>
+						<span class="type">Array</span>
+
+
+					<div class="param-description"><ul>
+<li>Array of arrays, keys, operators and formatted
+constants that forms an expression, where arrays becomes parenthesis:</li>
+</ul>
+<pre><code class="language-js">var op = azure.Table.Operators;
+var filter = azure.Table.filter([
+ ['key1', op.Equal, op.string('my-string')],
+  op.And,
+ ['key2', op.LessThan, op.date(new Date())]
+]) // "((key1 eq 'my-string') and (key2 le datetime'...'))"
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">String</span>:
+					<p>A filter string for use with <code>queryEntities</code>.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getEntity" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getEntity</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>partitionKey</code>
+				</li>
+				<li class="arg">
+						<code>rowKey</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l681"><code>lib&#x2F;table.js:681</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get entity from <code>table</code> with given <code>partitionKey</code> and <code>rowKey</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to get entity from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">partitionKey</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Partition key of entity to get.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">rowKey</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Row key of entity to get.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  select:  ['key1', ...],  // List of keys to return (defaults to all)
+  filter:  '...'           // Filter string for conditional load
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for the entity, form of the object depends on the meta-data
+level configured and if <code>select</code> as employed. See Azure documentation for
+details.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-insertEntity" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>insertEntity</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>entity</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l804"><code>lib&#x2F;table.js:804</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Insert <code>entity</code> into <code>table</code>, the <code>entity</code> object must be on the format
+accepted by azure table storage. See Azure Table Storage documentation for
+details. Essentially, data-types will be inferred if <code>...@odata.type</code>
+properties aren't specified. Also note that <code>PartitionKey</code> and <code>RowKey</code>
+properties must be specified.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table insert entity into.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">entity</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Entity object, see Azure Table Storage
+documentation for details on how to annotate types.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for the <code>etag</code> of the inserted entity.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-queryEntitites" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>queryEntitites</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l726"><code>lib&#x2F;table.js:726</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Query entities from <code>table</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to query entities for.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  // Query options:
+  select:            ['key1', ...],  // Keys to $select (defaults to all)
+  filter:            'key1 eq true', // $filter string, see Table.filter
+  top:               1000,           // Max number of entities to return
+
+  // Paging options:
+  nextPartitionKey:  '...',          // nextPartitionKey from previous result
+  nextRowKey:        '...'           // nextRowKey from previous result
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  entities: [
+    {
+      // Keys selected from entity and meta-data depending on meta-data level
+    },
+    ...
+  ],
+  nextPartitionKey: '...',  // Opaque token for paging
+  nextRowKey:       '...'   // Opaque token for paging
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-queryTables" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>queryTables</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l499"><code>lib&#x2F;table.js:499</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Query for tables on the storage account.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li><code>options</code> on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  nextTableName:      '...'  // nextTableName, if paging
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+ tables:         ['&lt;tableName&gt;', ...],
+ nextTableName:  '...',      // nextTableName if paging is necessary
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-request" class="method item private">
+	<div class="method-signature">
+	<span class="name"><code>request</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+				<li class="arg">
+						<code>json</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag private">private</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l410"><code>lib&#x2F;table.js:410</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Make a signed request to <code>path</code> using <code>method</code> in upper-case and all <code>query</code>
+parameters and <code>headers</code> keys in lower-case. The request will carry <code>json</code>
+as payload and will be retried using the configured retry policy.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on table resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">json</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Optional JSON object to send as payload.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for the HTTP response object with a <code>payload</code>
+property carrying the payload as string.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-sas" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>sas</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">String</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l289"><code>lib&#x2F;table.js:289</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Generate a SAS string on the form <code>'key1=val1&amp;key2=val2&amp;...'</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table that this SAS string applies to.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options for the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  start:           new Date(), // Time from which signature is valid
+  expiry:          new Date(), // Expiration of signature (required)
+  permissions: {               // Set of permissions delegated (required)
+    read:          false,      // Read entities
+    add:           false,      // Insert new entities
+    update:        false,      // Update entities
+    delete:        false       // Delete entities
+  },
+  first: {                     // Start of accessible range (optional)
+    partitionKey:  '...',      // First accessible partition key (required)
+    rowKey:        '...'       // First accessible row key (required)
+  },
+  last: {                      // End of accessible range (optional)
+    partitionKey:  '...',      // Last accessible partition key (required)
+    rowKey:        '...'       // Last accessible row key (required)
+  },
+  accessPolicy:    '...'       // Reference to stored access policy
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">String</span>:
+					<p>Shared-Access-Signature on string form.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-updateEntity" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>updateEntity</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>table</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_table.js.html#l835"><code>lib&#x2F;table.js:835</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Update entity from <code>table</code> identified by <code>entity.partitionKey</code> and
+<code>entity.rowKey</code>.
+Options are <strong>required</strong> for this method and takes form as follows:</p>
+<pre class="code prettyprint"><code class="language-js">{
+  mode:  'replace' || 'merge'  // Replace entity or merge entity
+  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert
+}
+</code></pre>
+<p>If <code>options.mode</code> is <code>'replace'</code> the remote entity will be completely
+replaced by the structure given as <code>entity</code>. If <code>options.mode</code> is <code>'merge'</code>
+properties from <code>entity</code> will overwrite existing properties on remote entity.</p>
+<p>If <strong><code>options.eTag</code> is not given</strong> (or <code>null</code>) the remote entity will be
+inserted if it does not exist, and otherwise replaced or merged depending
+on <code>mode</code>.</p>
+<p>If <strong><code>options.eTag</code> is the string <code>'*'</code></strong> the remote entity will be replaced
+or merged depending on <code>mode</code>, but it will not be inserted if it doesn't
+exist.</p>
+<p>If <strong><code>options.eTag</code> is a string</strong> (other than <code>'*'</code>) the remote entity will be
+replaced or merged depending on <code>mode</code>, if the ETag of the remote entity
+matches the string given in <code>options.eTag</code>.</p>
+<p>Combining <code>mode</code> and <code>eTag</code> options this method implements the following
+operations:</p>
+<ul>
+<li>Insert or replace (regardless of existence or ETag),</li>
+<li>Replace if exists (regardless of ETag),</li>
+<li>Replace if exists and has given ETag,</li>
+<li>Insert or merge (regardless of existence or ETag),</li>
+<li>Merge if exists (regardless of ETag), and</li>
+<li>Merge if exists and has given ETag.</li>
+</ul>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">table</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of table to update entity from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  mode:  'replace' || 'merge'  // Replace entity or merge entity
+  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for <code>eTag</code> of the modified entity.</p>
+
+			</div>
+		</div>
+
+</div>
+        </div>
+    </div>
+
+
+    <div id="attrs" class="page-section">
+        <h2 class="off-left">Attributes</h2>
+
+<div id="attr-Operators" class="attr item">
+    <a name="config_Operators"></a> 
+    <h3 class="name"><code>Operators</code></h3>
+    <span class="type"></span>
+
+
+
+        <span class="flag final">final</span>
+
+        <span class="flag static">static</span>
+
+
+
+
+    <div class="meta">
+                <p>
+                Defined in
+        <a href="../files/lib_table.js.html#l605"><code>lib&#x2F;table.js:605</code></a>
+        </p>
+
+
+    </div>
+
+    <div class="description">
+        <p>Operators and helpers for constructing $filter strings using <code>Table.filter</code>.</p>
+<p>We have the following comparison operators:</p>
+<ul>
+<li><code>azure.Table.Operators.Equal</code>,</li>
+<li><code>azure.Table.Operators.GreaterThan</code>,</li>
+<li><code>azure.Table.Operators.GreaterThanOrEqual</code>,</li>
+<li><code>azure.Table.Operators.LessThan</code>,</li>
+<li><code>azure.Table.Operators.LessThanOrEqual</code>, and</li>
+<li><code>azure.Table.Operators.NotEqual</code>.</li>
+</ul>
+<p>They should be used in the middle of a triple as follows:
+<code>['key1', op.Equal, op.string('my-string')]</code>.</p>
+<p>The boolean operators <code>And</code>, <code>Not</code> and <code>Or</code> should be used to connect
+triples made with comparison operators. Note, that each set of array brackets
+translates into a parentheses. Boolean operators:</p>
+<ul>
+<li><code>azure.Table.Operators.And</code>,</li>
+<li><code>azure.Table.Operators.Not</code>, and</li>
+<li><code>azure.Table.Operators.Or</code>.</li>
+</ul>
+<p>We also have formatting helpers, <code>string</code>, <code>number</code>, <code>bool</code>, <code>date</code> and
+<code>guid</code> which takes constant values and encodes them correctly for use in
+filter expression. It's strongly recommended that you employ these, as Azure
+has some undocumented and semi obscure escaping rules. Constant formatters:</p>
+<ul>
+<li><code>azure.Table.Operators.string("...")</code>,</li>
+<li><code>azure.Table.Operators.number(42.2)</code>,</li>
+<li><code>azure.Table.Operators.bool(true)</code>,</li>
+<li><code>azure.Table.Operators.date(new Date())</code>, and</li>
+<li><code>azure.Table.Operators.guid('...')</code>.</li>
+</ul>
+<p>Complete example:</p>
+<pre class="code prettyprint"><code class="language-js">var op = azure.Table.Operators;
+var filter = azure.Table.filter([
+ ['key1', op.Equal, op.string('my-string')],
+  op.And,
+ ['key2', op.LessThan, op.date(new Date())]
+]) // "((key1 eq 'my-string') and (key2 le datetime'...'))"
+</code></pre>
+
+    </div>
+
+
+
+</div>
+    </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>
