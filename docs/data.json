@@ -3,9 +3,16 @@
         "name": "fast-azure-storage",
         "description": "Fast client library for azure storage services",
         "url": "https://github.com/taskcluster/fast-azure-storage",
-        "version": "0.3.1"
+        "version": "0.3.2"
     },
     "files": {
+        "docs/assets/vendor/bootstrap/js/bootstrap.min.js": {
+            "name": "docs/assets/vendor/bootstrap/js/bootstrap.min.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
         "lib/agent.js": {
             "name": "lib/agent.js",
             "modules": {},
@@ -131,6 +138,12 @@
     },
     "elements": {},
     "classitems": [
+        {
+            "file": "docs/assets/vendor/bootstrap/js/bootstrap.min.js",
+            "line": 1,
+            "description": "Bootstrap.js by @fat & @mdo\nplugins: bootstrap-transition.js, bootstrap-modal.js, bootstrap-dropdown.js, bootstrap-scrollspy.js, bootstrap-tab.js, bootstrap-tooltip.js, bootstrap-popover.js, bootstrap-affix.js, bootstrap-alert.js, bootstrap-button.js, bootstrap-collapse.js, bootstrap-carousel.js, bootstrap-typeahead.js\nCopyright 2012 Twitter, Inc.\nhttp://www.apache.org/licenses/LICENSE-2.0.txt",
+            "class": "Agent"
+        },
         {
             "file": "lib/agent.js",
             "line": 64,
@@ -948,6 +961,10 @@
         {
             "message": "replacing incorrect tag: returns with return",
             "line": " lib/table.js:916"
+        },
+        {
+            "message": "Missing item type\nBootstrap.js by @fat & @mdo\nplugins: bootstrap-transition.js, bootstrap-modal.js, bootstrap-dropdown.js, bootstrap-scrollspy.js, bootstrap-tab.js, bootstrap-tooltip.js, bootstrap-popover.js, bootstrap-affix.js, bootstrap-alert.js, bootstrap-button.js, bootstrap-collapse.js, bootstrap-carousel.js, bootstrap-typeahead.js\nCopyright 2012 Twitter, Inc.\nhttp://www.apache.org/licenses/LICENSE-2.0.txt",
+            "line": " docs/assets/vendor/bootstrap/js/bootstrap.min.js:1"
         }
     ]
 }
