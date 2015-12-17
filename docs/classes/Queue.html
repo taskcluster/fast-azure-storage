@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Queue - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.1</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>Queue</h1>
+</div>
+
+
+
+	<div class="well well-small">
+            Module: <a href="../modules/azure.html">azure</a>
+    </div>
+
+
+
+<div class="yuidoc-class-description">
+<p>Queue client class for interacting with Azure Queue Storage.</p>
+
+</div>
+
+<!-- table of contents -->
+
+<div id="class-toc" class="page-section">
+	<h2>Table of Contents</h2>
+    <ul>
+		<li>
+			<strong>Methods</strong>
+			<ul>
+				<li><a href="#method-authorize"><span class="im">authorize</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span>)</a></li>
+				<li><a href="#method-clearMessages"><span class="im">clearMessages</span>(<span class="ia">queue</span>)</a></li>
+				<li><a href="#method-createQueue"><span class="im">createQueue</span>(<span class="ia">queue</span><span class="ia">metadata</span>)</a></li>
+				<li><a href="#method-deleteMessage"><span class="im">deleteMessage</span>(<span class="ia">queue</span><span class="ia">messageId</span><span class="ia">popReceipt</span>)</a></li>
+				<li><a href="#method-deleteQueue"><span class="im">deleteQueue</span>(<span class="ia">queue</span>)</a></li>
+				<li><a href="#method-getMessages"><span class="im">getMessages</span>(<span class="ia">queue</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getMetadata"><span class="im">getMetadata</span>(<span class="ia">queue</span>)</a></li>
+				<li><a href="#method-listQueues"><span class="im">listQueues</span>(<span class="ia">options</span>)</a></li>
+				<li><a href="#method-peekMessages"><span class="im">peekMessages</span>(<span class="ia">queue</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-putMessage"><span class="im">putMessage</span>(<span class="ia">queue</span><span class="ia">text</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-request"><span class="im">request</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span><span class="ia">data</span>)</a></li>
+				<li><a href="#method-sas"><span class="im">sas</span>(<span class="ia">queue</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setMetadata"><span class="im">setMetadata</span>(<span class="ia">queue</span><span class="ia">metadata</span>)</a></li>
+				<li><a href="#method-updateMessage"><span class="im">updateMessage</span>(<span class="ia">queue</span><span class="ia">text</span><span class="ia">messageId</span><span class="ia">popReceipt</span><span class="ia">options</span>)</a></li>
+			</ul>
+		</li>
+
+
+
+	</ul>
+</div>
+
+<!-- details -->
+
+    <div class="constructor yuidoc-class-constructor page-section">
+        <h2>Constructor</h2>
+        <div class="item-list">
+<div id="method-Queue" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>Queue</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l228"><code>lib&#x2F;queue.js:228</code></a>
+		</p>
+
+
+
+	</div>
+
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>options on the form:</li>
+</ul>
+<pre><code class="language-js">{
+  // Value for the x-ms-version header fixing the API version
+  version:              SERVICE_VERSION,
+
+  // Value for the x-ms-client-request-id header identifying the client
+  clientId:             'fast-azure-storage',
+
+  // Server-side request timeout
+  timeout:              30 * 1000,
+
+  // Delay between client- and server-side timeout
+  clientTimeoutDelay:   500,
+
+  // HTTP Agent to use (defaults to a global azure.Agent instance)
+  agent:                azure.Agent.globalAgent,
+
+  // Max number of request retries
+  retries:              5,
+
+  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+  delayFactor:          100,
+
+  // Maximum retry delay in ms (defaults to 30 seconds)
+  maxDelay:             30 * 1000,
+
+  // Error codes for which we should retry
+  transientErrorCodes:  TRANSIENT_ERROR_CODES,
+
+  // Azure storage accountId (required)
+  accountId:            undefined,
+
+  // Azure shared accessKey, required unless options.sas is given
+  accessKey:            undefined,
+
+  // Function that returns SAS string or promise for SAS string, in which
+  // case we will refresh SAS when a request occurs less than
+  // minSASAuthExpiry from signature expiry. This property may also be a
+  // SAS string.
+  sas:                  undefined,
+
+  // Minimum SAS expiry before refreshing SAS credentials, if a function for
+  // refreshing SAS credentials is given as options.sas
+  minSASAuthExpiry:     15 * 60 * 1000
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+
+</div>
+        </div>
+    </div>
+
+    <div id="methods" class="page-section">
+        <h2 class="off-left">Methods</h2>
+        <div class="item-list">
+<div id="method-authorize" class="method item protected">
+	<div class="method-signature">
+	<span class="name"><code>authorize</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag protected">protected</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l428"><code>lib&#x2F;queue.js:428</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Construct authorized request options by adding signature or
+shared-access-signature, return promise for the request options.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on queue resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an options object compatible with
+<code>https.request</code>.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-clearMessages" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>clearMessages</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l869"><code>lib&#x2F;queue.js:869</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Clear all messages from <code>queue</code>, note this may timeout if there is a lot of
+messages in the queue, in this case you'll get a error with the code:
+<code>OperationTimedOut</code>, and you should retry until the operation is successful.
+See Azure Queue Storage REST API documentation for details.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to clear all messages from.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that messages have been cleared.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-createQueue" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>createQueue</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>metadata</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l567"><code>lib&#x2F;queue.js:567</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Create queue with given <code>name</code>, returns promise that resolves to <code>true</code>, if
+the queue didn't already exist. Do not rely on this behavior unless you
+disable the retry logic. Note, if queue exists with different
+meta-data an error will be thrown.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to create.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">metadata</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from metadata keys to values.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that queue has been created.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteMessage" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteMessage</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>messageId</code>
+				</li>
+				<li class="arg">
+						<code>popReceipt</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l839"><code>lib&#x2F;queue.js:839</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Delete a message from <code>queue</code> using <code>messageId</code> and <code>popReceipt</code></p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to delete message from</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">messageId</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Message identifier for message to delete, this
+identifier is given when you call <code>getMessages</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">popReceipt</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Opaque token <code>popReceipt</code> that was given by
+<code>getMessages</code> when you received the message.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the message has been deleted.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteQueue" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteQueue</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l602"><code>lib&#x2F;queue.js:602</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Delete queue, return promise queue is deleted.
+Note, Azure may take a while to garbage collect the queue, see documentation
+for relevant details, if you plan to recreate the queue again.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to delete.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the queue has been marked for deletion.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getMessages" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getMessages</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l787"><code>lib&#x2F;queue.js:787</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get messages from <code>queue</code>, returns up to <code>options.numberOfMessages</code> of
+messages, note, that Azure Queue Storage only allows up to 32 messages per
+request.
+See, <code>deleteMessage</code> for how to delete messages once you have processed them.</p>
+<p>Note, Azure may return zero messages giving you an empty array. This is not
+necessarily proof the that the queue is empty. See REST documentation for
+consistency levels.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to get messages from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li><code>options</code> on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  numberOfMessages:       1,   // Max number of messages to claim (max 32)
+  visibilityTimeout:      30   // Seconds to messages becomes visible again
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an array of messages on the following form:</p>
+<pre><code class="language-js">[
+  {
+    messageId:        '...',      // Message id as string
+    insertionTime:    new Date(), // Insertion time as Date object
+    expirationTime:   new Date(), // Expiration time as Date object
+    dequeueCount:     1,          // Message dequeue count
+    messageText:      '...',      // Message text (however, you encoded it)
+    popReceipt:       '...',      // Opaque string for deleting the message
+    timeNextVisible:  new Date()  // Next time visible as Date object
+  },
+  ...
+]
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l619"><code>lib&#x2F;queue.js:619</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get meta-data for given <code>queue</code>. This includes approximate message count,
+note that the approximate message is an upper-bound on the number of messages
+in the queue.</p>
+<p>Warning, this is a <code>HEAD</code> request, so if the queue is missing you get an
+error with <code>err.statusCode = 404</code>, but <code>err.code</code> property will be
+<code>ErrorWithoutCode</code>. The same goes for all other error codes.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to get meta-data from.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  messageCount:   50,         // Upper-bound on message count
+  metadata: {                 // Mapping from meta-data keys to values
+    '&lt;key&gt;':      '&lt;value&gt;',  // Meta-data key/value pair
+    ...
+  }
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-listQueues" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>listQueues</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l515"><code>lib&#x2F;queue.js:515</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>List queues under the storage account.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li><code>options</code> on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  prefix:          '',     // Prefix of queues to list
+  marker:          '',     // Marker to list queues from
+  maxResults:      5000,   // Max number of results
+  metadata:        false   // Whether or not to include metadata
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  queues: [
+    {
+      name:       '...',      // Name of queue
+      metadata:   {}          // Meta-data dictionary if requested
+    }
+  ],
+  prefix:         '...',      // prefix given in options (if given)
+  marker:         '...',      // marker given in options (if given)
+  maxResults:     5000,       // maxResults given in options (if given)
+  nextMarker:     '...'       // Next marker if not at end of list
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-peekMessages" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>peekMessages</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l743"><code>lib&#x2F;queue.js:743</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Peek messages from <code>queue</code>, returns up to <code>options.numberOfMessages</code>, note,
+that Azure Queue Storage only allows up to 32 messages at once.</p>
+<p>Note, Azure may return zero messages giving you an empty array. This is not
+necessarily proof the that the queue is empty. See REST documentation for
+consistency levels.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to peek messages from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li><code>options</code> on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  numberOfMessages:       1    // Max number of messages to peek
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an array of messages on the following form:</p>
+<pre><code class="language-js">[
+  {
+    messageId:        '...',      // Message id as string
+    insertionTime:    new Date(), // Insertion time as Date object
+    expirationTime:   new Date(), // Expiration time as Date object
+    dequeueCount:     1,          // Message dequeue count
+    messageText:      '...'       // Message text (however, you encoded it)
+  },
+  ...
+]
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-putMessage" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>putMessage</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>text</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l698"><code>lib&#x2F;queue.js:698</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Put a message with XML-safe <code>text</code> into <code>queue</code> with TTL and visibility-
+timeout, as given in <code>options</code>.</p>
+<p>Notice that the <code>text</code> must be XML-safe, for JSON it's useful to base64
+encode the message. This is what many other libraries does, so make sense for
+interoperability. Encoding this way is trivial in node.js:</p>
+<pre class="code prettyprint"><code class="language-js">var text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');
+</code></pre>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to put message into.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">text</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>XML-safe string to send.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds
+  messageTTL:           7 * 24 * 60 * 60  // Message Time-To-Live in seconds
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the messages was inserted in the queue.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-request" class="method item private">
+	<div class="method-signature">
+	<span class="name"><code>request</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+				<li class="arg">
+						<code>data</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag private">private</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l445"><code>lib&#x2F;queue.js:445</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Make a signed request to <code>path</code> using <code>method</code> in upper-case and all <code>query</code>
+parameters and <code>headers</code> keys in lower-case. The request will carry <code>data</code>
+as payload and will be retried using the configured retry policy,</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on queue resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">data</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>String data to send as UTF-8 payload.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for HTTPS response with <code>payload</code> property as
+string containing the response payload.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-sas" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>sas</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">String</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l347"><code>lib&#x2F;queue.js:347</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Generate a SAS string on the form <code>'key1=val1&amp;key2=val2&amp;...'</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue that this SAS string applies to.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options for the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  start:           new Date(), // Time from which signature is valid
+  expiry:          new Date(), // Expiration of signature (required)
+  permissions: {               // Set of permissions delegated (required)
+    read:          false,      // Read meta-data and peek messages
+    add:           false,      // Add new messages
+    update:        false,      // Update messages (after get messages)
+    process:       false       // Process messages (get and delete messages)
+  },
+  accessPolicy:    '...'       // Reference to stored access policy
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">String</span>:
+					<p>Shared-Access-Signature on string form.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>metadata</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l665"><code>lib&#x2F;queue.js:665</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Set meta-data for given <code>queue</code>, note that this overwrites all existing
+meta-data key/value pairs.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue to set meta-data on.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">metadata</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from meta-data keys to values.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the meta-data was set.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-updateMessage" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>updateMessage</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>queue</code>
+				</li>
+				<li class="arg">
+						<code>text</code>
+				</li>
+				<li class="arg">
+						<code>messageId</code>
+				</li>
+				<li class="arg">
+						<code>popReceipt</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_queue.js.html#l890"><code>lib&#x2F;queue.js:890</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Update a message from <code>queue</code> with XML-safe <code>text</code> and visibility-timeout,
+as given in <code>options</code>.</p>
+<p>Notice that the <code>text</code> must be XML-safe, for JSON it's useful to base64
+encode the message. This is what many other libraries does, so make sense for
+interoperability. Encoding this way is trivial in node.js:</p>
+<pre class="code prettyprint"><code class="language-js">var text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');
+</code></pre>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">queue</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of queue in which you wish to update a message.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">text</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>XML-safe UTF-8 text to set on the message.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">messageId</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>MessageId as received from <code>getMessages</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">popReceipt</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Opaque token as given by <code>getMessages</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the message has been updated.</p>
+
+			</div>
+		</div>
+
+</div>
+        </div>
+    </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>

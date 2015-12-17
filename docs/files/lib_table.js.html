@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>lib/table.js - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.1</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>lib/table.js <small>File</small></h1>
+</div>
+
+<div class="file">
+    <pre class="prettyprint linenums">
+&#x27;use strict&#x27;;
+
+var assert      = require(&#x27;assert&#x27;);
+var debug       = require(&#x27;debug&#x27;)(&#x27;azure:table&#x27;);
+var Promise     = require(&#x27;promise&#x27;);
+var querystring = require(&#x27;querystring&#x27;);
+var crypto      = require(&#x27;crypto&#x27;);
+var events      = require(&#x27;events&#x27;);
+var util        = require(&#x27;util&#x27;);
+var agent       = require(&#x27;./agent&#x27;);
+var utils       = require(&#x27;./utils&#x27;);
+
+/* Transient error codes (we&#x27;ll retry request when encountering these codes */
+var TRANSIENT_ERROR_CODES = [
+  // Error code for when we encounter a 5xx error, but the XML document doesn&#x27;t
+  // have a code property, or we fail to parse the XML payload. This is unlikely
+  // to happen unless you have an HTTP proxy that returns 5xx for some reason.
+  &#x27;InternalErrorWithoutCode&#x27;,
+
+  // Azure error codes we should retry on according to azure docs
+  &#x27;InternalError&#x27;,
+  &#x27;ServerBusy&#x27;
+].concat(utils.TRANSIENT_HTTP_ERROR_CODES);
+
+
+/*
+ * Authorize the request with shared key
+ * Intended to define &#x60;Table.prototype.authorize&#x60;.
+ */
+var authorizeWithSharedKey = function (method, path, query, headers) {
+  // Find account id
+  var accountId = this.options.accountId;
+
+  // Build list of lines to sign, we&#x27;ll join with &#x27;\n&#x27; before signing the list
+  var stringToSign = (
+    method + &#x27;\n&#x27; +
+    (headers[&#x27;content-md5&#x27;]  || &#x27;&#x27;) + &#x27;\n&#x27; +
+    (headers[&#x27;content-type&#x27;] || &#x27;&#x27;) + &#x27;\n&#x27; +
+    headers[&#x27;x-ms-date&#x27;]
+  );
+
+  // Added lines from canonicalized resource and query-string parameters
+  // supported by this library in lexicographical order as presorted in
+  // QUERY_PARAMS_SUPPORTED
+  stringToSign += &#x27;\n/&#x27; + accountId + path;
+  if (query.comp !== undefined) {
+    stringToSign += &#x27;?comp=&#x27; + query.comp;
+  }
+
+  // Compute signature
+  var signature = crypto
+                    .createHmac(&#x27;sha256&#x27;, this._accessKey)
+                    .update(stringToSign)
+                    .digest(&#x27;base64&#x27;);
+
+  // Set authorization header
+  headers.authorization = &#x27;SharedKey &#x27; + accountId + &#x27;:&#x27; + signature;
+
+  // Encode query string
+  var qs = querystring.stringify(query);
+
+  // Construct request options
+  return Promise.resolve({
+    host:       this.hostname,
+    method:     method,
+    path:       (qs.length &gt; 0 ? path + &#x27;?&#x27; + qs : path),
+    headers:    headers,
+    agent:      this.options.agent,
+  });
+}
+
+
+/*
+ * Authorize the request with a shared-access-signature that is refreshed with
+ * the a function given as &#x60;options.sas&#x60;.
+ * Intended to define &#x60;Table.prototype.authorize&#x60;.
+ */
+function authorizeWithRefreshSAS(method, path, query, headers) {
+  var self = this;
+
+  // Check if we should refresh SAS
+  if (Date.now() &gt; this._nextSASRefresh &amp;&amp; this._nextSASRefresh !== 0) {
+    debug(&quot;Refreshing shared-access-signature&quot;);
+    // Avoid refreshing more than once
+    this._nextSASRefresh = 0;
+    // Refresh SAS
+    this._sas = Promise.resolve(this.options.sas());
+    // Update _nextSASRefresh when the SAS has been refreshed
+    this._sas.then(function(sas) {
+      sas = querystring.parse(sas);
+      // Find next sas refresh time
+      self._nextSASRefresh = (
+        new Date(sas.se).getTime() - self.options.minSASAuthExpiry
+      );
+      debug(&quot;Refreshed shared-access-signature, will refresh in %s ms&quot;,
+            self._nextSASRefresh);
+      // Throw an error if the signature expiration comes too soon
+      if (Date.now() &gt; self._nextSASRefresh) {
+        throw new Error(&quot;Refreshed SAS, but got a Shared-Access-Signature &quot; +
+                        &quot;that expires less than options.minSASAuthExpiry &quot; +
+                        &quot;from now, signature expiry: &quot; + sas.se);
+      }
+    }).catch(function(err) {
+      // If we have an error freshing SAS that&#x27;s bad and we&#x27;ll emit it; for most
+      // apps it&#x27;s probably best to ignore this error and just crash.
+      self.emit(&#x27;error&#x27;, err);
+    });
+  }
+
+  // Construct request options, whenever the &#x60;_sas&#x60; promise is resolved.
+  return this._sas.then(function(sas) {
+    // Serialize query-string
+    var qs = querystring.stringify(query);
+    if (qs.length &gt; 0) {
+      qs += &#x27;&amp;&#x27;;
+    }
+    qs += sas
+    return {
+      host:       self.hostname,
+      method:     method,
+      path:       path + &#x27;?&#x27; + qs,
+      headers:    headers,
+      agent:      self.options.agent,
+    };
+  });
+}
+
+
+/*
+ * Authorize the request with a shared-access-signature that is given with
+ * &#x60;options.sas&#x60; as string.
+ * Intended to define &#x60;Table.prototype.authorize&#x60;.
+ */
+function authorizeWithSAS(method, path, query, headers) {
+  // Serialize query-string
+  var qs = querystring.stringify(query);
+  if (qs.length &gt; 0) {
+    qs += &#x27;&amp;&#x27;;
+  }
+  qs += this.options.sas;
+  // Construct request options
+  return Promise.resolve({
+    host:       this.hostname,
+    method:     method,
+    path:       path + &#x27;?&#x27; + qs,
+    headers:    headers,
+    agent:      this.options.agent,
+  });
+}
+
+
+/**
+ * Table client class for interacting with Azure Table Storage.
+ *
+ * Subclasses &#x60;EventEmitter&#x60; and emits the &#x60;error&#x60; event on failure to refresh
+ * shared-access-signature, if &#x60;options.sas&#x60; is a function.
+ *
+ * @class Table
+ * @constructor
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   // Value for the &#x60;x-ms-version&#x60; header fixing the API version
+ *   version:              &#x27;2014-02-14&#x27;,
+ *
+ *   // OData Service version, must work with API version, refer to azure
+ *   // documentation. This just specifies the &#x60;DataServiceVersion&#x60; header.
+ *   dataServiceVersion:   &#x27;3.0&#x27;,
+ *
+ *   // Value for the x-ms-client-request-id header identifying the client
+ *   clientId:             &#x27;fast-azure-storage&#x27;,
+ *
+ *   // Server-side request timeout
+ *   timeout:              30 * 1000,
+ *
+ *   // Delay between client- and server-side timeout
+ *   clientTimeoutDelay:   500,
+ *
+ *   // Set meta-data level for responses (use full to get eTag in queryEntities)
+ *   metadata:             &#x27;fullmetadata&#x27;,
+ *
+ *   // HTTP Agent to use (defaults to a global azure.Agent instance)
+ *   agent:                agent.globalAgent,
+ *
+ *   // Max number of request retries
+ *   retries:              5,
+ *
+ *   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+ *   delayFactor:          100,
+ *
+ *   // Maximum retry delay in ms (defaults to 30 seconds)
+ *   maxDelay:             30 * 1000,
+ *
+ *   // Error codes for which we should retry
+ *   transientErrorCodes:  TRANSIENT_ERROR_CODES,
+ *
+ *   // Azure storage accountId (required)
+ *   accountId:            undefined,
+ *
+ *   // Azure shared accessKey, required unless options.sas is given
+ *   accessKey:            undefined,
+ *
+ *   // Function that returns SAS string or promise for SAS string, in which
+ *   // case we will refresh SAS when a request occurs less than
+ *   // minSASAuthExpiry from signature expiry. This property may also be a
+ *   // SAS string.
+ *   sas:                  undefined,
+ *
+ *   // Minimum SAS expiry before refreshing SAS credentials, if a function for
+ *   // refreshing SAS credentials is given as options.sas
+ *   minSASAuthExpiry:     15 * 60 * 1000
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+function Table(options) {
+  // Initialize EventEmitter parent class
+  events.EventEmitter.call(this);
+
+  // Set default options
+  this.options = {
+    version:              &#x27;2014-02-14&#x27;,
+    dataServiceVersion:   &#x27;3.0&#x27;,
+    clientId:             &#x27;fast-azure-storage&#x27;,
+    timeout:              30 * 1000,
+    clientTimeoutDelay:   500,
+    metadata:             &#x27;fullmetadata&#x27;,
+    agent:                agent.globalAgent,
+    retries:              5,
+    delayFactor:          100,
+    maxDelay:             30 * 1000,
+    transientErrorCodes:  TRANSIENT_ERROR_CODES,
+    accountId:            undefined,
+    accessKey:            undefined,
+    sas:                  undefined,
+    minSASAuthExpiry:     15 * 60 * 1000,
+  };
+
+  // Overwrite default options
+  for (var key in options) {
+    if (options.hasOwnProperty(key) &amp;&amp; options[key] !== undefined) {
+      this.options[key] = options[key];
+    }
+  }
+
+  // Validate options
+  assert(this.options.accountId, &quot;&#x60;options.accountId&#x60; must be given&quot;);
+  assert(
+    this.options.metadata === &#x27;nometadata&#x27; ||
+    this.options.metadata === &#x27;minimalmetadata&#x27; ||
+    this.options.metadata === &#x27;fullmetadata&#x27;,
+    &quot;options.metadata must be &#x27;nometadata&#x27;, &#x27;minimalmetadata&#x27; or &#x27;fullmetadata&#x27;&quot;
+  );
+
+  // Construct hostname
+  this.hostname = this.options.accountId + &#x27;.table.core.windows.net&#x27;;
+
+  // Compute &#x60;timeout&#x60; for client-side timeout (in ms), and &#x60;timeoutInSeconds&#x60;
+  // for server-side timeout in seconds.
+  this.timeout = this.options.timeout + this.options.clientTimeoutDelay;
+  this.timeoutInSeconds = Math.floor(this.options.timeout / 1000);
+
+  // Define &#x60;this.authorize&#x60;
+  if (this.options.accessKey) {
+    // If set authorize to use shared key signatures
+    this.authorize = authorizeWithSharedKey;
+    // Decode accessKey
+    this._accessKey = new Buffer(this.options.accessKey, &#x27;base64&#x27;);
+  } else if (this.options.sas instanceof Function) {
+    // Set authorize to use shared-access-signatures with refresh function
+    this.authorize = authorizeWithRefreshSAS;
+    // Set state with _nextSASRefresh = -1, we&#x27;ll refresh on the first request
+    this._nextSASRefresh = -1;
+    this._sas = &#x27;&#x27;;
+  } else if (typeof(this.options.sas) === &#x27;string&#x27;) {
+    // Set authorize to use shared-access-signature as hardcoded
+    this.authorize = authorizeWithSAS;
+  } else {
+    throw new Error(&quot;Either options.accessKey, options.sas as function or &quot; +
+                    &quot;options.sas as string must be given!&quot;);
+  }
+};
+
+// Subclass EventEmitter
+util.inherits(Table, events.EventEmitter);
+
+// Export Table
+module.exports = Table;
+
+/**
+ * Generate a SAS string on the form &#x60;&#x27;key1=val1&amp;key2=val2&amp;...&#x27;&#x60;.
+ *
+ * @method sas
+ * @param {string} table - Name of table that this SAS string applies to.
+ * @param {object} options - Options for the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   start:           new Date(), // Time from which signature is valid
+ *   expiry:          new Date(), // Expiration of signature (required)
+ *   permissions: {               // Set of permissions delegated (required)
+ *     read:          false,      // Read entities
+ *     add:           false,      // Insert new entities
+ *     update:        false,      // Update entities
+ *     delete:        false       // Delete entities
+ *   },
+ *   first: {                     // Start of accessible range (optional)
+ *     partitionKey:  &#x27;...&#x27;,      // First accessible partition key (required)
+ *     rowKey:        &#x27;...&#x27;       // First accessible row key (required)
+ *   },
+ *   last: {                      // End of accessible range (optional)
+ *     partitionKey:  &#x27;...&#x27;,      // Last accessible partition key (required)
+ *     rowKey:        &#x27;...&#x27;       // Last accessible row key (required)
+ *   },
+ *   accessPolicy:    &#x27;...&#x27;       // Reference to stored access policy
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {string} Shared-Access-Signature on string form.
+ */
+Table.prototype.sas = function(table, options) {
+  assert(options, &quot;options is required&quot;);
+  assert(options.expiry instanceof Date,
+         &quot;options.expiry must be a Date object&quot;);
+  assert(options.permissions, &quot;options.permissions is required&quot;);
+
+  // Check that we have credentials
+  if (!this.options.accountId ||
+      !this.options.accessKey) {
+    throw new Error(&quot;accountId and accessKey are required for SAS creation!&quot;);
+  }
+
+  // Construct permissions string (in correct order)
+  var permissions = &#x27;&#x27;;
+  if (options.permissions.read)   permissions += &#x27;r&#x27;;
+  if (options.permissions.add)    permissions += &#x27;a&#x27;;
+  if (options.permissions.update) permissions += &#x27;u&#x27;;
+  if (options.permissions.delete) permissions += &#x27;d&#x27;;
+
+  // Construct query-string with required parameters
+  var query = {
+    sv:   &#x27;2014-02-14&#x27;,
+    tn:   table,
+    se:   utils.dateToISOWithoutMS(options.expiry),
+    sp:   permissions,
+    sig:  null
+  };
+  // Add optional parameters to query-string
+  if (options.start) {
+    assert(options.start instanceof Date,
+           &quot;if specified start must be a Date object&quot;);
+    query.st = utils.dateToISOWithoutMS(options.start);
+  }
+  if (options.first) {
+    assert(options.first.partitionKey &amp;&amp; options.first.rowKey,
+           &quot;if options.first is specified, both partitionKey and rowKey must &quot; +
+           &quot;be specified&quot;);
+    query.spk = options.first.partitionKey;
+    query.srk = options.first.rowKey;
+  }
+  if (options.last) {
+    assert(options.last.partitionKey &amp;&amp; options.last.rowKey,
+           &quot;if options.last is specified, both partitionKey and rowKey must &quot; +
+           &quot;be specified&quot;);
+    query.epk = options.last.partitionKey;
+    query.erk = options.last.rowKey;
+  }
+  if (options.accessPolicy) {
+    query.se = options.accessPolicy;
+  }
+
+  // Construct string to sign
+  var stringToSign = [
+    query.sp,
+    query.st  || &#x27;&#x27;,
+    query.se,
+    &#x27;/&#x27; + this.options.accountId.toLowerCase() + &#x27;/&#x27; + table.toLowerCase(),
+    query.si  || &#x27;&#x27;,
+    query.sv,
+    query.spk || &#x27;&#x27;,
+    query.srk || &#x27;&#x27;,
+    query.epk || &#x27;&#x27;,
+    query.erk || &#x27;&#x27;
+  ].join(&#x27;\n&#x27;);
+
+  // Compute signature
+  query.sig = crypto
+                .createHmac(&#x27;sha256&#x27;, this._accessKey)
+                .update(stringToSign)
+                .digest(&#x27;base64&#x27;);
+
+  // Return Shared-Access-Signature as query-string
+  return querystring.stringify(query);
+};
+
+/**
+ * Construct authorized request options by adding signature or
+ * shared-access-signature, return promise for the request options.
+ *
+ * @protected
+ * @method authorize
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on table resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @returns {Promise} A promise for an options object compatible with
+ * &#x60;https.request&#x60;.
+ */
+Table.prototype.authorize = function(method, path, query, headers) {
+  throw new Error(&quot;authorize is not implemented, must be defined!&quot;);
+};
+
+/**
+ * Make a signed request to &#x60;path&#x60; using &#x60;method&#x60; in upper-case and all &#x60;query&#x60;
+ * parameters and &#x60;headers&#x60; keys in lower-case. The request will carry &#x60;json&#x60;
+ * as payload and will be retried using the configured retry policy.
+ *
+ * @private
+ * @method request
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on table resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @param {object} json - Optional JSON object to send as payload.
+ * @returns {Promise} A promise for the HTTP response object with a &#x60;payload&#x60;
+ * property carrying the payload as string.
+ */
+Table.prototype.request = function request(method, path, query, headers, json) {
+  // Set timeout, if not provided
+  if (query.timeout === undefined) {
+    query.timeout = this.timeoutInSeconds;
+  }
+
+  // Set date, version, dataServiceVersion and client-request-id headers
+  headers[&#x27;x-ms-date&#x27;]              = new Date().toUTCString();
+  headers[&#x27;x-ms-version&#x27;]           = this.options.version;
+  headers[&#x27;dataserviceversion&#x27;]     = this.options.dataServiceVersion;
+  headers[&#x27;x-ms-client-request-id&#x27;] = this.options.clientId;
+
+  // Serialize and set content-length/content-type, if json is given
+  var data = undefined;
+  if (json !== undefined) {
+    data = JSON.stringify(json);
+    headers[&#x27;content-length&#x27;] = Buffer.byteLength(data, &#x27;utf-8&#x27;);
+    headers[&#x27;content-type&#x27;] = &#x27;application/json&#x27;;
+  }
+
+  // Set meta-data level for responses
+  headers[&#x27;accept&#x27;] = &#x27;application/json;odata=&#x27; + this.options.metadata;
+
+  // Construct authorized request options with shared key signature or
+  // shared-access-signature.
+  var self = this;
+  return this.authorize(method, path, query, headers).then(function(options) {
+    // Retry with retry policy
+    return utils.retry(function(retry) {
+      debug(&quot;Request: %s %s, retry: %s&quot;, method, path, retry);
+
+      // Construct a promise chain first handling the request, and then parsing
+      // any potential error message
+      return utils.request(options, data, self.timeout).then(function(res) {
+        // Accept the response if it&#x27;s 2xx, otherwise we construct and
+        // throw an error
+        if (200 &lt;= res.statusCode &amp;&amp; res.statusCode &lt; 300) {
+          return res;
+        }
+
+        // Find message and code
+        var message = null;
+        var code    = &#x27;InternalErrorWithoutCode&#x27;;
+        try {
+          var details = JSON.parse(res.payload)[&#x27;odata.error&#x27;];
+          code = details.code;
+          message = details.message.value || details.message;
+        }
+        catch (e) {
+          // Ignore parse and extraction errors
+        }
+
+        // Set fallback message
+        if (!message) {
+          message = &quot;No error message given, in payload &#x27;&quot; + res.payload + &quot;&#x27;&quot;
+        }
+
+        // Construct error object
+        var err         = new Error(message);
+        err.name        = code + &#x27;Error&#x27;;
+        err.code        = code;
+        err.statusCode  = res.statusCode;
+        err.payload     = res.payload;
+
+        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
+              code, method, path, retry);
+
+        // Throw the constructed error
+        throw err;
+      });
+    }, self.options);
+  });
+};
+
+/**
+ * Query for tables on the storage account.
+ *
+ * @method queryTables
+ * @param {object} options - &#x60;options&#x60; on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   nextTableName:      &#x27;...&#x27;  // nextTableName, if paging
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *  tables:         [&#x27;&lt;tableName&gt;&#x27;, ...],
+ *  nextTableName:  &#x27;...&#x27;,      // nextTableName if paging is necessary
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Table.prototype.queryTables = function queryTables(options) {
+  // Construct query
+  var query = {};
+  if (options &amp;&amp; options.nextTableName) {
+    query.NextTableName = options.nextTableName;
+  }
+  // Send request with retry logic
+  return this.request(&#x27;GET&#x27;, &#x27;/Tables&#x27;, query, {}).then(function(res) {
+    if (res.statusCode !== 200) {
+      throw new Error(&quot;queryTables: Unexpected statusCode: &quot; + res.statusCode);
+    }
+    var payload = JSON.parse(res.payload);
+    return {
+      tables:   payload.value.map(function(table) {
+        return table.TableName;
+      }),
+      nextTableName: res.headers[&#x27;x-ms-continuation-nexttablename&#x27;] || null
+    };
+  });
+};
+
+/**
+ * Create table with given &#x60;name&#x60;.
+ *
+ * @method createTable
+ * @param {string} name - Name of table to create.
+ * @return {Promise} A promise that the table was created.
+ */
+Table.prototype.createTable = function createTable(name) {
+  // Construct json payload
+  var json = {TableName: name};
+  // Construct headers
+  var headers = {
+    // There is no reason to return content
+    &#x27;prefer&#x27;:   &#x27;return-no-content&#x27;
+  };
+  // Send request with retry logic
+  return this.request(&#x27;POST&#x27;, &#x27;/Tables&#x27;, {}, headers, json).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;createTable: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+/**
+ * Delete table with given &#x60;name&#x60;
+ *
+ * @method deleteTable
+ * @param {string} name - Name of table to delete.
+ * @return {Promise} A promise that the table was marked for deletion.
+ */
+Table.prototype.deleteTable = function deleteTable(name) {
+  // Construct path
+  var path = &#x27;/Tables(\&#x27;&#x27; + name + &#x27;\&#x27;)&#x27;;
+  // Send request with retry logic
+  return this.request(&#x27;DELETE&#x27;, path, {}, {}).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;deleteTable: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+/**
+ * Convert nested array structure to filter string.
+ * See &#x60;Table.Operators&#x60; for details and examples.
+ *
+ * @method filter
+ * @param {Array} expression - Array of arrays, keys, operators and formatted
+ * constants that forms an expression, where arrays becomes parenthesis:
+ * &#x60;&#x60;&#x60;js
+ * var op = azure.Table.Operators;
+ * var filter = azure.Table.filter([
+ *  [&#x27;key1&#x27;, op.Equal, op.string(&#x27;my-string&#x27;)],
+ *   op.And,
+ *  [&#x27;key2&#x27;, op.LessThan, op.date(new Date())]
+ * ]) // &quot;((key1 eq &#x27;my-string&#x27;) and (key2 le datetime&#x27;...&#x27;))&quot;
+ * &#x60;&#x60;&#x60;
+ * @returns {string} A filter string for use with &#x60;queryEntities&#x60;.
+ */
+Table.filter = function filter() {
+  return Array.prototype.slice.call(arguments).map(function(entry) {
+    if (entry instanceof Array) {
+      return &#x27;(&#x27; + Table.filter.apply(Table, entry) + &#x27;)&#x27;;
+    }
+    return entry;
+  }).join(&#x27; &#x27;);
+};
+
+/**
+ * Operators and helpers for constructing $filter strings using &#x60;Table.filter&#x60;.
+ *
+ * We have the following comparison operators:
+ *  - &#x60;azure.Table.Operators.Equal&#x60;,
+ *  - &#x60;azure.Table.Operators.GreaterThan&#x60;,
+ *  - &#x60;azure.Table.Operators.GreaterThanOrEqual&#x60;,
+ *  - &#x60;azure.Table.Operators.LessThan&#x60;,
+ *  - &#x60;azure.Table.Operators.LessThanOrEqual&#x60;, and
+ *  - &#x60;azure.Table.Operators.NotEqual&#x60;.
+ *
+ * They should be used in the middle of a triple as follows:
+ * &#x60;[&#x27;key1&#x27;, op.Equal, op.string(&#x27;my-string&#x27;)]&#x60;.
+ *
+ * The boolean operators &#x60;And&#x60;, &#x60;Not&#x60; and &#x60;Or&#x60; should be used to connect
+ * triples made with comparison operators. Note, that each set of array brackets
+ * translates into a parentheses. Boolean operators:
+ *  - &#x60;azure.Table.Operators.And&#x60;,
+ *  - &#x60;azure.Table.Operators.Not&#x60;, and
+ *  - &#x60;azure.Table.Operators.Or&#x60;.
+ *
+ * We also have formatting helpers, &#x60;string&#x60;, &#x60;number&#x60;, &#x60;bool&#x60;, &#x60;date&#x60; and
+ * &#x60;guid&#x60; which takes constant values and encodes them correctly for use in
+ * filter expression. It&#x27;s strongly recommended that you employ these, as Azure
+ * has some undocumented and semi obscure escaping rules. Constant formatters:
+ *  - &#x60;azure.Table.Operators.string(&quot;...&quot;)&#x60;,
+ *  - &#x60;azure.Table.Operators.number(42.2)&#x60;,
+ *  - &#x60;azure.Table.Operators.bool(true)&#x60;,
+ *  - &#x60;azure.Table.Operators.date(new Date())&#x60;, and
+ *  - &#x60;azure.Table.Operators.guid(&#x27;...&#x27;)&#x60;.
+ *
+ * Complete example:
+ * &#x60;&#x60;&#x60;js
+ * var op = azure.Table.Operators;
+ * var filter = azure.Table.filter([
+ *  [&#x27;key1&#x27;, op.Equal, op.string(&#x27;my-string&#x27;)],
+ *   op.And,
+ *  [&#x27;key2&#x27;, op.LessThan, op.date(new Date())]
+ * ]) // &quot;((key1 eq &#x27;my-string&#x27;) and (key2 le datetime&#x27;...&#x27;))&quot;
+ * &#x60;&#x60;&#x60;
+ *
+ * @attribute Operators
+ * @static
+ * @final
+ */
+Table.Operators = {
+  // Comparison operators
+  Equal:              &#x27;eq&#x27;,
+  GreaterThan:        &#x27;gt&#x27;,
+  GreaterThanOrEqual: &#x27;ge&#x27;,
+  LessThan:           &#x27;lt&#x27;,
+  LessThanOrEqual:    &#x27;le&#x27;,
+  NotEqual:           &#x27;ne&#x27;,
+  // Boolean operators
+  And:                &#x27;and&#x27;,
+  Not:                &#x27;not&#x27;,
+  Or:                 &#x27;or&#x27;,
+  // Constant formatters
+  string: function(c) { return &quot;&#x27;&quot; + c.replace(/&#x27;/g, &quot;&#x27;&#x27;&quot;) + &quot;&#x27;&quot;; },
+  number: function(c) { return c.toString();                      },
+  bool: function(c)   { return (c ? &#x27;true&#x27; : &#x27;false&#x27;);            },
+  date: function(c)   { return &quot;datetime&#x27;&quot; + c.toJSON() + &quot;&#x27;&quot;;      },
+  guid: function(c)   { return &quot;guid&#x27;&quot; + c + &quot;&#x27;&quot;;                 }
+};
+
+/*
+ * Auxiliary function to construct the entity path as used in many methods.
+ * Format: &#x60;/&lt;tabel&gt;(PartitionKey=&#x27;&lt;partitionKey&gt;&#x27;,RowKey=&#x27;&lt;rowKey&gt;&#x27;)&#x60;.
+ */
+function buildEntityPath(table, partitionKey, rowKey) {
+  // Escape partitionKey and rowKey
+  var pk = encodeURIComponent(partitionKey.replace(/&#x27;/g, &quot;&#x27;&#x27;&quot;));
+  var rk = encodeURIComponent(rowKey.replace(/&#x27;/g, &quot;&#x27;&#x27;&quot;));
+  return &#x27;/&#x27; + table + &#x27;(PartitionKey=\&#x27;&#x27; + pk + &#x27;\&#x27;,RowKey=\&#x27;&#x27; + rk + &#x27;\&#x27;)&#x27;;
+}
+
+/**
+ * Get entity from &#x60;table&#x60; with given &#x60;partitionKey&#x60; and &#x60;rowKey&#x60;.
+ *
+ * @method getEntity
+ * @param {string} table - Name of table to get entity from.
+ * @param {string} partitionKey - Partition key of entity to get.
+ * @param {string} rowKey - Row key of entity to get.
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   select:  [&#x27;key1&#x27;, ...],  // List of keys to return (defaults to all)
+ *   filter:  &#x27;...&#x27;           // Filter string for conditional load
+ * }
+ * &#x60;&#x60;&#x60;
+ * @return {Promise}
+ * A promise for the entity, form of the object depends on the meta-data
+ * level configured and if &#x60;select&#x60; as employed. See Azure documentation for
+ * details.
+ */
+Table.prototype.getEntity = function getEntity(table, partitionKey, rowKey,
+                                               options) {
+  // Construct path
+  var path = buildEntityPath(table, partitionKey, rowKey);
+
+  // Construct query-string
+  var query = {};
+  if (options) {
+    if (options.select) {
+      query.$select = options.select.join(&#x27;,&#x27;);
+    }
+    if (options.filter) {
+      query.$filter = options.filter;
+    }
+  }
+
+  // Send request with retry logic
+  return this.request(&#x27;GET&#x27;, path, query, {}).then(function(res) {
+    if (res.statusCode !== 200) {
+      throw new Error(&quot;getEntity: Unexpected statusCode: &quot; + res.statusCode);
+    }
+    return JSON.parse(res.payload);
+  });
+};
+
+
+/**
+ * Query entities from &#x60;table&#x60;.
+ *
+ * @method queryEntitites
+ * @param {string} table - Name of table to query entities for.
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   // Query options:
+ *   select:            [&#x27;key1&#x27;, ...],  // Keys to $select (defaults to all)
+ *   filter:            &#x27;key1 eq true&#x27;, // $filter string, see Table.filter
+ *   top:               1000,           // Max number of entities to return
+ *
+ *   // Paging options:
+ *   nextPartitionKey:  &#x27;...&#x27;,          // nextPartitionKey from previous result
+ *   nextRowKey:        &#x27;...&#x27;           // nextRowKey from previous result
+ * }
+ * &#x60;&#x60;&#x60;
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   entities: [
+ *     {
+ *       // Keys selected from entity and meta-data depending on meta-data level
+ *     },
+ *     ...
+ *   ],
+ *   nextPartitionKey: &#x27;...&#x27;,  // Opaque token for paging
+ *   nextRowKey:       &#x27;...&#x27;   // Opaque token for paging
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Table.prototype.queryEntities = function queryEntities(table, options) {
+  // Construct path
+  var path = &#x27;/&#x27; + table + &#x27;()&#x27;;
+
+  // Construct query-string
+  var query = {};
+  if (options) {
+    if (options.select) {
+      query.$select = options.select.join(&#x27;,&#x27;);
+    }
+    if (options.filter) {
+      query.$filter = options.filter;
+    }
+    if (options.top) {
+     query.$top = &#x27;&#x27; + options.top;
+    }
+    if (options.nextPartitionKey) {
+      query.NextPartitionKey = options.nextPartitionKey;
+    }
+    if (options.nextRowKey) {
+      query.NextRowKey = options.nextRowKey;
+    }
+  }
+
+  // Send request with retry logic
+  return this.request(&#x27;GET&#x27;, path, query, {}).then(function(res) {
+    if (res.statusCode !== 200) {
+      throw new Error(&quot;queryEntities: Unexpected statusCode: &quot; +
+                      res.statusCode);
+    }
+
+    // Read results from response
+    var result            = JSON.parse(res.payload);
+    var nextPartitionKey  = res.headers[&#x27;x-ms-continuation-nextpartitionkey&#x27;];
+    var nextRowKey        = res.headers[&#x27;x-ms-continuation-nextrowkey&#x27;];
+
+    // Return result in a nice format
+    return {
+      entities:           result.value || [],
+      nextPartitionKey:   nextPartitionKey || null,
+      nextRowKey:         nextRowKey || null
+    };
+  });
+};
+
+
+/**
+ * Insert &#x60;entity&#x60; into &#x60;table&#x60;, the &#x60;entity&#x60; object must be on the format
+ * accepted by azure table storage. See Azure Table Storage documentation for
+ * details. Essentially, data-types will be inferred if &#x60;...@odata.type&#x60;
+ * properties aren&#x27;t specified. Also note that &#x60;PartitionKey&#x60; and &#x60;RowKey&#x60;
+ * properties must be specified.
+ *
+ * @method insertEntity
+ * @param {string} table - Name of table insert entity into.
+ * @param {object} entity - Entity object, see Azure Table Storage
+ * documentation for details on how to annotate types.
+ * @return {Promise}
+ * A promise for the &#x60;etag&#x60; of the inserted entity.
+ */
+Table.prototype.insertEntity = function insertEntity(table, entity) {
+  // Construct path
+  var path = &#x27;/&#x27; + table;
+  // Construct headers
+  var headers = {
+    &#x27;prefer&#x27;:       &#x27;return-no-content&#x27; // There is no reason to return content
+  };
+  // Send request with retry logic
+  return this.request(&#x27;POST&#x27;, path, {}, headers, entity).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;insertEntity: Unexpected statusCode: &quot; + res.statusCode);
+    }
+    return res.headers[&#x27;etag&#x27;];
+  });
+};
+
+
+/**
+ * Update entity from &#x60;table&#x60; identified by &#x60;entity.partitionKey&#x60; and
+ * &#x60;entity.rowKey&#x60;.
+ * Options are **required** for this method and takes form as follows:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   mode:  &#x27;replace&#x27; || &#x27;merge&#x27;  // Replace entity or merge entity
+ *   eTag:  &#x27;...&#x27; || &#x27;*&#x27; || null  // Update specific entity, any or allow insert
+ * }
+ * &#x60;&#x60;&#x60;
+ *
+ * If &#x60;options.mode&#x60; is &#x60;&#x27;replace&#x27;&#x60; the remote entity will be completely
+ * replaced by the structure given as &#x60;entity&#x60;. If &#x60;options.mode&#x60; is &#x60;&#x27;merge&#x27;&#x60;
+ * properties from &#x60;entity&#x60; will overwrite existing properties on remote entity.
+ *
+ * If **&#x60;options.eTag&#x60; is not given** (or &#x60;null&#x60;) the remote entity will be
+ * inserted if it does not exist, and otherwise replaced or merged depending
+ * on &#x60;mode&#x60;.
+ *
+ * If **&#x60;options.eTag&#x60; is the string &#x60;&#x27;*&#x27;&#x60;** the remote entity will be replaced
+ * or merged depending on &#x60;mode&#x60;, but it will not be inserted if it doesn&#x27;t
+ * exist.
+ *
+ * If **&#x60;options.eTag&#x60; is a string** (other than &#x60;&#x27;*&#x27;&#x60;) the remote entity will be
+ * replaced or merged depending on &#x60;mode&#x60;, if the ETag of the remote entity
+ * matches the string given in &#x60;options.eTag&#x60;.
+ *
+ * Combining &#x60;mode&#x60; and &#x60;eTag&#x60; options this method implements the following
+ * operations:
+ *  * Insert or replace (regardless of existence or ETag),
+ *  * Replace if exists (regardless of ETag),
+ *  * Replace if exists and has given ETag,
+ *  * Insert or merge (regardless of existence or ETag),
+ *  * Merge if exists (regardless of ETag), and
+ *  * Merge if exists and has given ETag.
+ *
+ * @method updateEntity
+ * @param {string} table - Name of table to update entity from.
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   mode:  &#x27;replace&#x27; || &#x27;merge&#x27;  // Replace entity or merge entity
+ *   eTag:  &#x27;...&#x27; || &#x27;*&#x27; || null  // Update specific entity, any or allow insert
+ * }
+ * &#x60;&#x60;&#x60;
+ * @return {Promise} A promise for &#x60;eTag&#x60; of the modified entity.
+ */
+Table.prototype.updateEntity = function updateEntity(table, entity, options) {
+  assert(options, &quot;Options is required for updateEntity&quot;);
+
+  // Construct path
+  var path = buildEntityPath(table, entity.PartitionKey, entity.RowKey);
+
+  // Choose method
+  var method;
+  if (options.mode === &#x27;replace&#x27;) {
+    method = &#x27;PUT&#x27;;
+  } else if (options.mode === &#x27;merge&#x27;) {
+    method = &#x27;MERGE&#x27;;
+  } else {
+    throw new Error(&quot;&#x60;options.mode&#x60; must be &#x27;replace&#x27; or &#x27;merge&#x27;&quot;);
+  }
+
+  // Construct headers
+  var headers = {
+    &#x27;prefer&#x27;:       &#x27;return-no-content&#x27; // There is no reason to return content
+  };
+  if (options.eTag) {
+    headers[&#x27;if-match&#x27;] = options.eTag;  // Must be either &#x27;*&#x27; or an actual ETag
+  }
+
+  // Send request with retry logic
+  return this.request(method, path, {}, headers, entity).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;insertEntity: Unexpected statusCode: &quot; + res.statusCode);
+    }
+    return res.headers[&#x27;etag&#x27;];
+  });
+};
+
+
+/**
+ * Delete entity identified by &#x60;partitionKey&#x60; and &#x60;rowKey&#x60; from &#x60;table&#x60;.
+ * Options are **required** for this method and takes form as follows:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   eTag:   &#x27;...&#x27; || &#x27;*&#x27;   // ETag to delete, or &#x27;*&#x27; to ignore ETag
+ * }
+ * &#x60;&#x60;&#x60;
+ *
+ * Note, &#x60;options.eTag&#x60; is &#x60;&#x27;*&#x27;&#x60; will delete the entity regardless of its ETag.
+ *
+ * @method deleteEntity
+ * @param {string} table - Name of table to delete entity from.
+ * @param {string} partitionKey - Partition key of entity to delete.
+ * @param {string} rowKey - Row key of entity to delete.
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   eTag:   &#x27;...&#x27; || &#x27;*&#x27;   // ETag to delete, or &#x27;*&#x27; to ignore ETag
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise that the entity was deleted.
+ */
+Table.prototype.deleteEntity = function deleteEntity(table, partitionKey,
+                                                     rowKey, options) {
+  // Construct path
+  var path = buildEntityPath(table, partitionKey, rowKey);
+
+  // Construct header
+  assert(options &amp;&amp; (options.eTag), &quot;&#x60;options.eTag&#x60; must be given&quot;);
+  var headers = {
+    &#x27;if-match&#x27;:    options.eTag
+  };
+
+  // Send request with retry logic
+  return this.request(&#x27;DELETE&#x27;, path, {}, headers).then(function(res) {
+    if (res.statusCode !== 204) {
+      throw new Error(&quot;insertEntity: Unexpected statusCode: &quot; + res.statusCode);
+    }
+  });
+};
+
+
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>

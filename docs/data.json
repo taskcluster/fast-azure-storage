@@ -1,0 +1,953 @@
+{
+    "project": {
+        "name": "fast-azure-storage",
+        "description": "Fast client library for azure storage services",
+        "url": "https://github.com/taskcluster/fast-azure-storage",
+        "version": "0.3.1"
+    },
+    "files": {
+        "lib/agent.js": {
+            "name": "lib/agent.js",
+            "modules": {},
+            "classes": {
+                "Agent": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/index.js": {
+            "name": "lib/index.js",
+            "modules": {
+                "azure": 1
+            },
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/queue.js": {
+            "name": "lib/queue.js",
+            "modules": {},
+            "classes": {
+                "Queue": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/table.js": {
+            "name": "lib/table.js",
+            "modules": {},
+            "classes": {
+                "Table": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "azure": {
+            "name": "azure",
+            "submodules": {},
+            "elements": {},
+            "classes": {
+                "Agent": 1,
+                "Queue": 1,
+                "Table": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "lib/table.js",
+            "line": 152,
+            "description": "The `fast-azure-storage` package provides a fast and minimalistic interface\nfor Azure Storage Service."
+        }
+    },
+    "classes": {
+        "Agent": {
+            "name": "Agent",
+            "shortname": "Agent",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "azure",
+            "file": "lib/agent.js",
+            "line": 34,
+            "description": "A https.Agent subclass for use with a Azure Storage Services. This agent\nis a specialization of the https.Agent class with extra features:\n - catches socket errors from free sockets,\n - closes sockets after being idle for 55 seconds, and\n - disables TCP Nagle for all sockets (socket.setNoDelay).\n\nFor details on Azure issues with ECONNRESET see:\n[blog.gluwer.com](http://bit.ly/1HBuJK1).",
+            "extends": "https.Agent",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- `options` compatible with `http.Agent`.",
+                    "type": "Object"
+                }
+            ]
+        },
+        "Queue": {
+            "name": "Queue",
+            "shortname": "Queue",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "azure",
+            "namespace": "",
+            "file": "lib/queue.js",
+            "line": 228,
+            "description": "Queue client class for interacting with Azure Queue Storage.",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- options on the form:\n```js\n{\n  // Value for the x-ms-version header fixing the API version\n  version:              SERVICE_VERSION,\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                azure.Agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
+                    "type": "Object"
+                }
+            ]
+        },
+        "Table": {
+            "name": "Table",
+            "shortname": "Table",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "azure",
+            "namespace": "",
+            "file": "lib/table.js",
+            "line": 152,
+            "description": "Table client class for interacting with Azure Table Storage.\n\nSubclasses `EventEmitter` and emits the `error` event on failure to refresh\nshared-access-signature, if `options.sas` is a function.",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  // Value for the `x-ms-version` header fixing the API version\n  version:              '2014-02-14',\n\n  // OData Service version, must work with API version, refer to azure\n  // documentation. This just specifies the `DataServiceVersion` header.\n  dataServiceVersion:   '3.0',\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // Set meta-data level for responses (use full to get eTag in queryEntities)\n  metadata:             'fullmetadata',\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
+                    "type": "Object"
+                }
+            ]
+        }
+    },
+    "elements": {},
+    "classitems": [
+        {
+            "file": "lib/agent.js",
+            "line": 64,
+            "description": "Overwrites the `addRequest` method so we can remove error handler and timeout\nhandler from sockets when they are given to a request.",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "addRequest",
+            "class": "Agent"
+        },
+        {
+            "file": "lib/agent.js",
+            "line": 81,
+            "description": "Overwrites the `removeSocket` method so we can remove error handler and\ntimeout handler from sockets when they are removed the agent.",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "removeSocket",
+            "class": "Agent"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 347,
+            "description": "Generate a SAS string on the form `'key1=val1&key2=val2&...'`.",
+            "itemtype": "method",
+            "name": "sas",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue that this SAS string applies to.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options for the following form:\n```js\n{\n  start:           new Date(), // Time from which signature is valid\n  expiry:          new Date(), // Expiration of signature (required)\n  permissions: {               // Set of permissions delegated (required)\n    read:          false,      // Read meta-data and peek messages\n    add:           false,      // Add new messages\n    update:        false,      // Update messages (after get messages)\n    process:       false       // Process messages (get and delete messages)\n  },\n  accessPolicy:    '...'       // Reference to stored access policy\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Shared-Access-Signature on string form.",
+                "type": "String"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 428,
+            "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
+            "access": "protected",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "authorize",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on queue resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an options object compatible with\n`https.request`.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 445,
+            "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `data`\nas payload and will be retried using the configured retry policy,",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "request",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on queue resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                },
+                {
+                    "name": "data",
+                    "description": "- String data to send as UTF-8 payload.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise for HTTPS response with `payload` property as\nstring containing the response payload.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 515,
+            "description": "List queues under the storage account.",
+            "itemtype": "method",
+            "name": "listQueues",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "-  `options` on the following form:\n```js\n{\n  prefix:          '',     // Prefix of queues to list\n  marker:          '',     // Marker to list queues from\n  maxResults:      5000,   // Max number of results\n  metadata:        false   // Whether or not to include metadata\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  queues: [\n    {\n      name:       '...',      // Name of queue\n      metadata:   {}          // Meta-data dictionary if requested\n    }\n  ],\n  prefix:         '...',      // prefix given in options (if given)\n  marker:         '...',      // marker given in options (if given)\n  maxResults:     5000,       // maxResults given in options (if given)\n  nextMarker:     '...'       // Next marker if not at end of list\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 567,
+            "description": "Create queue with given `name`, returns promise that resolves to `true`, if\nthe queue didn't already exist. Do not rely on this behavior unless you\ndisable the retry logic. Note, if queue exists with different\nmeta-data an error will be thrown.",
+            "itemtype": "method",
+            "name": "createQueue",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to create.",
+                    "type": "String"
+                },
+                {
+                    "name": "metadata",
+                    "description": "- Mapping from metadata keys to values.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that queue has been created.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 602,
+            "description": "Delete queue, return promise queue is deleted.\nNote, Azure may take a while to garbage collect the queue, see documentation\nfor relevant details, if you plan to recreate the queue again.",
+            "itemtype": "method",
+            "name": "deleteQueue",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to delete.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise that the queue has been marked for deletion.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 619,
+            "description": "Get meta-data for given `queue`. This includes approximate message count,\nnote that the approximate message is an upper-bound on the number of messages\nin the queue.\n\nWarning, this is a `HEAD` request, so if the queue is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`. The same goes for all other error codes.",
+            "itemtype": "method",
+            "name": "getMetadata",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to get meta-data from.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  messageCount:   50,         // Upper-bound on message count\n  metadata: {                 // Mapping from meta-data keys to values\n    '<key>':      '<value>',  // Meta-data key/value pair\n    ...\n  }\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 665,
+            "description": "Set meta-data for given `queue`, note that this overwrites all existing\nmeta-data key/value pairs.",
+            "itemtype": "method",
+            "name": "setMetadata",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to set meta-data on.",
+                    "type": "String"
+                },
+                {
+                    "name": "metadata",
+                    "description": "- Mapping from meta-data keys to values.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that the meta-data was set.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 698,
+            "description": "Put a message with XML-safe `text` into `queue` with TTL and visibility-\ntimeout, as given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
+            "itemtype": "method",
+            "name": "putMessage",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to put message into.",
+                    "type": "String"
+                },
+                {
+                    "name": "text",
+                    "description": "- XML-safe string to send.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- options on the following form:\n```js\n{\n  visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds\n  messageTTL:           7 * 24 * 60 * 60  // Message Time-To-Live in seconds\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that the messages was inserted in the queue.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 743,
+            "description": "Peek messages from `queue`, returns up to `options.numberOfMessages`, note,\nthat Azure Queue Storage only allows up to 32 messages at once.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
+            "itemtype": "method",
+            "name": "peekMessages",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to peek messages from.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- `options` on the following form:\n```js\n{\n  numberOfMessages:       1    // Max number of messages to peek\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an array of messages on the following form:\n```js\n[\n  {\n    messageId:        '...',      // Message id as string\n    insertionTime:    new Date(), // Insertion time as Date object\n    expirationTime:   new Date(), // Expiration time as Date object\n    dequeueCount:     1,          // Message dequeue count\n    messageText:      '...'       // Message text (however, you encoded it)\n  },\n  ...\n]\n```",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 787,
+            "description": "Get messages from `queue`, returns up to `options.numberOfMessages` of\nmessages, note, that Azure Queue Storage only allows up to 32 messages per\nrequest.\nSee, `deleteMessage` for how to delete messages once you have processed them.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
+            "itemtype": "method",
+            "name": "getMessages",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to get messages from.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- `options` on the following form:\n```js\n{\n  numberOfMessages:       1,   // Max number of messages to claim (max 32)\n  visibilityTimeout:      30   // Seconds to messages becomes visible again\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an array of messages on the following form:\n```js\n[\n  {\n    messageId:        '...',      // Message id as string\n    insertionTime:    new Date(), // Insertion time as Date object\n    expirationTime:   new Date(), // Expiration time as Date object\n    dequeueCount:     1,          // Message dequeue count\n    messageText:      '...',      // Message text (however, you encoded it)\n    popReceipt:       '...',      // Opaque string for deleting the message\n    timeNextVisible:  new Date()  // Next time visible as Date object\n  },\n  ...\n]\n```",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 839,
+            "description": "Delete a message from `queue` using `messageId` and `popReceipt`",
+            "itemtype": "method",
+            "name": "deleteMessage",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to delete message from",
+                    "type": "String"
+                },
+                {
+                    "name": "messageId",
+                    "description": "- Message identifier for message to delete, this\nidentifier is given when you call `getMessages`.",
+                    "type": "String"
+                },
+                {
+                    "name": "popReceipt",
+                    "description": "- Opaque token `popReceipt` that was given by\n`getMessages` when you received the message.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise that the message has been deleted.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 869,
+            "description": "Clear all messages from `queue`, note this may timeout if there is a lot of\nmessages in the queue, in this case you'll get a error with the code:\n`OperationTimedOut`, and you should retry until the operation is successful.\nSee Azure Queue Storage REST API documentation for details.",
+            "itemtype": "method",
+            "name": "clearMessages",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue to clear all messages from.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise that messages have been cleared.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/queue.js",
+            "line": 890,
+            "description": "Update a message from `queue` with XML-safe `text` and visibility-timeout,\nas given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
+            "itemtype": "method",
+            "name": "updateMessage",
+            "params": [
+                {
+                    "name": "queue",
+                    "description": "- Name of queue in which you wish to update a message.",
+                    "type": "String"
+                },
+                {
+                    "name": "text",
+                    "description": "- XML-safe UTF-8 text to set on the message.",
+                    "type": "String"
+                },
+                {
+                    "name": "messageId",
+                    "description": "- MessageId as received from `getMessages`.",
+                    "type": "String"
+                },
+                {
+                    "name": "popReceipt",
+                    "description": "- Opaque token as given by `getMessages`.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  visibilityTimeout:    7 * 24 * 60 * 60, // Visibility timeout in seconds\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that the message has been updated.",
+                "type": "Promise"
+            },
+            "class": "Queue",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 289,
+            "description": "Generate a SAS string on the form `'key1=val1&key2=val2&...'`.",
+            "itemtype": "method",
+            "name": "sas",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table that this SAS string applies to.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options for the following form:\n```js\n{\n  start:           new Date(), // Time from which signature is valid\n  expiry:          new Date(), // Expiration of signature (required)\n  permissions: {               // Set of permissions delegated (required)\n    read:          false,      // Read entities\n    add:           false,      // Insert new entities\n    update:        false,      // Update entities\n    delete:        false       // Delete entities\n  },\n  first: {                     // Start of accessible range (optional)\n    partitionKey:  '...',      // First accessible partition key (required)\n    rowKey:        '...'       // First accessible row key (required)\n  },\n  last: {                      // End of accessible range (optional)\n    partitionKey:  '...',      // Last accessible partition key (required)\n    rowKey:        '...'       // Last accessible row key (required)\n  },\n  accessPolicy:    '...'       // Reference to stored access policy\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Shared-Access-Signature on string form.",
+                "type": "String"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 393,
+            "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
+            "access": "protected",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "authorize",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on table resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an options object compatible with\n`https.request`.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 410,
+            "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `json`\nas payload and will be retried using the configured retry policy.",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "request",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on table resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                },
+                {
+                    "name": "json",
+                    "description": "- Optional JSON object to send as payload.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for the HTTP response object with a `payload`\nproperty carrying the payload as string.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 499,
+            "description": "Query for tables on the storage account.",
+            "itemtype": "method",
+            "name": "queryTables",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- `options` on the following form:\n```js\n{\n  nextTableName:      '...'  // nextTableName, if paging\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n tables:         ['<tableName>', ...],\n nextTableName:  '...',      // nextTableName if paging is necessary\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 538,
+            "description": "Create table with given `name`.",
+            "itemtype": "method",
+            "name": "createTable",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of table to create.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise that the table was created.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 561,
+            "description": "Delete table with given `name`",
+            "itemtype": "method",
+            "name": "deleteTable",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of table to delete.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A promise that the table was marked for deletion.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 579,
+            "description": "Convert nested array structure to filter string.\nSee `Table.Operators` for details and examples.",
+            "itemtype": "method",
+            "name": "filter",
+            "params": [
+                {
+                    "name": "expression",
+                    "description": "- Array of arrays, keys, operators and formatted\nconstants that forms an expression, where arrays becomes parenthesis:\n```js\nvar op = azure.Table.Operators;\nvar filter = azure.Table.filter([\n ['key1', op.Equal, op.string('my-string')],\n  op.And,\n ['key2', op.LessThan, op.date(new Date())]\n]) // \"((key1 eq 'my-string') and (key2 le datetime'...'))\"\n```",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "A filter string for use with `queryEntities`.",
+                "type": "String"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 605,
+            "description": "Operators and helpers for constructing $filter strings using `Table.filter`.\n\nWe have the following comparison operators:\n - `azure.Table.Operators.Equal`,\n - `azure.Table.Operators.GreaterThan`,\n - `azure.Table.Operators.GreaterThanOrEqual`,\n - `azure.Table.Operators.LessThan`,\n - `azure.Table.Operators.LessThanOrEqual`, and\n - `azure.Table.Operators.NotEqual`.\n\nThey should be used in the middle of a triple as follows:\n`['key1', op.Equal, op.string('my-string')]`.\n\nThe boolean operators `And`, `Not` and `Or` should be used to connect\ntriples made with comparison operators. Note, that each set of array brackets\ntranslates into a parentheses. Boolean operators:\n - `azure.Table.Operators.And`,\n - `azure.Table.Operators.Not`, and\n - `azure.Table.Operators.Or`.\n\nWe also have formatting helpers, `string`, `number`, `bool`, `date` and\n`guid` which takes constant values and encodes them correctly for use in\nfilter expression. It's strongly recommended that you employ these, as Azure\nhas some undocumented and semi obscure escaping rules. Constant formatters:\n - `azure.Table.Operators.string(\"...\")`,\n - `azure.Table.Operators.number(42.2)`,\n - `azure.Table.Operators.bool(true)`,\n - `azure.Table.Operators.date(new Date())`, and\n - `azure.Table.Operators.guid('...')`.\n\nComplete example:\n```js\nvar op = azure.Table.Operators;\nvar filter = azure.Table.filter([\n ['key1', op.Equal, op.string('my-string')],\n  op.And,\n ['key2', op.LessThan, op.date(new Date())]\n]) // \"((key1 eq 'my-string') and (key2 le datetime'...'))\"\n```",
+            "itemtype": "attribute",
+            "name": "Operators",
+            "static": 1,
+            "final": 1,
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 681,
+            "description": "Get entity from `table` with given `partitionKey` and `rowKey`.",
+            "itemtype": "method",
+            "name": "getEntity",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table to get entity from.",
+                    "type": "String"
+                },
+                {
+                    "name": "partitionKey",
+                    "description": "- Partition key of entity to get.",
+                    "type": "String"
+                },
+                {
+                    "name": "rowKey",
+                    "description": "- Row key of entity to get.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  select:  ['key1', ...],  // List of keys to return (defaults to all)\n  filter:  '...'           // Filter string for conditional load\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for the entity, form of the object depends on the meta-data\nlevel configured and if `select` as employed. See Azure documentation for\ndetails.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 726,
+            "description": "Query entities from `table`.",
+            "itemtype": "method",
+            "name": "queryEntitites",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table to query entities for.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  // Query options:\n  select:            ['key1', ...],  // Keys to $select (defaults to all)\n  filter:            'key1 eq true', // $filter string, see Table.filter\n  top:               1000,           // Max number of entities to return\n\n  // Paging options:\n  nextPartitionKey:  '...',          // nextPartitionKey from previous result\n  nextRowKey:        '...'           // nextRowKey from previous result\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  entities: [\n    {\n      // Keys selected from entity and meta-data depending on meta-data level\n    },\n    ...\n  ],\n  nextPartitionKey: '...',  // Opaque token for paging\n  nextRowKey:       '...'   // Opaque token for paging\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 804,
+            "description": "Insert `entity` into `table`, the `entity` object must be on the format\naccepted by azure table storage. See Azure Table Storage documentation for\ndetails. Essentially, data-types will be inferred if `...@odata.type`\nproperties aren't specified. Also note that `PartitionKey` and `RowKey`\nproperties must be specified.",
+            "itemtype": "method",
+            "name": "insertEntity",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table insert entity into.",
+                    "type": "String"
+                },
+                {
+                    "name": "entity",
+                    "description": "- Entity object, see Azure Table Storage\ndocumentation for details on how to annotate types.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for the `etag` of the inserted entity.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 835,
+            "description": "Update entity from `table` identified by `entity.partitionKey` and\n`entity.rowKey`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  mode:  'replace' || 'merge'  // Replace entity or merge entity\n  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert\n}\n```\n\nIf `options.mode` is `'replace'` the remote entity will be completely\nreplaced by the structure given as `entity`. If `options.mode` is `'merge'`\nproperties from `entity` will overwrite existing properties on remote entity.\n\nIf **`options.eTag` is not given** (or `null`) the remote entity will be\ninserted if it does not exist, and otherwise replaced or merged depending\non `mode`.\n\nIf **`options.eTag` is the string `'*'`** the remote entity will be replaced\nor merged depending on `mode`, but it will not be inserted if it doesn't\nexist.\n\nIf **`options.eTag` is a string** (other than `'*'`) the remote entity will be\nreplaced or merged depending on `mode`, if the ETag of the remote entity\nmatches the string given in `options.eTag`.\n\nCombining `mode` and `eTag` options this method implements the following\noperations:\n * Insert or replace (regardless of existence or ETag),\n * Replace if exists (regardless of ETag),\n * Replace if exists and has given ETag,\n * Insert or merge (regardless of existence or ETag),\n * Merge if exists (regardless of ETag), and\n * Merge if exists and has given ETag.",
+            "itemtype": "method",
+            "name": "updateEntity",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table to update entity from.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  mode:  'replace' || 'merge'  // Replace entity or merge entity\n  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for `eTag` of the modified entity.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        },
+        {
+            "file": "lib/table.js",
+            "line": 916,
+            "description": "Delete entity identified by `partitionKey` and `rowKey` from `table`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag\n}\n```\n\nNote, `options.eTag` is `'*'` will delete the entity regardless of its ETag.",
+            "itemtype": "method",
+            "name": "deleteEntity",
+            "params": [
+                {
+                    "name": "table",
+                    "description": "- Name of table to delete entity from.",
+                    "type": "String"
+                },
+                {
+                    "name": "partitionKey",
+                    "description": "- Partition key of entity to delete.",
+                    "type": "String"
+                },
+                {
+                    "name": "rowKey",
+                    "description": "- Row key of entity to delete.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that the entity was deleted.",
+                "type": "Promise"
+            },
+            "class": "Table",
+            "module": "azure"
+        }
+    ],
+    "warnings": [
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:347"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:428"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:515"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:567"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:602"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:619"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:665"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:698"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:743"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:787"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:839"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:869"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:289"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:393"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:410"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:499"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:579"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:916"
+        }
+    ]
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>lib/agent.js - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.1</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>lib/agent.js <small>File</small></h1>
+</div>
+
+<div class="file">
+    <pre class="prettyprint linenums">
+&#x27;use strict&#x27;;
+
+var https   = require(&#x27;https&#x27;);
+var debug   = require(&#x27;debug&#x27;)(&#x27;azure:agent&#x27;);
+var util    = require(&#x27;util&#x27;);
+
+/*
+ * Idle socket timeout, set to 55 seconds because the Azure load balancer will
+ * silently drop connections after 60 s of idle time. And we won&#x27;t detect the
+ * drop until we try to send keep-alive packages, so to avoid making requests
+ * on invalid connections we close connections after 55 s of idle time.
+ */
+var FREE_SOCKET_IDLE_TIMEOUT = 55 * 1000;
+
+/*
+ * Error handler that ignores errors which occurs while the socket is owned by
+ * Agent. We don&#x27;t want these errors to crash our application.
+ */
+function freeSocketErrorHandler(err) {
+  debug(&quot;Error from idle socket owned by azure.Agent: %s&quot;, err.stack);
+}
+
+/*
+ * Socket timeout handler for azure.Azure sockets, which destroys sockets that
+ * haven&#x27;t been destroyed. Used to close sockets after being idle for 55 s.
+ */
+function freeSocketTimeoutHandler() {
+  if (!this.destroyed) {
+    debug(&quot;Destroying free socket after idle timeout&quot;);
+    this.destroy();
+  }
+}
+
+/**
+ * A https.Agent subclass for use with a Azure Storage Services. This agent
+ * is a specialization of the https.Agent class with extra features:
+ *  - catches socket errors from free sockets,
+ *  - closes sockets after being idle for 55 seconds, and
+ *  - disables TCP Nagle for all sockets (socket.setNoDelay).
+ *
+ * For details on Azure issues with ECONNRESET see:
+ * [blog.gluwer.com](http://bit.ly/1HBuJK1).
+ *
+ * @class Agent
+ * @extends https.Agent
+ * @constructor
+ * @param {object} options - &#x60;options&#x60; compatible with &#x60;http.Agent&#x60;.
+ */
+var Agent = function(options) {
+  https.Agent.call(this, options);
+
+  // Listen for free sockets
+  this.on(&#x27;free&#x27;, function(socket) {
+    // Ignore errors from free sockets
+    socket.on(&#x27;error&#x27;, freeSocketErrorHandler);
+    // Set idle timeout to avoid connection drops from azure
+    socket.setTimeout(FREE_SOCKET_IDLE_TIMEOUT, freeSocketTimeoutHandler);
+  });
+};
+
+// Subclass https.Agent
+util.inherits(Agent, https.Agent);
+
+/**
+ * Overwrites the &#x60;addRequest&#x60; method so we can remove error handler and timeout
+ * handler from sockets when they are given to a request.
+ *
+ * @private
+ * @method addRequest
+ */
+Agent.prototype.addRequest = function addRequest(req, options) {
+  req.once(&#x27;socket&#x27;, function(socket) {
+    // Disable TCP Nagle for socket about to be used by the request
+    socket.setNoDelay(true);
+    socket.removeListener(&#x27;error&#x27;, freeSocketErrorHandler);
+    socket.setTimeout(0, freeSocketTimeoutHandler);
+  });
+  return https.Agent.prototype.addRequest.call(this, req, options);
+};
+
+/**
+ * Overwrites the &#x60;removeSocket&#x60; method so we can remove error handler and
+ * timeout handler from sockets when they are removed the agent.
+ *
+ * @private
+ * @method removeSocket
+ */
+Agent.prototype.removeSocket = function removeSocket(socket, options) {
+  socket.removeListener(&#x27;error&#x27;, freeSocketErrorHandler);
+  socket.setTimeout(0, freeSocketTimeoutHandler);
+  return https.Agent.prototype.removeSocket.call(this, socket, options);
+};
+
+// Don&#x27;t do anything for node 0.10
+if (/^0\.10/.test(process.versions.node)) {
+  Agent = https.Agent;
+}
+
+// Create global agent
+if (/^0\.10/.test(process.versions.node)) {
+  Agent.globalAgent = https.globalAgent;
+} else {
+  // Some relatively sane defaults, 100 is a bit high depending on hardware
+  Agent.globalAgent = new Agent({
+    keepAlive:      true,
+    maxSockets:     100,
+    maxFreeSockets: 100
+  });
+}
+
+// Export Agent
+module.exports = Agent;
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>
