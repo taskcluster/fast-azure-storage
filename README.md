@@ -11,7 +11,8 @@ At this point this library implement most of the APIs for queue and table
 storage. Pull request with additional feature additions will generally be
 accepted, as long as patches don't compromise efficiency.
 
-For full documentation see [reference documentation](TODO ADD DOCS LINK HERE)
+For full documentation see
+[reference documentation](https://taskcluster.github.io/fast-azure-storage/)
 or extensive comments in the sources.
 
 
@@ -60,25 +61,6 @@ var options = {
   minSASAuthExpiry:   15 * 60 * 1000
 };
 ```
-
-### Retry Logic Configuration
-
-**TODO: write documentation...**
-
-
-### Timeout Configuration
-Azure Storage Services allows you to supply a `timeout` parameter for most
-operations. In the fast-azure-storage library you can set this parameter as
-follows:
-
-```js
-// Common options timeout
-var options = {
-  timeout:    30 * 1000, // set server-side timeout to 30 seconds
-};
-```
-
-**TODO: Implement a client-side timeout.**
 
 ### Custom HTTPS Agent Configuration
 The fast-azure-storage library comes with a custom `https.Agent` implementation,
@@ -132,7 +114,9 @@ table.createTable('mytable').then(function() {
 });
 ```
 
-### Queue API Reference
+### Table API Reference
+
+See also [reference documentation](https://taskcluster.github.io/fast-azure-storage/).
 
  * `Table(options)`
  * `Table#queryTables(options)`
@@ -146,23 +130,36 @@ table.createTable('mytable').then(function() {
  * `Table#sas(table, options)`
  * `Table.filter(expression)`
 
-### Table Query Options
-**TODO: write documentation...**
-
-### Updating Table Entities
-**TODO: write documentation...**
-
-### Generating Shared-Access-Signatures
-**TODO: write documentation...**
-
 
 Azure Queue Storage Client
 --------------------------
+The Azure Storage Queue client aims at interfacing Azure Queue Storage
+and handling all the XML parsing using `libxmljs` if available, if `libxmljs`
+isn't available it'll fall-back to use `pixl-xml` which is a pure Javascript,
+but also a tiny bit slower.
 
-**TODO: write example...**
+Simple example of queue and message creation.
+```js
+// Load fast-azure-storage client
+var azure = require('fast-azure-storage');
 
+var queue = new azure.Queue({
+  accountId:    '...',
+  accessKey:    '...'
+});
+
+// Create queue and insert message
+queue.createQueue('myqueue').then(function() {
+  return queue.putMessage('myqueue', 'my-message', {
+    visibilityTimeout:  10,     // Visible after 10 seconds
+    messageTTL:         60 * 60 // Expires after 1 hour
+  });
+});
+```
 
 ### Queue API Reference
+
+See also [reference documentation](https://taskcluster.github.io/fast-azure-storage/).
 
  * `Queue(options)`
  * `Queue#listQueues(options)`
@@ -178,11 +175,3 @@ Azure Queue Storage Client
  * `Queue#updateMessage(queue, text, messageId, popReceipt, options)`
  * `Queue#sas(queue, options)`
 
-
-### Generating Shared-Access-Signatures
-**TODO: write documentation...**
-
-Built-in Azure HTTPS Agent
---------------------------
-
-**TODO: write documentation...**

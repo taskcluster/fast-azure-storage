@@ -1,14 +1,14 @@
 {
   "name":         "fast-azure-storage",
-  "version":      "0.3.1",
+  "version":      "0.3.2",
   "author":       "Jonas Finnemann Jensen <jopsen@gmail.com>",
   "description":  "Fast client library for azure storage services",
   "license":      "MPL-2.0",
   "main":         "lib/index.js",
   "scripts": {
     "test":       "mocha test/*.js",
-    "docs":       "jsdoc -c docs.json",
-    "docs2":      ""
+    "docs":       "yuidoc .",
+    "push-docs":  "npm run docs && git add docs/ && git commit -m 'Update docs' && git subtree push --prefix docs git@github.com:taskcluster/fast-azure-storage.git gh-pages"
   },
   "repository": {
     "type":       "git",
