@@ -1,6 +1,6 @@
 {
   "name":         "fast-azure-storage",
-  "version":      "0.3.5",
+  "version":      "0.3.6",
   "author":       "Jonas Finnemann Jensen <jopsen@gmail.com>",
   "description":  "Fast client library for azure storage services",
   "license":      "MPL-2.0",
@@ -17,7 +17,7 @@
   "dependencies": {
     "debug":                            "^2.2.0",
     "promise":                          "^7.0.4",
-    "pixl-xml":                         "^1.0.4"
+    "pixl-xml":                         "^1.0.10"
   },
   "optionalDependencies": {
     "libxmljs":                         "^0.18.0"
