@@ -1,4 +1,4 @@
-suite("Azure Blob", function() {
+suite.only("Azure Blob", function() {
   var azure   = require('../');
   var assert  = require('assert');
   var utils   = require('../lib/utils');
@@ -141,6 +141,8 @@ suite("Azure Blob", function() {
             start: new Date(Date.now() - 15 * 60 * 1000),
             permission: {
               read: true,
+              add: true,
+              create: true,
               write: true,
               list: true,
             }
@@ -167,8 +169,8 @@ suite("Azure Blob", function() {
           assert(response.accessPolicies[0].permission.read === true);
           assert(response.accessPolicies[0].permission.list === true);
           assert(response.accessPolicies[0].permission.delete === false);
-          assert(response.accessPolicies[0].permission.add === false);
-          assert(response.accessPolicies[0].permission.create === false);
+          assert(response.accessPolicies[0].permission.add === true);
+          assert(response.accessPolicies[0].permission.create === true);
           assert(response.accessPolicies[0].permission.write === true);
 
           assert(response.accessPolicies[1].id === '2');
@@ -186,7 +188,7 @@ suite("Azure Blob", function() {
       var containerName = containerNamePrefix + '-with-acl';
       var sas = blob.sas(containerName, null, {
         expiry:   new Date(Date.now() + 30 * 60 * 1000),
-        resourceType: 'c',
+        resourceType: 'container',
         accessPolicy: 1
       });
       var blobWithSas = new azure.Blob({
@@ -200,7 +202,7 @@ suite("Azure Blob", function() {
       var containerName = containerNamePrefix + '-with-acl';
       var sas = blob.sas(containerName, null, {
         expiry: new Date(Date.now() + 30 * 60 * 1000),
-        resourceType: 'c',
+        resourceType: 'container',
         accessPolicy: 2
       });
       var blobWithSas = new azure.Blob({
@@ -219,7 +221,7 @@ suite("Azure Blob", function() {
       var sas = blob.sas(containerName, null, {
         start:    new Date(Date.now() - 15 * 60 * 1000),
         expiry:   new Date(Date.now() + 30 * 60 * 1000),
-        resourceType: 'c',
+        resourceType: 'container',
         permissions: {
           read: true,
           add: false,
@@ -247,7 +249,7 @@ suite("Azure Blob", function() {
         refreshCount += 1;
         return blob.sas(containerName, null, {
           expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
-          resourceType: 'c',
+          resourceType: 'container',
           permissions: {
             read: true,
             add: true,
@@ -280,7 +282,7 @@ suite("Azure Blob", function() {
         refreshCount += 1;
         return blob.sas(containerName, null, {
           expiry: new Date(Date.now() + 20 * 60 * 1000),
-          resourceType: 'c',
+          resourceType: 'container',
           permissions: {
             read: true,
             add: true,
