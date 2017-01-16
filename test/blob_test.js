@@ -42,17 +42,17 @@ suite("Azure Blob", function() {
 
       return blob.createContainer(containerName, options)
         .then(function(){
-        /* If the publicAccessLevel is `container`, clients can call:
-          getContainerProperties, getContainerMetadata, listBlobs anonymously
-         */
-        return anonymousBlob.getContainerProperties(containerName).then(function(response){
-          assert(response.properties.eTag);
-          assert(response.properties.lastModified);
-          assert(response.properties.leaseStatus);
-          assert(response.properties.leaseState);
-          assert(response.properties.publicAccessLevel === 'container');
-        });
-      })
+          /* If the publicAccessLevel is `container`, clients can call:
+           getContainerProperties, getContainerMetadata, listBlobs anonymously
+           */
+          return anonymousBlob.getContainerProperties(containerName).then(function(response){
+            assert(response.properties.eTag);
+            assert(response.properties.lastModified);
+            assert(response.properties.leaseStatus);
+            assert(response.properties.leaseState);
+            assert(response.properties.publicAccessLevel === 'container');
+          });
+        })
     });
 
     test('set and get container metadata', function() {
