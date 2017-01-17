@@ -1,4 +1,4 @@
-suite("Azure Blob", function() {
+suite.only("Azure Blob", function() {
   var azure   = require('../');
   var assert  = require('assert');
   var utils   = require('../lib/utils');
@@ -15,6 +15,7 @@ suite("Azure Blob", function() {
   });
 
   var containerNamePrefix = 'fast-azure-blob-container';
+  var date15MinAgo = new Date(Date.now() - 15 * 60 * 1000);
 
   suite("Container", function() {
     test('create container with metadata', function() {
@@ -145,7 +146,7 @@ suite("Azure Blob", function() {
         var accessPolicies = [
           {
             id: 1,
-            start: new Date(Date.now() - 15 * 60 * 1000),
+            start: date15MinAgo,
             permission: {
               read: true,
               add: true,
@@ -156,7 +157,7 @@ suite("Azure Blob", function() {
           },
           {
             id: 2,
-            start: new Date(Date.now() - 15 * 60 * 1000),
+            start: date15MinAgo,
             permission: {
               list: false,
             }
@@ -226,7 +227,7 @@ suite("Azure Blob", function() {
     test('Shared-Access-Signature (forbid list blobs)', function(){
       var containerName = containerNamePrefix + '-with-metadata';
       var sas = blob.sas(containerName, null, {
-        start:    new Date(Date.now() - 15 * 60 * 1000),
+        start:    date15MinAgo,
         expiry:   new Date(Date.now() + 30 * 60 * 1000),
         resourceType: 'container',
         permissions: {
@@ -359,6 +360,43 @@ suite("Azure Blob", function() {
       });
     });
 
+    test('acquire a lease for a container with if-modified-since and if-unmodified-since conditional header', function () {
+      var containerName = containerNamePrefix + '-conditional-header';
+      return blob.createContainer(containerName)
+        .then(function (result) {
+          assert(result.eTag);
+          assert(result.lastModified);
+
+          var options = {
+            leaseAction: 'acquire',
+            leaseDuration: 15,
+            ifUnmodifiedSince: date15MinAgo
+          };
+
+          return blob.leaseContainer(containerName, options);
+        })
+        .catch(function (error) {
+          assert(error.code === 'ConditionNotMet');
+          assert(error.statusCode === 412);
+
+          return blob.leaseContainer(containerName, {
+            leaseAction: 'acquire',
+            leaseDuration: 15,
+            ifModifiedSince: date15MinAgo
+          })
+        })
+        .then(function (result) {
+          assert(result.leaseId);
+          assert(result.eTag);
+          assert(result.lastModified);
+
+          return blob.leaseContainer(containerName, {
+            leaseAction: 'release',
+            leaseId: result.leaseId
+          });
+        });
+    });
+
     test('delete container with if-modified-since conditional header', function () {
       var containerName = containerNamePrefix + '-delete-with-condition';
       return blob.createContainer(containerName)
@@ -378,7 +416,7 @@ suite("Azure Blob", function() {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.deleteContainer(containerName, {ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)});
+          return blob.deleteContainer(containerName, {ifModifiedSince: date15MinAgo});
         });
     });
 
@@ -389,7 +427,7 @@ suite("Azure Blob", function() {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.deleteContainer(containerName, {ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)})
+          return blob.deleteContainer(containerName, {ifUnmodifiedSince: date15MinAgo})
         })
         .catch(function (error) {
           assert(error.code === 'ConditionNotMet');
@@ -406,7 +444,7 @@ suite("Azure Blob", function() {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.setContainerMetadata(containerName, {scope: 'test'}, {ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)});
+          return blob.setContainerMetadata(containerName, {scope: 'test'}, {ifModifiedSince: date15MinAgo});
         })
         .then(function (result) {
           return blob.setContainerMetadata(containerName, {scope: 'test2'}, {ifModifiedSince: new Date(Date.now())});
@@ -611,7 +649,7 @@ suite("Azure Blob", function() {
           assert(result.lastModified);
           assert(result.eTag);
           return blob.deleteBlob(containerName, name, {
-            ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifModifiedSince: date15MinAgo
           });
         });
     });
@@ -684,7 +722,7 @@ suite("Azure Blob", function() {
           assert(result.lastModified);
 
           return blob.getBlob(containerName, name, {
-            ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifModifiedSince: date15MinAgo
           });
         });
     });
@@ -721,14 +759,14 @@ suite("Azure Blob", function() {
           assert(error.statusCode === 304);
 
           return blob.getBlobMetadata(containerName, name, {
-            ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifModifiedSince: date15MinAgo
           });
         })
         .then(function (result) {
           assert(result.lastModified);
 
           return blob.getBlobMetadata(containerName, name, {
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           });
         })
         .catch(function (error) {
@@ -756,13 +794,13 @@ suite("Azure Blob", function() {
           assert(error.statusCode === 304);
 
           return blob.getBlobProperties(containerName, name, {
-            ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifModifiedSince: date15MinAgo
           });
         })
         .then(function (result) {
           assert(result.lastModified);
           return blob.getBlobProperties(containerName, name, {
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           });
         })
         .catch(function (error) {
@@ -797,7 +835,7 @@ suite("Azure Blob", function() {
           assert(result.lastModified);
 
           return blob.setBlobMetadata(containerName, name, {scope: 'test'}, {
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           });
         })
         .catch(function (error) {
@@ -833,7 +871,7 @@ suite("Azure Blob", function() {
           assert(result.lastModified);
 
           return blob.setBlobProperties(containerName, name, {contentEncoding: 'gzip'}, {
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           });
         })
         .catch(function (error) {
@@ -876,7 +914,7 @@ suite("Azure Blob", function() {
 
           blob.putBlob(containerName, name, {
             blobType: 'BlockBlob',
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           }, 'hello from error');
         })
         .catch(function (error) {
@@ -915,7 +953,7 @@ suite("Azure Blob", function() {
           assert(result.lastModified);
 
           blob.appendBlock(containerName, name, {
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           }, 'log4');
         })
         .catch(function (error) {
@@ -963,7 +1001,7 @@ suite("Azure Blob", function() {
           return blob.putBlockList(containerName, name, {
             uncommitted: [blockId2],
             committed: [blockId1],
-            ifUnmodifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifUnmodifiedSince: date15MinAgo
           });
         })
         .catch(function (error) {
@@ -973,7 +1011,7 @@ suite("Azure Blob", function() {
           return blob.putBlockList(containerName, name, {
             uncommitted: [blockId2],
             committed: [blockId1],
-            ifModifiedSince: new Date(Date.now() - 15 * 60 * 1000)
+            ifModifiedSince: date15MinAgo
           });
         });
     });
