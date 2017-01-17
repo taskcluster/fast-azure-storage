@@ -1,4 +1,4 @@
-suite.only("Azure Blob", function() {
+suite("Azure Blob", function() {
   var azure   = require('../');
   var assert  = require('assert');
   var utils   = require('../lib/utils');
