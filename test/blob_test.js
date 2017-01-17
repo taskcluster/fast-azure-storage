@@ -192,6 +192,33 @@ suite.only("Azure Blob", function() {
       });
     });
 
+    test('set container ACL with if-modified-since and if-unmodified-since', function () {
+      var containerName = containerNamePrefix + '-with-acl-conditional-headers';
+
+      return blob.createContainer(containerName)
+        .then(function () {
+          var options = {
+            publicAccessLevel: 'container',
+            ifModifiedSince: date15MinAgo
+          };
+          return blob.setContainerACL(containerName, options);
+        })
+        .then(function (result) {
+          assert(result.eTag);
+          assert(result.lastModified);
+
+          options = {
+            publicAccessLevel: 'blob',
+            ifUnmodifiedSince: date15MinAgo
+          };
+          return blob.setContainerACL(containerName, options);
+        })
+        .catch(function (error) {
+          assert(error.code === 'ConditionNotMet');
+          assert(error.statusCode === 412);
+        });
+    });
+
     test('Shared-Access-Signature (with access policy which has list permission)', function(){
       var containerName = containerNamePrefix + '-with-acl';
       var sas = blob.sas(containerName, null, {
