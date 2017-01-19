@@ -38,7 +38,7 @@ suite("Azure Blob", function() {
     test('create container with container access and check if the access level is correctly set', function() {
       var containerName = containerNamePrefix + '-with-access';
       var options = {
-        publicLevelAccess: 'container'
+        publicAccessLevel: 'container'
       };
 
       return blob.createContainer(containerName, options)
