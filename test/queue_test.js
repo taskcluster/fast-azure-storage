@@ -35,7 +35,8 @@ suite("Queue", function() {
 
   test("createQueue w. meta-data", function() {
     return queue.createQueue(queueName, {
-      purpose:    'testing'
+      purpose:         'testing',
+      applicationName: 'fast-azure-    storage '
     });
   });
 
@@ -86,6 +87,7 @@ suite("Queue", function() {
   test("getMetadata", function() {
     return queue.getMetadata(queueName).then(function(result) {
       assert(result.metadata.purpose === 'testing');
+      assert(result.metadata.applicationName === 'fast-azure-    storage');
     });
   });
 
