@@ -16,11 +16,13 @@ suite("Azure Blob", function() {
 
   var containerNamePrefix = 'fast-azure-blob-container';
   var date15MinAgo = new Date(Date.now() - 15 * 60 * 1000);
+  var options = null;
+  var containerName = null;
 
   suite("Container", function() {
     test('create container with metadata', function() {
-      var containerName = containerNamePrefix + '-with-metadata';
-      var options = {
+      containerName = containerNamePrefix + '-with-metadata';
+      options = {
         metadata: {
           testKey: 'testValue'
         }
@@ -30,66 +32,56 @@ suite("Azure Blob", function() {
     });
 
     test('create container without metadata', function() {
-      var containerName = containerNamePrefix + '-without-metadata';
+      containerName = containerNamePrefix + '-without-metadata';
 
       return blob.createContainer(containerName, {});
     });
 
     test('create container with container access and check if the access level is correctly set', function() {
-      var containerName = containerNamePrefix + '-with-access';
-      var options = {
-        publicAccessLevel: 'container'
-      };
+      containerName = containerNamePrefix + '-with-access';
 
-      return blob.createContainer(containerName, options)
-        .then(function(){
+      return blob.createContainer(containerName, { publicAccessLevel: 'container' }).then(function(){
           /* If the publicAccessLevel is `container`, clients can call:
            getContainerProperties, getContainerMetadata, listBlobs anonymously
            */
-          return anonymousBlob.getContainerProperties(containerName).then(function(result){
-            assert(result.properties.eTag);
-            assert(result.properties.lastModified);
-            assert(result.properties.leaseStatus);
-            assert(result.properties.leaseState);
-            assert(result.properties.publicAccessLevel === 'container');
-          });
-        })
+          return anonymousBlob.getContainerProperties(containerName);
+        }).then(function(result){
+          assert(result.properties.eTag);
+          assert(result.properties.lastModified);
+          assert(result.properties.leaseStatus);
+          assert(result.properties.leaseState);
+          assert(result.properties.publicAccessLevel === 'container');
+      });
     });
 
     test('set and get container metadata', function() {
-      var containerName = containerNamePrefix + '-set-get-metadata';
+      containerName = containerNamePrefix + '-set-get-metadata';
 
       // create a container without metadata
-      return blob.createContainer(containerName, {})
-        .then(function(){
+      return blob.createContainer(containerName, {}).then(function(){
           // set metadata to newly created container
-          var metadata = {
-            appName: 'fast-azure-storage'
-          }
+          var metadata = { appName: 'fast-azure-storage' };
           return blob.setContainerMetadata(containerName, metadata);
-        })
-        .then(function(){
+        }).then(function(){
           return blob.getContainerMetadata(containerName);
-        })
-        .then(function(result){
+        }).then(function(result){
           // verify if the metadata was correctly set
           assert(result.metadata.appName === 'fast-azure-storage');
         });
     });
 
     test('list containers with prefix', function() {
-      return blob.listContainers({
-        prefix: containerNamePrefix
-      }).then(function(result){
+      return blob.listContainers({ prefix: containerNamePrefix }).then(function(result){
         assert(result.containers.length > 0);
       });
     });
 
     test('list containers with prefix and metadata', function() {
-      return blob.listContainers({
+      options = {
         prefix: containerNamePrefix,
         metadata: true
-      }).then(function(result){
+      };
+      return blob.listContainers(options).then(function(result){
         assert(result.containers.length > 0);
         var myContainer = null;
         result.containers.forEach(function(container) {
@@ -103,44 +95,44 @@ suite("Azure Blob", function() {
     });
 
     test('list containers with metadata', function() {
-      return blob.listContainers({
-        metadata: true
-      }).then(function(result){
+      return blob.listContainers({ metadata: true }).then(function(result){
         assert(result.containers.length > 0);
       });
     });
 
     test('get container properties', function(){
-      var containerName = containerNamePrefix + '-with-properties';
-      var options = {
+      containerName = containerNamePrefix + '-with-properties';
+      options = {
         metadata : {
           appName: 'fast-azure-storage'
         }
       };
       return blob.createContainer(containerName, options).then(function(){
-        return blob.getContainerProperties(containerName).then(function(result){
-          assert(result.metadata.appName === 'fast-azure-storage');
-          assert(result.properties.eTag);
-          assert(result.properties.lastModified);
-          assert(result.properties.leaseStatus);
-          assert(result.properties.leaseState);
-        });
+        return blob.getContainerProperties(containerName);
+      }).then(function(result){
+        assert(result.metadata.appName === 'fast-azure-storage');
+        var props = result.properties;
+        assert(props.eTag);
+        assert(props.lastModified);
+        assert(props.leaseStatus);
+        assert(props.leaseState);
       });
     });
 
     test('get container (with access level, without metadata) properties', function(){
-      var containerName = containerNamePrefix + '-with-access';
+      containerName = containerNamePrefix + '-with-access';
       return blob.getContainerProperties(containerName).then(function(result){
-        assert(result.properties.eTag);
-        assert(result.properties.lastModified);
-        assert(result.properties.leaseStatus);
-        assert(result.properties.leaseState);
-        assert(result.properties.publicAccessLevel === 'container');
+        var props = result.properties;
+        assert(props.eTag);
+        assert(props.lastModified);
+        assert(props.leaseStatus);
+        assert(props.leaseState);
+        assert(props.publicAccessLevel === 'container');
       });
     });
 
     test('set, get container ACL', function(){
-      var containerName = containerNamePrefix + '-with-acl';
+      containerName = containerNamePrefix + '-with-acl';
 
       return blob.createContainer(containerName, {}).then(function(){
         var accessPolicies = [
@@ -163,47 +155,48 @@ suite("Azure Blob", function() {
             }
           }
         ];
-        var options = {
+        options = {
           publicAccessLevel: 'container',
           accessPolicies: accessPolicies
         }
         return blob.setContainerACL(containerName, options);
       }).then(function(){
-        return blob.getContainerACL(containerName).then(function (result) {
-          assert(result.publicAccessLevel === 'container');
-          assert(result.accessPolicies.length === 2);
+        return blob.getContainerACL(containerName);
+      }).then(function (result) {
+        assert(result.publicAccessLevel === 'container');
+        assert(result.accessPolicies.length === 2);
 
-          assert(result.accessPolicies[0].id === '1');
-          assert(result.accessPolicies[0].permission.read === true);
-          assert(result.accessPolicies[0].permission.list === true);
-          assert(result.accessPolicies[0].permission.delete === false);
-          assert(result.accessPolicies[0].permission.add === true);
-          assert(result.accessPolicies[0].permission.create === true);
-          assert(result.accessPolicies[0].permission.write === true);
+        var ap0 = result.accessPolicies[0];
+        assert(ap0.id === '1');
+        assert(ap0.permission.read === true);
+        assert(ap0.permission.list === true);
+        assert(ap0.permission.delete === false);
+        assert(ap0.permission.add === true);
+        assert(ap0.permission.create === true);
+        assert(ap0.permission.write === true);
 
-          assert(result.accessPolicies[1].id === '2');
-          assert(result.accessPolicies[1].permission.read === false);
-          assert(result.accessPolicies[1].permission.list === false);
-          assert(result.accessPolicies[1].permission.delete === false);
-          assert(result.accessPolicies[1].permission.add === false);
-          assert(result.accessPolicies[1].permission.create === false);
-          assert(result.accessPolicies[1].permission.write === false);
-        });
+        var ap1 = result.accessPolicies[1];
+        assert(ap1.id === '2');
+        assert(ap1.permission.read === false);
+        assert(ap1.permission.list === false);
+        assert(ap1.permission.delete === false);
+        assert(ap1.permission.add === false);
+        assert(ap1.permission.create === false);
+        assert(ap1.permission.write === false);
       });
     });
 
     test('set container ACL with if-modified-since and if-unmodified-since', function () {
-      var containerName = containerNamePrefix + '-with-acl-conditional-headers';
+      containerName = containerNamePrefix + '-with-acl-conditional-headers';
 
       return blob.createContainer(containerName)
         .then(function () {
-          var options = {
+          options = {
             publicAccessLevel: 'container',
             ifModifiedSince: date15MinAgo
           };
           return blob.setContainerACL(containerName, options);
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
@@ -212,15 +205,14 @@ suite("Azure Blob", function() {
             ifUnmodifiedSince: date15MinAgo
           };
           return blob.setContainerACL(containerName, options);
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('Shared-Access-Signature (with access policy which has list permission)', function(){
-      var containerName = containerNamePrefix + '-with-acl';
+      containerName = containerNamePrefix + '-with-acl';
       var sas = blob.sas(containerName, null, {
         expiry:   new Date(Date.now() + 30 * 60 * 1000),
         resourceType: 'container',
@@ -234,7 +226,7 @@ suite("Azure Blob", function() {
     });
 
     test('Shared-Access-Signature (with access policy with forbid list)', function(){
-      var containerName = containerNamePrefix + '-with-acl';
+      containerName = containerNamePrefix + '-with-acl';
       var sas = blob.sas(containerName, null, {
         expiry: new Date(Date.now() + 30 * 60 * 1000),
         resourceType: 'container',
@@ -252,7 +244,7 @@ suite("Azure Blob", function() {
     });
 
     test('Shared-Access-Signature (forbid list blobs)', function(){
-      var containerName = containerNamePrefix + '-with-metadata';
+      containerName = containerNamePrefix + '-with-metadata';
       var sas = blob.sas(containerName, null, {
         start:    date15MinAgo,
         expiry:   new Date(Date.now() + 30 * 60 * 1000),
@@ -278,7 +270,7 @@ suite("Azure Blob", function() {
     });
 
     test("Shared-Access-Signature (will refresh)", function() {
-      var containerName = containerNamePrefix + '-with-metadata';
+      containerName = containerNamePrefix + '-with-metadata';
       var refreshCount = 0;
       var refreshSAS = function() {
         refreshCount += 1;
@@ -311,7 +303,7 @@ suite("Azure Blob", function() {
     });
 
     test("Shared-Access-Signature (won't refresh on every call)", function() {
-      var containerName = containerNamePrefix + '-with-metadata';
+      containerName = containerNamePrefix + '-with-metadata';
       var refreshCount = 0;
       var refreshSAS = function() {
         refreshCount += 1;
@@ -344,7 +336,7 @@ suite("Azure Blob", function() {
     });
 
     test("Retries up to 5 times", function() {
-      var containerName = containerNamePrefix + '-with-metadata';
+      containerName = containerNamePrefix + '-with-metadata';
       var request = utils.request;
       var requestCount = 0;
       utils.request = function() {
@@ -368,78 +360,77 @@ suite("Azure Blob", function() {
     // TODO add more tests for SAS when blob rest endpoints are implemented
 
     test('acquire a lease for a container, forbid delete container and release the lease', function(){
-      var containerName = containerNamePrefix + '-with-lease';
+      containerName = containerNamePrefix + '-with-lease';
       return blob.createContainer(containerName).then(function(){
         var leaseOptions = {
           leaseAction: 'acquire',
           leaseDuration: 15
         };
+        var leaseId = null;
         return blob.leaseContainer(containerName,leaseOptions).then(function(result){
-          assert(result.leaseId);
-          return blob.deleteContainer(containerName).catch(function(err){
+            leaseId = result.leaseId;
+            assert(leaseId);
+            return blob.deleteContainer(containerName);
+          }).catch(function(err){
             assert(err.statusCode === 412);
-            return blob.leaseContainer(containerName, {
+            options = {
               leaseAction: 'release',
-              leaseId: result.leaseId
-            });
-          });
+              leaseId: leaseId
+            };
+            return blob.leaseContainer(containerName, options);
         });
       });
     });
 
     test('acquire a lease for a container with if-modified-since and if-unmodified-since conditional header', function () {
-      var containerName = containerNamePrefix + '-conditional-header';
-      return blob.createContainer(containerName)
-        .then(function (result) {
+      containerName = containerNamePrefix + '-conditional-header';
+      return blob.createContainer(containerName).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          var options = {
+          options = {
             leaseAction: 'acquire',
             leaseDuration: 15,
             ifUnmodifiedSince: date15MinAgo
           };
 
           return blob.leaseContainer(containerName, options);
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
-          return blob.leaseContainer(containerName, {
+          options = {
             leaseAction: 'acquire',
             leaseDuration: 15,
             ifModifiedSince: date15MinAgo
-          })
-        })
-        .then(function (result) {
+          };
+          return blob.leaseContainer(containerName, options);
+        }).then(function (result) {
           assert(result.leaseId);
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.leaseContainer(containerName, {
+          options = {
             leaseAction: 'release',
             leaseId: result.leaseId
-          });
+          };
+          return blob.leaseContainer(containerName, options);
         });
     });
 
     test('delete container with if-modified-since conditional header', function () {
-      var containerName = containerNamePrefix + '-delete-with-condition';
-      return blob.createContainer(containerName)
-        .then(function (result) {
+      containerName = containerNamePrefix + '-delete-with-condition';
+      return blob.createContainer(containerName).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
           return blob.deleteContainer(containerName, {ifModifiedSince: new Date(Date.now())})
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
           return blob.setContainerMetadata(containerName, {scope: 'test'});
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
@@ -448,15 +439,13 @@ suite("Azure Blob", function() {
     });
 
     test('delete container with if-unmodified-since conditional header', function () {
-      var containerName = containerNamePrefix + '-delete-with-condition2';
-      return blob.createContainer(containerName)
-        .then(function (result) {
+      containerName = containerNamePrefix + '-delete-with-condition2';
+      return blob.createContainer(containerName).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
           return blob.deleteContainer(containerName, {ifUnmodifiedSince: date15MinAgo})
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
@@ -465,21 +454,18 @@ suite("Azure Blob", function() {
     });
 
     test('set container metadata with if-modified-since conditional header', function () {
-      var containerName = containerNamePrefix + '-set-metadata-conditional-header';
-      return blob.createContainer(containerName)
-        .then(function (result) {
+      containerName = containerNamePrefix + '-set-metadata-conditional-header';
+      return blob.createContainer(containerName).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
           return blob.setContainerMetadata(containerName, {scope: 'test'}, {ifModifiedSince: date15MinAgo});
-        })
-        .then(function (result) {
+        }).then(function (result) {
           return blob.setContainerMetadata(containerName, {scope: 'test2'}, {ifModifiedSince: new Date(Date.now())});
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
-        })
+        });
     });
   });
   suite("Blob", function() {
@@ -487,17 +473,15 @@ suite("Azure Blob", function() {
     var blockBlobName = 'blobTest';
     var appendBlobName = 'appendBlobTest';
     var tempBlockBlobNamePrefix = 'tempBlockBlob';
+    var blobName = null;
 
     suiteSetup(function() {
       return blob.createContainer(containerName);
     });
 
     test('put text block blob', function(){
-      var options = {
-        blobType: 'BlockBlob'
-      };
       var content = 'hello world';
-      return blob.putBlob(containerName, blockBlobName, options, content);
+      return blob.putBlob(containerName, blockBlobName, { blobType: 'BlockBlob' }, content);
     });
 
     test('get text block blob', function(){
@@ -510,29 +494,25 @@ suite("Azure Blob", function() {
       var metadata = {
         origin: 'taskcluster'
       };
-      return blob.setBlobMetadata(containerName, blockBlobName, metadata)
-        .then(function() {
+      return blob.setBlobMetadata(containerName, blockBlobName, metadata).then(function() {
           return blob.getBlobMetadata(containerName, blockBlobName);
-        })
-        .then(function(result){
+        }).then(function(result){
           assert(result.metadata.origin === 'taskcluster');
         });
     });
 
     test('set and get blob properties', function() {
-      var options = {
+      options = {
         cacheControl: 'no-cache',
         contentType: 'text/plain;charset="utf8"',
         contentEncoding: 'gzip',
         contentLanguage: 'en-US',
         contentDisposition: 'attachment; filename="file.txt"'
-      }
+      };
 
-      return blob.setBlobProperties(containerName, blockBlobName, options)
-        .then(function() {
+      return blob.setBlobProperties(containerName, blockBlobName, options).then(function() {
           return blob.getBlobProperties(containerName, blockBlobName);
-        })
-        .then(function(result) {
+        }).then(function(result) {
           assert(result.blobType === 'BlockBlob');
           assert(result.contentLength === '11');
           assert(result.contentType === 'text/plain;charset="utf8"');
@@ -554,74 +534,53 @@ suite("Azure Blob", function() {
       var blockContent2 = 'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old.';
       var blockId2 = blob.getBlockId('fastazure', 2, 3);
 
-      var options = {
-        blockId: blockId1
-      }
       // put a new block to a block blob
-      return blob.putBlock(containerName, blockBlobName, options, blockContent1)
-        .then(function () {
-          var options = {
-            blockListType: 'all'
-          };
-          return blob.getBlockList(containerName, blockBlobName, options);
-        })
-        // verify that the block list contains an uncommitted block
-        .then(function (result) {
+      return blob.putBlock(containerName, blockBlobName, { blockId: blockId1 }, blockContent1).then(function () {
+          return blob.getBlockList(containerName, blockBlobName, { blockListType: 'all' });
+        }).then(function (result) {
+          // verify that the block list contains an uncommitted block
           assert(result.uncommittedBlocks.length === 1);
           assert(result.uncommittedBlocks[0].blockId === blockId1);
           assert(result.committedBlocks.length === 0);
 
           // commit the block uploaded
-          var opt = {
-            uncommittedBlockIds: [result.uncommittedBlocks[0].blockId]
-          }
-          return blob.putBlockList(containerName, blockBlobName, opt);
-        })
-        // verify the commit of the block
-        .then(function () {
-          return blob.getBlob(containerName, blockBlobName).then(function (result) {
-            assert(result.content === blockContent1.toString());
+          return blob.putBlockList(containerName, blockBlobName, { uncommittedBlockIds: [result.uncommittedBlocks[0].blockId] });
+        }).then(function () {
+          return blob.getBlob(containerName, blockBlobName);
+        }).then(function (result) {
+          // verify the commit of the block
+          assert(result.content === blockContent1.toString());
 
-            // commit another block
-            return blob.putBlock(containerName, blockBlobName, {
-              blockId: blockId2
-            }, blockContent2);
-          })
+          // commit another block
+          return blob.putBlock(containerName, blockBlobName, { blockId: blockId2 }, blockContent2);
+        }).then(function () {
           // verify that the block list contains an uncommitted block and a committed block
-            .then(function () {
-              return blob.getBlockList(containerName, blockBlobName, {
-                blockListType: 'all'
-              });
-            })
-            .then(function(result) {
-              assert(result.uncommittedBlocks.length === 1);
-              assert(result.uncommittedBlocks[0].blockId === blockId2);
-              assert(result.committedBlocks.length === 1);
+          return blob.getBlockList(containerName, blockBlobName, { blockListType: 'all' });
+        }).then(function(result) {
+          assert(result.uncommittedBlocks.length === 1);
+          assert(result.uncommittedBlocks[0].blockId === blockId2);
+          assert(result.committedBlocks.length === 1);
 
-              return blob.putBlockList(containerName, blockBlobName, {
-                committedBlockIds: [result.committedBlocks[0].blockId],
-                uncommittedBlockIds: [result.uncommittedBlocks[0].blockId]
-              });
-            })
-            // verify that the blob is updated
-            .then(function (result) {
-              return blob.getBlob(containerName, blockBlobName);
-            })
-            .then(function (result) {
-              assert(result.content === (blockContent1.toString() + blockContent2));
-            })
+          options = {
+            committedBlockIds: [result.committedBlocks[0].blockId],
+            uncommittedBlockIds: [result.uncommittedBlocks[0].blockId]
+          };
+
+          return blob.putBlockList(containerName, blockBlobName, options);
+        }).then(function (result) {
+          return blob.getBlob(containerName, blockBlobName);
+        }).then(function (result) {
+          // verify that the blob is updated
+          assert(result.content === (blockContent1.toString() + blockContent2));
         });
     });
 
     test('create append blob', function() {
-      var options = {
-        blobType: 'AppendBlob'
-      };
-      return blob.putBlob(containerName, appendBlobName, options);
+      return blob.putBlob(containerName, appendBlobName, { blobType: 'AppendBlob' });
     });
 
     test('append block blob', function () {
-      var blobName = 'AppendBlob';
+      blobName = 'AppendBlob';
       var content = Buffer.from("Lorem Ipsum is simply dummy text of the printing and typesetting industry. " +
         "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a" +
         " galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also" +
@@ -638,404 +597,320 @@ suite("Azure Blob", function() {
     });
 
     test('delete blob with if-match conditional header', function(){
-      var name = tempBlockBlobNamePrefix + '_if_match_conditional_header';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_if_match_conditional_header';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
           assert(result.eTag);
 
-          return blob.deleteBlob(containerName, name, {
-            ifMatch: result.eTag
-          });
+          return blob.deleteBlob(containerName, blobName, { ifMatch: result.eTag });
         });
     });
 
     test('delete blob with if-non-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_if_none_matching_conditional_header';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_if_none_matching_conditional_header';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
           assert(result.eTag);
 
-          return blob.deleteBlob(containerName, name, {
-            ifNoneMatch: result.eTag
-          });
-        })
-        .catch(function (error){
+          return blob.deleteBlob(containerName, blobName, { ifNoneMatch: result.eTag });
+        }).catch(function (error){
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         })
     });
 
     test('delete blob with if-modified-since conditional header', function (){
-      var name = tempBlockBlobNamePrefix + '_if_modified_since_conditional_header';
+      blobName = tempBlockBlobNamePrefix + '_if_modified_since_conditional_header';
 
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'})
-        })
-        .then(function (result) {
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'})
+        }).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.deleteBlob(containerName, name, {
-            ifModifiedSince: date15MinAgo
-          });
+
+          return blob.deleteBlob(containerName, blobName, { ifModifiedSince: date15MinAgo });
         });
     });
 
     test('delete blob with if-unmodified-since conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_if_unmodified_since_conditional_header';
+      blobName = tempBlockBlobNamePrefix + '_if_unmodified_since_conditional_header';
 
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'})
-        })
-        .then(function (result) {
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'})
+        }).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.deleteBlob(containerName, name, {
-            ifUnmodifiedSince: new Date(Date.now())
-          });
-        })
-        .catch(function (error) {
+
+          return blob.deleteBlob(containerName, blobName, { ifUnmodifiedSince: new Date(Date.now()) });
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('get blob with if-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + 'get_blob_if_match_conditional_header';
+      blobName = tempBlockBlobNamePrefix + 'get_blob_if_match_conditional_header';
 
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
-          assert(result.eTag);
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+        assert(result.eTag);
 
-          return blob.getBlob(containerName, name, {
-            ifMatch: result.eTag
-          });
-        });
+        return blob.getBlob(containerName, blobName, { ifMatch: result.eTag });
+      });
     });
 
     test('get blob with if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + 'get_blob_if_none_match_conditional_header';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'}, 'Hello world')
-        .then(function (result) {
-          return blob.setBlobProperties(containerName, name, {contentType: 'text/plain; charset="utf8"'})
-        })
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + 'get_blob_if_none_match_conditional_header';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+          return blob.setBlobProperties(containerName, blobName, {contentType: 'text/plain; charset="utf8"'})
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.getBlob(containerName, name, {
-            ifNoneMatch: result.eTag
-          });
-        })
-        .catch(function (error) {
+          return blob.getBlob(containerName, blobName, { ifNoneMatch: result.eTag });
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('get blob with if-modified-since conditional header', function () {
-      var name = tempBlockBlobNamePrefix + 'get_blob_if_modified_since_conditional_header';
+      blobName = tempBlockBlobNamePrefix + 'get_blob_if_modified_since_conditional_header';
       var blockId = blob.getBlockId('fastazure', 1, 2);
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function () {
-          return blob.putBlock(containerName, name, {blockId: blockId}, 'hello world');
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+          return blob.putBlock(containerName, blobName, {blockId: blockId}, 'hello world');
         })
         .then(function () {
-          return blob.putBlockList(containerName, name, {uncommittedBlockIds:[blockId]})
-        })
-        .then(function (result) {
+          return blob.putBlockList(containerName, blobName, {uncommittedBlockIds:[blockId]});
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.getBlob(containerName, name, {
-            ifModifiedSince: date15MinAgo
-          });
+          return blob.getBlob(containerName, blobName, { ifModifiedSince: date15MinAgo });
         });
     });
 
     test('get blob with if-unmodified-since conditional header', function () {
-      var name = tempBlockBlobNamePrefix + 'get_blob_if_unmodified_since_conditional_header';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function () {
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'});
-        })
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + 'get_blob_if_unmodified_since_conditional_header';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'});
+        }).then(function (result) {
           assert(result.lastModified);
-          return blob.getBlob(containerName, name, {ifUnmodifiedSince: result.lastModified});
+          return blob.getBlob(containerName, blobName, {ifUnmodifiedSince: result.lastModified});
         })
     });
 
     test('get blob metadata with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_with_metadata';
-      return blob.putBlob(containerName, name, {blobType: 'AppendBlob'})
-        .then(function () {
-          return blob.setBlobMetadata(containerName, name, {appName: 'fast-azure'});
-        })
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_with_metadata';
+      return blob.putBlob(containerName, blobName, {blobType: 'AppendBlob'}).then(function () {
+          return blob.setBlobMetadata(containerName, blobName, {appName: 'fast-azure'});
+        }).then(function (result) {
           assert(result.eTag);
-          return blob.getBlobMetadata(containerName, name, {ifMatch: result.eTag});
-        })
-        .then(function (result) {
+          return blob.getBlobMetadata(containerName, blobName, {ifMatch: result.eTag});
+        }).then(function (result) {
           assert(result.metadata.appName === 'fast-azure');
 
-          return blob.getBlobMetadata(containerName, name, {ifNoneMatch: result.eTag});
-        })
-        .catch(function (error) {
+          return blob.getBlobMetadata(containerName, blobName, {ifNoneMatch: result.eTag});
+        }).catch(function (error) {
           // result code if condition has not been met it should be 'Not modified(304)'
           assert(error.statusCode === 304);
 
-          return blob.getBlobMetadata(containerName, name, {
-            ifModifiedSince: date15MinAgo
-          });
-        })
-        .then(function (result) {
+          return blob.getBlobMetadata(containerName, blobName, { ifModifiedSince: date15MinAgo });
+        }).then(function (result) {
           assert(result.lastModified);
 
-          return blob.getBlobMetadata(containerName, name, {
-            ifUnmodifiedSince: date15MinAgo
-          });
-        })
-        .catch(function (error) {
+          return blob.getBlobMetadata(containerName, blobName, { ifUnmodifiedSince: date15MinAgo });
+        }).catch(function (error) {
           assert(error.statusCode === 412);
-        })
+        });
     });
 
     test('get blob properties with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_with_properties';
+      blobName = tempBlockBlobNamePrefix + '_with_properties';
 
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function () {
-          return blob.setBlobProperties(containerName, name, {contentLanguage: 'en-EN'});
-        })
-        .then(function (result) {
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+          return blob.setBlobProperties(containerName, blobName, {contentLanguage: 'en-EN'});
+        }).then(function (result) {
           assert(result.eTag);
-          return blob.getBlobProperties(containerName, name, {ifMatch: result.eTag});
-        })
-        .then(function (result) {
+
+          return blob.getBlobProperties(containerName, blobName, {ifMatch: result.eTag});
+        }).then(function (result) {
           assert(result.contentLanguage === 'en-EN');
 
-          return blob.getBlobProperties(containerName, name, {ifNoneMatch: result.eTag});
-        })
-        .catch(function (error) {
+          return blob.getBlobProperties(containerName, blobName, {ifNoneMatch: result.eTag});
+        }).catch(function (error) {
           assert(error.statusCode === 304);
 
-          return blob.getBlobProperties(containerName, name, {
+          return blob.getBlobProperties(containerName, blobName, {
             ifModifiedSince: date15MinAgo
           });
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.lastModified);
-          return blob.getBlobProperties(containerName, name, {
-            ifUnmodifiedSince: date15MinAgo
-          });
-        })
-        .catch(function (error) {
+
+          return blob.getBlobProperties(containerName, blobName, { ifUnmodifiedSince: date15MinAgo });
+        }).catch(function (error) {
           assert(error.statusCode === 412);
-        })
+        });
     });
 
     test('set blob metadata with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_with_metadata_conditional_headers';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_with_metadata_conditional_headers';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.setBlobMetadata(containerName, name, {application: 'azure'}, {ifMatch: result.eTag});
-        })
-        .then(function (result) {
+          return blob.setBlobMetadata(containerName, blobName, {application: 'azure'}, {ifMatch: result.eTag});
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'}, {ifNoneMatch: result.eTag});
-        })
-        .catch(function (error) {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'}, {ifNoneMatch: result.eTag});
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'}, {
-            ifModifiedSince: new Date(Date.now())
-          });
-        })
-        .then(function (result) {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'}, { ifModifiedSince: new Date(Date.now()) });
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.setBlobMetadata(containerName, name, {scope: 'test'}, {
-            ifUnmodifiedSince: date15MinAgo
-          });
-        })
-        .catch(function (error) {
+          return blob.setBlobMetadata(containerName, blobName, {scope: 'test'}, { ifUnmodifiedSince: date15MinAgo });
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
-        })
+        });
     });
 
     test('set blob properties with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_with_props_conditional_headers';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_with_props_conditional_headers';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.setBlobProperties(containerName, name, {contentEncoding: 'gzip'}, {ifMatch: result.eTag});
-        })
-        .then(function (result) {
+          return blob.setBlobProperties(containerName, blobName, {contentEncoding: 'gzip'}, {ifMatch: result.eTag});
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.setBlobProperties(containerName, name, {contentEncoding: 'gzip'}, {ifNoneMatch: result.eTag});
-        })
-        .catch(function (error) {
+          return blob.setBlobProperties(containerName, blobName, {contentEncoding: 'gzip'}, {ifNoneMatch: result.eTag});
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
-          return blob.setBlobProperties(containerName, name, {contentEncoding: 'gzip'}, {
-            ifModifiedSince: new Date(Date.now())
-          });
-        })
-        .then(function (result) {
+          return blob.setBlobProperties(containerName, blobName, {contentEncoding: 'gzip'}, { ifModifiedSince: new Date(Date.now()) });
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          return blob.setBlobProperties(containerName, name, {contentEncoding: 'gzip'}, {
-            ifUnmodifiedSince: date15MinAgo
-          });
-        })
-        .catch(function (error) {
+          return blob.setBlobProperties(containerName, blobName, {contentEncoding: 'gzip'}, { ifUnmodifiedSince: date15MinAgo });
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('put blob with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_put_blob_with_conditional_headers';
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_put_blob_with_conditional_headers';
+      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.putBlob(containerName, name, {
+
+          return blob.putBlob(containerName, blobName, {
             blobType: 'BlockBlob',
             ifMatch: result.eTag
           }, 'hello world');
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.putBlob(containerName, name, {
+
+          return blob.putBlob(containerName, blobName, {
             blobType: 'BlockBlob',
             ifNoneMatch: result.eTag
           }, 'hello again');
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
-          return blob.putBlob(containerName, name, {
+          return blob.putBlob(containerName, blobName, {
             blobType: 'BlockBlob',
             ifModifiedSince: new Date(Date.now())
           }, 'hello from error');
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          blob.putBlob(containerName, name, {
+          blob.putBlob(containerName, blobName, {
             blobType: 'BlockBlob',
             ifUnmodifiedSince: date15MinAgo
           }, 'hello from error');
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('append block with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_append_block_with_conditional_headers';
-      return blob.putBlob(containerName, name, {blobType: 'AppendBlob'})
-        .then(function (result) {
+      blobName = tempBlockBlobNamePrefix + '_append_block_with_conditional_headers';
+      return blob.putBlob(containerName, blobName, {blobType: 'AppendBlob'}).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.appendBlock(containerName, name, {
-            ifMatch: result.eTag
-          }, 'log1');
-        })
-        .then(function (result) {
+          return blob.appendBlock(containerName, blobName, { ifMatch: result.eTag }, 'log1');
+        }).then(function (result) {
           assert(result.lastModified);
           assert(result.eTag);
-          return blob.appendBlock(containerName, name, {
-            ifNoneMatch: result.eTag
-          }, 'log2');
-        })
-        .catch(function (error) {
+          return blob.appendBlock(containerName, blobName, { ifNoneMatch: result.eTag }, 'log2');
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
 
-          return blob.appendBlock(containerName, name, {
-            ifModifiedSince: new Date(Date.now())
-          }, 'log3');
-        })
-        .then(function (result) {
+          return blob.appendBlock(containerName, blobName, { ifModifiedSince: new Date(Date.now()) }, 'log3');
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
 
-          blob.appendBlock(containerName, name, {
-            ifUnmodifiedSince: date15MinAgo
-          }, 'log4');
-        })
-        .catch(function (error) {
+          blob.appendBlock(containerName, blobName, { ifUnmodifiedSince: date15MinAgo }, 'log4');
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet');
           assert(error.statusCode === 412);
         });
     });
 
     test('putBlockList with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
-      var name = tempBlockBlobNamePrefix + '_put_block_list_with_conditional_headers';
+      blobName = tempBlockBlobNamePrefix + '_put_block_list_with_conditional_headers';
       var blockId1 = blob.getBlockId('fastazure', 1, 1);
       var blockId2 = blob.getBlockId('fastazure', 2, 1);
       var eTag = null;
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function (result) {
+      return blob.putBlob(containerName, blobName, { blobType: 'BlockBlob' }).then(function (result) {
           assert(result.eTag);
           eTag = result.eTag;
 
-          return blob.putBlock(containerName, name, {blockId: blockId1}, 'blockblob1');
-        })
-        .then(function (){
-          return blob.putBlockList(containerName, name, {
+          return blob.putBlock(containerName, blobName, { blockId: blockId1 }, 'blockblob1');
+        }).then(function (){
+          return blob.putBlockList(containerName, blobName, {
             uncommitted: [blockId1],
             ifMatch: eTag
           });
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.eTag);
           assert(result.lastModified);
           eTag = result.eTag;
 
-          return blob.putBlock(containerName, name, {blockId: blockId2}, 'blockblob2');
-        })
-        .then(function (result) {
-          return blob.putBlockList(containerName, name, {
+          return blob.putBlock(containerName, blobName, { blockId: blockId2 }, 'blockblob2');
+        }).then(function (result) {
+          return blob.putBlockList(containerName, blobName, {
             uncommitted: [blockId2],
             committed: [blockId1],
             ifNoneMatch: eTag
           });
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet')
           assert(error.statusCode === 412);
 
-          return blob.putBlockList(containerName, name, {
+          return blob.putBlockList(containerName, blobName, {
             uncommitted: [blockId2],
             committed: [blockId1],
             ifUnmodifiedSince: date15MinAgo
           });
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           assert(error.code === 'ConditionNotMet')
           assert(error.statusCode === 412);
 
-          return blob.putBlockList(containerName, name, {
+          return blob.putBlockList(containerName, blobName, {
             uncommitted: [blockId2],
             committed: [blockId1],
             ifModifiedSince: date15MinAgo
@@ -1044,28 +919,24 @@ suite("Azure Blob", function() {
     });
 
     test('list blobs', function () {
-      return blob.listBlobs(containerName)
-        .then(function (result) {
+      return blob.listBlobs(containerName).then(function (result) {
           assert(result.blobs.length > 0);
         });
     });
 
     test('list blobs with uncommitted blobs', function () {
-      var name = tempBlockBlobNamePrefix + '_uncommitted';
+      blobName = tempBlockBlobNamePrefix + '_uncommitted';
       var blockId = blob.getBlockId('fastazure', 1, 1);
-      return blob.putBlob(containerName, name, {blobType: 'BlockBlob'})
-        .then(function () {
-          return blob.putBlock(containerName, name, {blockId: blockId}, 'content');
-        })
-        .then(function () {
-          return blob.listBlobs(containerName, {include: {uncommittedBlobs: true}});
-        })
-        .then(function (result) {
+      return blob.putBlob(containerName, blobName, { blobType: 'BlockBlob' }).then(function () {
+          return blob.putBlock(containerName, blobName, { blockId: blockId }, 'content');
+        }).then(function () {
+          return blob.listBlobs(containerName, { include: { uncommittedBlobs: true }});
+        }).then(function (result) {
           assert(result.blobs.length > 0);
           var uncommittedBlob = null;
 
           result.blobs.forEach(function (blob) {
-            if (blob.name === name) {
+            if (blob.name === blobName) {
               uncommittedBlob = blob;
             }
           });
@@ -1074,22 +945,21 @@ suite("Azure Blob", function() {
     });
 
     test('list blobs with metadata', function () {
-      var name = tempBlockBlobNamePrefix + '_list_blobs_with_metadata';
-      return blob.putBlob(containerName, name, {
+      blobName = tempBlockBlobNamePrefix + '_list_blobs_with_metadata';
+      options = {
         blobType: 'BlockBlob',
         metadata:{
           origin: 'taskcluster'
         }
-      }, 'content')
-        .then(function () {
+      };
+      return blob.putBlob(containerName, blobName, options, 'content').then(function () {
           return blob.listBlobs(containerName, {include: {metadata: true}})
-        })
-        .then(function (result) {
+        }).then(function (result) {
           assert(result.blobs.length > 0);
           var blobWithMetadata = null;
 
           result.blobs.forEach(function (blob) {
-            if (blob.name === name) {
+            if (blob.name === blobName) {
               blobWithMetadata = blob;
             }
           });
@@ -1099,8 +969,7 @@ suite("Azure Blob", function() {
     });
 
     test('list blob with prefix', function () {
-      return blob.listBlobs(containerName, {prefix: tempBlockBlobNamePrefix})
-        .then(function (result) {
+      return blob.listBlobs(containerName, {prefix: tempBlockBlobNamePrefix}).then(function (result) {
           assert(result.blobs.length > 0);
         });
     });
