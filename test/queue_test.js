@@ -29,14 +29,14 @@ suite("Queue", function() {
     accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
   });
 
-  // Queue to play with
-  var queueName     = 'fast-azure-test-queue';
-  var tempQueueName = 'fast-azure-test-tmp-queue';
+  // Queue to play with (change these when changing metadata)
+  var queueName     = 'fast-azure-test-queue-v2';
+  var tempQueueName = 'fast-azure-test-tmp-queue-v2';
 
   test("createQueue w. meta-data", function() {
     return queue.createQueue(queueName, {
       purpose:         'testing',
-      applicationName: 'fast-azure-    storage '
+      applicationName: 'fast-azure-    storage ' // test whitespace sensitivity
     });
   });
 
@@ -104,7 +104,8 @@ suite("Queue", function() {
     // Don't actually want to change the meta-data as it would affect the
     // createQueue test case...
     return queue.setMetadata(queueName, {
-      purpose:  'testing'
+      purpose:  'testing',
+      applicationName: 'fast-azure-    storage',
     });
   });
 
