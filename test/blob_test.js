@@ -19,6 +19,67 @@ suite("Azure Blob", function() {
   var options = null;
   var containerName = null;
 
+  suite('Service', function () {
+    test('get service properties', function () {
+      return blob.getSeviceProperties().then(function (response) {
+        assert(response.logging);
+        assert(response.hourMetrics);
+        assert(response.minuteMetrics);
+        assert(response.corsRules);
+      })
+    });
+
+    test('set service properties', function() {
+      return blob.setServiceProperties({
+        logging: {
+          version: 1,
+          delete: true,
+          read: true,
+          write: true,
+          retentionPolicy: {
+            enabled: true,
+            days: 80
+          }
+        },
+        hourMetrics:
+          { version: 1,
+            enabled: false,
+            retentionPolicy: { enabled: false } },
+        minuteMetrics:
+          { version: 1,
+            enabled: true,
+            includeAPIs: false,
+            retentionPolicy: { enabled: true, days: 1 } },
+        corsRules:
+          [ { allowedOrigins: ['*'],
+            allowedMethods: ['POST'],
+            maxAgeInSeconds: 300,
+            exposedHeaders: ['content-length'],
+            allowedHeaders: [] } ]
+      }).then(function () {
+        return blob.getSeviceProperties();
+      }).then(function (response) {
+        assert(response.logging.version === '1.0');
+        assert(response.logging.delete === 'true');
+        assert(response.logging.read === 'true');
+        assert(response.logging.write === 'true');
+        assert(response.logging.retentionPolicy.days === '80');
+
+        assert(response.hourMetrics.enabled === 'false');
+        assert(response.hourMetrics.retentionPolicy.enabled === 'false');
+
+        assert(response.minuteMetrics.enabled === 'true');
+        assert(response.minuteMetrics.includeAPIs === 'false');
+        assert(response.minuteMetrics.retentionPolicy.enabled === 'true');
+        assert(response.minuteMetrics.retentionPolicy.days === '1');
+
+        assert(response.corsRules.length === 1);
+        assert(response.corsRules[0].allowedMethods === 'POST');
+        assert(response.corsRules[0].exposedHeaders === 'content-length');
+      })
+    });
+  });
+
   suite("Container", function() {
     test('create container with metadata', function() {
       containerName = containerNamePrefix + '-with-metadata';
@@ -269,6 +330,61 @@ suite("Azure Blob", function() {
       });
     });
 
+    test('Shared-Access-Signature (forbid create a container - only the owner can create a container)', function() {
+      containerName = containerNamePrefix + '-shared-key';
+      var sas = blob.sas(containerName, null, {
+        start:    date15MinAgo,
+        expiry:   new Date(Date.now() + 30 * 60 * 1000),
+        resourceType: 'container',
+        permissions: {
+          read: true,
+          add: true,
+          create: true,
+          write: true,
+          delete: true,
+          list: true
+        }
+      });
+
+      var blobWithSas = new azure.Blob({
+        accountId: blob.options.accountId,
+        sas: sas
+      });
+
+      return blobWithSas.createContainer(containerName, {}).catch(function(err) {
+        // only the account owner can initiate a create container request
+        assert(err.statusCode === 403);
+        assert(err.code === 'AuthorizationFailure');
+      });
+    });
+
+    test('Shared-Access-Signature (forbid read properties of a container - only the owner can do this)', function() {
+      containerName = containerNamePrefix + '-with-metadata';
+      var sas = blob.sas(containerName, null, {
+        start:    date15MinAgo,
+        expiry:   new Date(Date.now() + 30 * 60 * 1000),
+        resourceType: 'container',
+        permissions: {
+          read: true,
+          add: true,
+          create: true,
+          write: true,
+          delete: true,
+          list: true
+        }
+      });
+
+      var blobWithSas = new azure.Blob({
+        accountId: blob.options.accountId,
+        sas: sas
+      });
+
+      return blobWithSas.getContainerProperties(containerName, {}).catch(function(err) {
+        // only the account owner can initiate a create container request
+        assert(err.statusCode === 403);
+      });
+    });
+
     test("Shared-Access-Signature (will refresh)", function() {
       containerName = containerNamePrefix + '-with-metadata';
       var refreshCount = 0;
@@ -357,7 +473,6 @@ suite("Azure Blob", function() {
       });
     });
 
-    // TODO add more tests for SAS when blob rest endpoints are implemented
 
     test('acquire a lease for a container, forbid delete container and release the lease', function(){
       containerName = containerNamePrefix + '-with-lease';
@@ -666,8 +781,7 @@ suite("Azure Blob", function() {
 
           return blob.getBlob(containerName, blobName, { ifNoneMatch: result.eTag });
         }).catch(function (error) {
-          assert(error.code === 'ConditionNotMet');
-          assert(error.statusCode === 412);
+          assert(error.statusCode === 304);
         });
     });
 
@@ -676,8 +790,7 @@ suite("Azure Blob", function() {
       var blockId = blob.getBlockId('fastazure', 1, 2);
       return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
           return blob.putBlock(containerName, blobName, {blockId: blockId}, 'hello world');
-        })
-        .then(function () {
+        }).then(function () {
           return blob.putBlockList(containerName, blobName, {uncommittedBlockIds:[blockId]});
         }).then(function (result) {
           assert(result.eTag);
@@ -972,6 +1085,52 @@ suite("Azure Blob", function() {
       return blob.listBlobs(containerName, {prefix: tempBlockBlobNamePrefix}).then(function (result) {
           assert(result.blobs.length > 0);
         });
+    });
+
+    test('Shared-Access-Signature(resourceType=container, all permissions, create a blob', function() {
+      var sas = blob.sas(containerName, null, {
+        start:    date15MinAgo,
+        expiry:   new Date(Date.now() + 30 * 60 * 1000),
+        resourceType: 'container',
+        permissions: {
+          read: true,
+          add: true,
+          create: true,
+          write: true,
+          delete: true,
+          list: true
+        }
+      });
+      var blobWithSas = new azure.Blob({
+        accountId: blob.options.accountId,
+        sas: sas
+      });
+
+      return blobWithSas.putBlob(containerName, 'blob-test', {blobType: 'BlockBlob'}, 'Hello world');
+    });
+
+    test('Shared-Access-Signature(resourceType=blob, all permissions, create a blob', function() {
+      var sas = blob.sas(containerName, 'blob-test2', {
+        start:    date15MinAgo,
+        expiry:   new Date(Date.now() + 30 * 60 * 1000),
+        resourceType: 'blob',
+        permissions: {
+          read: true,
+          add: true,
+          create: false,
+          write: false,
+          delete: true
+        }
+      });
+      var blobWithSas = new azure.Blob({
+        accountId: blob.options.accountId,
+        sas: sas
+      });
+
+      return blobWithSas.putBlob(containerName, 'blob-test2', {blobType: 'BlockBlob'}, 'Hello world').catch(function(error) {
+        assert(error.statusCode === 403);
+        assert(error.code === 'AuthorizationPermissionMismatch');
+      });
     });
   });
 
