@@ -596,7 +596,7 @@ suite("Azure Blob", function() {
 
     test('put text block blob', function(){
       var content = 'hello world';
-      return blob.putBlob(containerName, blockBlobName, { blobType: 'BlockBlob' }, content);
+      return blob.putBlob(containerName, blockBlobName, { type: 'BlockBlob' }, content);
     });
 
     test('get text block blob', function(){
@@ -628,7 +628,7 @@ suite("Azure Blob", function() {
       return blob.setBlobProperties(containerName, blockBlobName, options).then(function() {
         return blob.getBlobProperties(containerName, blockBlobName);
       }).then(function(result) {
-        assert(result.blobType === 'BlockBlob');
+        assert(result.type === 'BlockBlob');
         assert(result.contentLength === '11');
         assert(result.contentType === 'text/plain;charset="utf8"');
         assert(result.contentEncoding === 'gzip');
@@ -691,7 +691,7 @@ suite("Azure Blob", function() {
     });
 
     test('create append blob', function() {
-      return blob.putBlob(containerName, appendBlobName, { blobType: 'AppendBlob' });
+      return blob.putBlob(containerName, appendBlobName, { type: 'AppendBlob' });
     });
 
     test('append block blob', function () {
@@ -713,7 +713,7 @@ suite("Azure Blob", function() {
 
     test('delete blob with if-match conditional header', function(){
       blobName = tempBlockBlobNamePrefix + '_if_match_conditional_header';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         assert(result.eTag);
 
         return blob.deleteBlob(containerName, blobName, { ifMatch: result.eTag });
@@ -722,7 +722,7 @@ suite("Azure Blob", function() {
 
     test('delete blob with if-non-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_if_none_matching_conditional_header';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         assert(result.eTag);
 
         return blob.deleteBlob(containerName, blobName, { ifNoneMatch: result.eTag });
@@ -735,7 +735,7 @@ suite("Azure Blob", function() {
     test('delete blob with if-modified-since conditional header', function (){
       blobName = tempBlockBlobNamePrefix + '_if_modified_since_conditional_header';
 
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         return blob.setBlobMetadata(containerName, blobName, {scope: 'test'})
       }).then(function (result) {
         assert(result.lastModified);
@@ -748,7 +748,7 @@ suite("Azure Blob", function() {
     test('delete blob with if-unmodified-since conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_if_unmodified_since_conditional_header';
 
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         return blob.setBlobMetadata(containerName, blobName, {scope: 'test'})
       }).then(function (result) {
         assert(result.lastModified);
@@ -764,7 +764,7 @@ suite("Azure Blob", function() {
     test('get blob with if-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + 'get_blob_if_match_conditional_header';
 
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         assert(result.eTag);
 
         return blob.getBlob(containerName, blobName, { ifMatch: result.eTag });
@@ -773,7 +773,7 @@ suite("Azure Blob", function() {
 
     test('get blob with if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + 'get_blob_if_none_match_conditional_header';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}, 'Hello world').then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}, 'Hello world').then(function (result) {
         return blob.setBlobProperties(containerName, blobName, {contentType: 'text/plain; charset="utf8"'})
       }).then(function (result) {
         assert(result.eTag);
@@ -788,7 +788,7 @@ suite("Azure Blob", function() {
     test('get blob with if-modified-since conditional header', function () {
       blobName = tempBlockBlobNamePrefix + 'get_blob_if_modified_since_conditional_header';
       var blockId = blob.getBlockId('fastazure', 1, 2);
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function () {
         return blob.putBlock(containerName, blobName, {blockId: blockId}, 'hello world');
       }).then(function () {
         return blob.putBlockList(containerName, blobName, {uncommittedBlockIds:[blockId]});
@@ -802,7 +802,7 @@ suite("Azure Blob", function() {
 
     test('get blob with if-unmodified-since conditional header', function () {
       blobName = tempBlockBlobNamePrefix + 'get_blob_if_unmodified_since_conditional_header';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function () {
         return blob.setBlobMetadata(containerName, blobName, {scope: 'test'});
       }).then(function (result) {
         assert(result.lastModified);
@@ -812,7 +812,7 @@ suite("Azure Blob", function() {
 
     test('get blob metadata with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_with_metadata';
-      return blob.putBlob(containerName, blobName, {blobType: 'AppendBlob'}).then(function () {
+      return blob.putBlob(containerName, blobName, {type: 'AppendBlob'}).then(function () {
         return blob.setBlobMetadata(containerName, blobName, {appName: 'fast-azure'});
       }).then(function (result) {
         assert(result.eTag);
@@ -838,7 +838,7 @@ suite("Azure Blob", function() {
     test('get blob properties with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_with_properties';
 
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function () {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function () {
         return blob.setBlobProperties(containerName, blobName, {contentLanguage: 'en-EN'});
       }).then(function (result) {
         assert(result.eTag);
@@ -865,7 +865,7 @@ suite("Azure Blob", function() {
 
     test('set blob metadata with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_with_metadata_conditional_headers';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function (result) {
         assert(result.lastModified);
         assert(result.eTag);
         return blob.setBlobMetadata(containerName, blobName, {application: 'azure'}, {ifMatch: result.eTag});
@@ -892,7 +892,7 @@ suite("Azure Blob", function() {
 
     test('set blob properties with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_with_props_conditional_headers';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function (result) {
         assert(result.lastModified);
         assert(result.eTag);
         return blob.setBlobProperties(containerName, blobName, {contentEncoding: 'gzip'}, {ifMatch: result.eTag});
@@ -919,12 +919,12 @@ suite("Azure Blob", function() {
 
     test('put blob with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_put_blob_with_conditional_headers';
-      return blob.putBlob(containerName, blobName, {blobType: 'BlockBlob'}).then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'BlockBlob'}).then(function (result) {
         assert(result.lastModified);
         assert(result.eTag);
 
         return blob.putBlob(containerName, blobName, {
-          blobType: 'BlockBlob',
+          type: 'BlockBlob',
           ifMatch: result.eTag
         }, 'hello world');
       }).then(function (result) {
@@ -932,7 +932,7 @@ suite("Azure Blob", function() {
         assert(result.eTag);
 
         return blob.putBlob(containerName, blobName, {
-          blobType: 'BlockBlob',
+          type: 'BlockBlob',
           ifNoneMatch: result.eTag
         }, 'hello again');
       }).catch(function (error) {
@@ -940,7 +940,7 @@ suite("Azure Blob", function() {
         assert(error.statusCode === 412);
 
         return blob.putBlob(containerName, blobName, {
-          blobType: 'BlockBlob',
+          type: 'BlockBlob',
           ifModifiedSince: new Date(Date.now())
         }, 'hello from error');
       }).then(function (result) {
@@ -948,7 +948,7 @@ suite("Azure Blob", function() {
         assert(result.lastModified);
 
         blob.putBlob(containerName, blobName, {
-          blobType: 'BlockBlob',
+          type: 'BlockBlob',
           ifUnmodifiedSince: date15MinAgo
         }, 'hello from error');
       }).catch(function (error) {
@@ -959,7 +959,7 @@ suite("Azure Blob", function() {
 
     test('append block with if-modified-since, if-unmodified-since, if-match and if-none-match conditional header', function () {
       blobName = tempBlockBlobNamePrefix + '_append_block_with_conditional_headers';
-      return blob.putBlob(containerName, blobName, {blobType: 'AppendBlob'}).then(function (result) {
+      return blob.putBlob(containerName, blobName, {type: 'AppendBlob'}).then(function (result) {
         assert(result.lastModified);
         assert(result.eTag);
         return blob.appendBlock(containerName, blobName, { ifMatch: result.eTag }, 'log1');
@@ -988,7 +988,7 @@ suite("Azure Blob", function() {
       var blockId1 = blob.getBlockId('fastazure', 1, 1);
       var blockId2 = blob.getBlockId('fastazure', 2, 1);
       var eTag = null;
-      return blob.putBlob(containerName, blobName, { blobType: 'BlockBlob' }).then(function (result) {
+      return blob.putBlob(containerName, blobName, { type: 'BlockBlob' }).then(function (result) {
         assert(result.eTag);
         eTag = result.eTag;
 
@@ -1040,7 +1040,7 @@ suite("Azure Blob", function() {
     test('list blobs with uncommitted blobs', function () {
       blobName = tempBlockBlobNamePrefix + '_uncommitted';
       var blockId = blob.getBlockId('fastazure', 1, 1);
-      return blob.putBlob(containerName, blobName, { blobType: 'BlockBlob' }).then(function () {
+      return blob.putBlob(containerName, blobName, { type: 'BlockBlob' }).then(function () {
         return blob.putBlock(containerName, blobName, { blockId: blockId }, 'content');
       }).then(function () {
         return blob.listBlobs(containerName, { include: { uncommittedBlobs: true }});
@@ -1060,7 +1060,7 @@ suite("Azure Blob", function() {
     test('list blobs with metadata', function () {
       blobName = tempBlockBlobNamePrefix + '_list_blobs_with_metadata';
       options = {
-        blobType: 'BlockBlob',
+        type: 'BlockBlob',
         metadata:{
           origin: 'taskcluster'
         }
@@ -1106,7 +1106,7 @@ suite("Azure Blob", function() {
         sas: sas
       });
 
-      return blobWithSas.putBlob(containerName, 'blob-test', {blobType: 'BlockBlob'}, 'Hello world');
+      return blobWithSas.putBlob(containerName, 'blob-test', {type: 'BlockBlob'}, 'Hello world');
     });
 
     test('Shared-Access-Signature(resourceType=blob, all permissions, create a blob', function() {
@@ -1127,7 +1127,7 @@ suite("Azure Blob", function() {
         sas: sas
       });
 
-      return blobWithSas.putBlob(containerName, 'blob-test2', {blobType: 'BlockBlob'}, 'Hello world').catch(function(error) {
+      return blobWithSas.putBlob(containerName, 'blob-test2', {type: 'BlockBlob'}, 'Hello world').catch(function(error) {
         assert(error.statusCode === 403);
         assert(error.code === 'AuthorizationPermissionMismatch');
       });
