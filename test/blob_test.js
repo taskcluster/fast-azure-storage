@@ -1,4 +1,4 @@
-suite("Azure Blob", function() {
+suite.only("Azure Blob", function() {
   var azure   = require('../');
   var assert  = require('assert');
   var utils   = require('../lib/utils');
@@ -539,6 +539,8 @@ suite("Azure Blob", function() {
         assert(result.eTag);
         assert(result.lastModified);
 
+        return utils.sleep(1000);
+      }).then(function () {
         return blob.deleteContainer(containerName, {ifModifiedSince: new Date(Date.now())})
       }).catch(function (error) {
         assert(error.code === 'ConditionNotMet');
@@ -564,6 +566,8 @@ suite("Azure Blob", function() {
         assert(error.code === 'ConditionNotMet');
         assert(error.statusCode === 412);
 
+        return utils.sleep(1000);
+      }).then(function () {
         return blob.deleteContainer(containerName, {ifUnmodifiedSince: new Date(Date.now())});
       });
     });
