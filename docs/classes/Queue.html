@@ -21,12 +21,12 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>0.3.2</b>
+                    API Docs for Version: <b>0.3.7</b>
                 </p>
             </li>
         </div>
         <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
-            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Blob", "classes/Queue", "classes/Table", "modules/azure"]'>
         </form>
     </div>
 </div>
@@ -38,6 +38,7 @@
     <div id="classes">
         <ul id="api-classes" class="nav nav-list">
                 <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Blob.html">Blob</a></li>
                 <li><a href="../classes/Queue.html">Queue</a></li>
                 <li><a href="../classes/Table.html">Table</a></li>
         </ul>
@@ -145,7 +146,7 @@
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l228"><code>lib&#x2F;queue.js:228</code></a>
+		<a href="../files/lib_queue.js.html#l51"><code>lib&#x2F;queue.js:51</code></a>
 		</p>
 
 
@@ -186,6 +187,10 @@
 
   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
   delayFactor:          100,
+
+  // Randomization factor added as:
+  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+  randomizationFactor:  0.25,
 
   // Maximum retry delay in ms (defaults to 30 seconds)
   maxDelay:             30 * 1000,
@@ -258,7 +263,7 @@
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l428"><code>lib&#x2F;queue.js:428</code></a>
+		<a href="../files/lib_queue.js.html#l252"><code>lib&#x2F;queue.js:252</code></a>
 		</p>
 
 
@@ -356,7 +361,7 @@ shared-access-signature, return promise for the request options.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l869"><code>lib&#x2F;queue.js:869</code></a>
+		<a href="../files/lib_queue.js.html#l687"><code>lib&#x2F;queue.js:687</code></a>
 		</p>
 
 
@@ -425,7 +430,7 @@ See Azure Queue Storage REST API documentation for details.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l567"><code>lib&#x2F;queue.js:567</code></a>
+		<a href="../files/lib_queue.js.html#l391"><code>lib&#x2F;queue.js:391</code></a>
 		</p>
 
 
@@ -508,7 +513,7 @@ meta-data an error will be thrown.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l839"><code>lib&#x2F;queue.js:839</code></a>
+		<a href="../files/lib_queue.js.html#l657"><code>lib&#x2F;queue.js:657</code></a>
 		</p>
 
 
@@ -595,7 +600,7 @@ identifier is given when you call <code>getMessages</code>.</li>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l602"><code>lib&#x2F;queue.js:602</code></a>
+		<a href="../files/lib_queue.js.html#l426"><code>lib&#x2F;queue.js:426</code></a>
 		</p>
 
 
@@ -663,7 +668,7 @@ for relevant details, if you plan to recreate the queue again.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l787"><code>lib&#x2F;queue.js:787</code></a>
+		<a href="../files/lib_queue.js.html#l605"><code>lib&#x2F;queue.js:605</code></a>
 		</p>
 
 
@@ -761,7 +766,7 @@ consistency levels.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l619"><code>lib&#x2F;queue.js:619</code></a>
+		<a href="../files/lib_queue.js.html#l443"><code>lib&#x2F;queue.js:443</code></a>
 		</p>
 
 
@@ -837,7 +842,7 @@ error with <code>err.statusCode = 404</code>, but <code>err.code</code> property
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l515"><code>lib&#x2F;queue.js:515</code></a>
+		<a href="../files/lib_queue.js.html#l339"><code>lib&#x2F;queue.js:339</code></a>
 		</p>
 
 
@@ -923,7 +928,7 @@ error with <code>err.statusCode = 404</code>, but <code>err.code</code> property
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l743"><code>lib&#x2F;queue.js:743</code></a>
+		<a href="../files/lib_queue.js.html#l561"><code>lib&#x2F;queue.js:561</code></a>
 		</p>
 
 
@@ -1022,7 +1027,7 @@ consistency levels.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l698"><code>lib&#x2F;queue.js:698</code></a>
+		<a href="../files/lib_queue.js.html#l516"><code>lib&#x2F;queue.js:516</code></a>
 		</p>
 
 
@@ -1131,7 +1136,7 @@ interoperability. Encoding this way is trivial in node.js:</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l445"><code>lib&#x2F;queue.js:445</code></a>
+		<a href="../files/lib_queue.js.html#l269"><code>lib&#x2F;queue.js:269</code></a>
 		</p>
 
 
@@ -1244,7 +1249,7 @@ string containing the response payload.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l347"><code>lib&#x2F;queue.js:347</code></a>
+		<a href="../files/lib_queue.js.html#l174"><code>lib&#x2F;queue.js:174</code></a>
 		</p>
 
 
@@ -1333,7 +1338,7 @@ string containing the response payload.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l665"><code>lib&#x2F;queue.js:665</code></a>
+		<a href="../files/lib_queue.js.html#l483"><code>lib&#x2F;queue.js:483</code></a>
 		</p>
 
 
@@ -1420,7 +1425,7 @@ meta-data key/value pairs.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_queue.js.html#l890"><code>lib&#x2F;queue.js:890</code></a>
+		<a href="../files/lib_queue.js.html#l708"><code>lib&#x2F;queue.js:708</code></a>
 		</p>
 
 

@@ -1,0 +1,2567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>lib/blob.js - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.7</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Blob", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Blob.html">Blob</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>lib/blob.js <small>File</small></h1>
+</div>
+
+<div class="file">
+    <pre class="prettyprint linenums">
+&#x27;use strict&#x27;;
+
+var assert            = require(&#x27;assert&#x27;);
+var crypto            = require(&#x27;crypto&#x27;);
+var debug             = require(&#x27;debug&#x27;)(&#x27;azure:blob&#x27;);
+var Promise           = require(&#x27;promise&#x27;);
+var utils             = require(&#x27;./utils&#x27;);
+var querystring       = require(&#x27;querystring&#x27;);
+var xml               = require(&#x27;./xml-parser&#x27;);
+var util              = require(&#x27;util&#x27;);
+var events            = require(&#x27;events&#x27;);
+var agent             = require(&#x27;./agent&#x27;);
+var auth              = require(&#x27;./authorization&#x27;);
+
+/*
+ * Azure storage service version
+ * @const
+ */
+var SERVICE_VERSION = &#x27;2016-05-31&#x27;;
+
+/*
+ * The maximum size, in bytes, of a block blob that can be uploaded, before it must be separated into blocks.
+ * @const
+ */
+var MAX_SINGLE_UPLOAD_BLOCK_BLOB_SIZE_IN_BYTES = 256 * 1024 * 1024;
+
+/*
+ * The maximum size of a single block.
+ * @const
+ */
+var MAX_BLOCK_SIZE = 4 * 1024 * 1024;
+
+/*
+ * Page blob length.
+ * @const
+ */
+var PAGE_SIZE = 512;
+
+/*
+ * The maximum size, in bytes, of a page blob.
+ * @const
+ */
+var MAX_PAGE_SIZE = 1 * 1024 * 1024 * 1024;
+
+/*
+ * The maximum size of an append block.
+ * @const
+ */
+var MAX_APPEND_BLOCK_SIZE = 4 * 1024 * 1024;
+
+/* Transient error codes (we&#x27;ll retry request when encountering these codes */
+var TRANSIENT_ERROR_CODES = [
+  // Azure error codes we should retry on according to azure docs
+  &#x27;InternalError&#x27;,
+  &#x27;ServerBusy&#x27;
+].concat(utils.TRANSIENT_HTTP_ERROR_CODES);
+
+/*
+ * List of query-string parameter supported in lexicographical order, used for
+ * construction of the canonicalized resource.
+ */
+var QUERY_PARAMS_SUPPORTED = [
+  &#x27;comp&#x27;,
+  &#x27;timeout&#x27;,
+  &#x27;restype&#x27;,
+  &#x27;prefix&#x27;,
+  &#x27;marker&#x27;,
+  &#x27;maxResults&#x27;,
+  &#x27;include&#x27;,
+  &#x27;delimiter&#x27;,
+  &#x27;blockid&#x27;,
+  &#x27;blocklisttype&#x27;
+].sort();
+
+function anonymous(method, path, query, headers) {
+  // Serialize query-string
+  var qs = querystring.stringify(query);
+  if (qs.length &gt; 0) {
+    qs += &#x27;&amp;&#x27;;
+  }
+  return Promise.resolve({
+    host:       this.hostname,
+    method:     method,
+    path:       path + &#x27;?&#x27; + qs,
+    headers:    headers,
+    agent:      this.options.agent
+  });
+}
+
+/**
+ * Blob client class for interacting with Azure Blob Storage.
+ *
+ * @class Blob
+ * @constructor
+ * @param {object} options - options on the form:
+ *
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   // Value for the x-ms-version header fixing the API version
+ *   version:              SERVICE_VERSION,
+ *
+ *   // Value for the x-ms-client-request-id header identifying the client
+ *   clientId:             &#x27;fast-azure-storage&#x27;,
+ *
+ *   // Server-side request timeout
+ *   timeout:              30 * 1000,
+ *
+ *   // Delay between client- and server-side timeout
+ *   clientTimeoutDelay:   500,
+ *
+ *   // Max number of request retries
+ *   retries:              5,
+ *
+ *    // HTTP Agent to use (defaults to a global azure.Agent instance)
+ *   agent:                azure.Agent.globalAgent,
+ *
+ *   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+ *   delayFactor:          100,
+ *
+ *   // Randomization factor added as:
+ *   // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+ *   randomizationFactor:  0.25,
+ *
+ *   // Maximum retry delay in ms (defaults to 30 seconds)
+ *   maxDelay:             30 * 1000,
+ *
+ *   // Error codes for which we should retry
+ *   transientErrorCodes:  TRANSIENT_ERROR_CODES,
+ *
+ *   // Azure storage accountId (required)
+ *   accountId:            undefined,
+ *
+ *   // Azure shared accessKey, required unless options.sas is given
+ *   accessKey:            undefined,
+ *
+ *   // Function that returns SAS string or promise for SAS string, in which
+ *   // case we will refresh SAS when a request occurs less than
+ *   // minSASAuthExpiry from signature expiry. This property may also be a
+ *   // SAS string.
+ *   sas:                  undefined,
+ *
+ *   // Minimum SAS expiry before refreshing SAS credentials, if a function for
+ *   // refreshing SAS credentials is given as options.sas
+ *   minSASAuthExpiry:     15 * 60 * 1000
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+function Blob(options) {
+  // Initialize EventEmitter parent class
+  events.EventEmitter.call(this);
+  // Set default options
+  this.options = {
+    version:              SERVICE_VERSION,
+    clientId:             &#x27;fast-azure-storage&#x27;,
+    timeout:              30 * 1000,
+    clientTimeoutDelay:   500,
+    agent:                agent.globalAgent,
+    retries:              5,
+    delayFactor:          100,
+    maxDelay:             30 * 1000,
+    transientErrorCodes:  TRANSIENT_ERROR_CODES,
+    accountId:            undefined,
+    accessKey:            undefined,
+    sas:                  undefined,
+    minSASAuthExpiry:     15 * 60 * 1000,
+  };
+
+  // Overwrite default options
+  for (var key in options) {
+    if (options.hasOwnProperty(key) &amp;&amp; options[key] !== undefined) {
+      this.options[key] = options[key];
+    }
+  }
+
+  // Validate options
+  assert(this.options.accountId, &quot;&#x60;options.accountId&#x60; must be given&quot;);
+
+  // Construct hostname
+  this.hostname = this.options.accountId + &#x27;.blob.core.windows.net&#x27;;
+
+  // Compute &#x60;timeout&#x60; for client-side timeout (in ms), and &#x60;timeoutInSeconds&#x60;
+  // for server-side timeout in seconds.
+  this.timeout = this.options.timeout + this.options.clientTimeoutDelay;
+  this.timeoutInSeconds = Math.floor(this.options.timeout / 1000);
+
+  // Define &#x60;this.authorize&#x60;
+  if (this.options.accessKey) {
+    // If set authorize to use shared key signatures
+    this.authorize = auth.authorizeWithSharedKey.call(this, &#x27;blob&#x27;, QUERY_PARAMS_SUPPORTED);
+
+    // Decode accessKey
+    this._accessKey = new Buffer(this.options.accessKey, &#x27;base64&#x27;);
+  } else if (this.options.sas instanceof Function) {
+    // Set authorize to use shared-access-signatures with refresh function
+    this.authorize = auth.authorizeWithRefreshSAS;
+    // Set state with _nextSASRefresh = -1, we&#x27;ll refresh on the first request
+    this._nextSASRefresh = -1;
+    this._sas = &#x27;&#x27;;
+  } else if (typeof(this.options.sas) === &#x27;string&#x27;) {
+    // Set authorize to use shared-access-signature as hardcoded
+    this.authorize = auth.authorizeWithSAS;
+  } else {
+    this.authorize = anonymous;
+  }
+};
+
+// Export Blob
+module.exports = Blob;
+
+// Subclass EventEmitter
+util.inherits(Blob, events.EventEmitter);
+
+/**
+ * Generate a SAS string on the form &#x27;key1=va1&amp;key2=val2&amp;...&#x27;.
+ *
+ * @method sas
+ * @param {string}  container - Name of the container that this SAS string applies to.
+ * @param {string}  blob - Name of the blob that this SAS string applies to.
+ * @param {object} options - Options for the following form:
+ *&#x60;&#x60;&#x60;js
+ * {
+ *   start:               new Date(),             // Time from which signature is valid (optional)
+ *   expiry:              new Date(),             // Expiration of signature (required).
+ *   resourceType:        &#x27;blob|container&#x27;,       // Specifies which resources are accessible via the SAS(required)
+ *                                                // Possible values are: &#x27;blob&#x27; or &#x27;container&#x27;.
+ *                                                // Specify &#x27;blob&#x27; if the shared resource is a &#x27;blob&#x27;.
+ *                                                // This grants access to the content and metadata of the blob.
+ *                                                // Specify &#x27;container&#x27; if the shared resource is a &#x27;container&#x27;.
+ *                                                // This grants access to the content and metadata of any
+ *                                                // blob in the container, and to the list of blobs in
+ *                                                // the container.
+ *   permissions: {                               // Set of permissions delegated (required)
+ *                                                // It must be omitted if it has been specified in the associated
+ *                                                // stored access policy.
+ *     read:              false,                  // Read the content, properties, metadata or block list of a blob
+ *                                                // or of any blob in the container if the resourceType is
+ *                                                // a container.
+ *     add:               false,                  // Add a block to an append blob or to any append blob if the
+ *                                                // resourceType is a container.
+ *     create:            false,                  // Write a new blob, snapshot a blob, or copy a blob
+ *                                                // to a new blob.
+ *                                                // These operations can be done to any blob in the container
+ *                                                // if the resourceType is a container.
+ *     write:             false,                  // Create or write content, properties, metadata, or block list.
+ *                                                // Snapshot or lease the blob. Resize the blob (page blob only).
+ *                                                // These operations can be done for every blob in the container
+ *                                                // if the resourceType is a container.
+ *     delete:            false,                  // Delete the blob or any blob in the container if the
+ *                                                // resourceType is a container.
+ *     list:              false,                  // List blobs in the container.
+ *   },
+ *   cacheControl:        &#x27;...&#x27;,                  // The value of the Cache-Control response header
+ *                                                // to be returned. (optional)
+ *   contentDisposition:  &#x27;...&#x27;,                  // The value of the Content-Disposition response header
+ *                                                // to be returned. (optional)
+ *   contentEncoding:     &#x27;...&#x27;,                  // The value of the Content-Encoding response header
+ *                                                // to be returned. (optional)
+ *   contentLanguage:     &#x27;...&#x27;,                  // The value of the Content-Language response header
+ *                                                // to be returned. (optional)
+ *   contentType:         &#x27;...&#x27;,                  // The value of the Content-Type response header to
+ *                                                // be returned. (optional)
+ *   accessPolicy:        &#x27;...&#x27;                   // Reference to stored access policy (optional)
+ *                                                // A GUID string
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {string} Shared-Access-Signature on string form.
+ *
+ */
+Blob.prototype.sas = function sas(container, blob, options){
+  // verify the required options
+  assert(options, &quot;options is required&quot;);
+  assert(options.expiry instanceof Date,
+    &quot;options.expiry must be a Date object&quot;);
+  assert(options.resourceType, &#x27;options.resourceType is required&#x27;);
+  assert(options.resourceType === &#x27;blob&#x27; || options.resourceType === &#x27;container&#x27;,
+    &#x27;The possible values for options.resourceType are &#x60;blob&#x60; or &#x60;container&#x60;&#x27;);
+  assert(options.permissions || options.accessPolicy, &quot;options.permissions or options.accessPolicy must be specified&quot;);
+  if (options.resourceType === &#x27;container&#x27; &amp;&amp; blob){
+    throw new Error(&#x27;If &#x60;options.resourceType&#x60; is container, the blob cannot be specified.&#x27;);
+  }
+
+  // Check that we have credentials
+  if (!this.options.accountId ||
+    !this.options.accessKey) {
+    throw new Error(&quot;accountId and accessKey are required for SAS creation!&quot;);
+  }
+
+  // Construct query-string with required parameters
+  var query = {
+    sv:   SERVICE_VERSION,
+    se:   utils.dateToISOWithoutMS(options.expiry),
+    sr:   options.resourceType === &#x27;blob&#x27; ? &#x27;b&#x27; : &#x27;c&#x27;,
+    spr:  &#x27;https&#x27;
+  }
+
+  if (options.permissions){
+    if (options.permissions.list &amp;&amp; options.resourceType === &#x27;blob&#x27;) {
+      throw new Error(&#x27;The permission &#x60;list&#x60; is forbidden for the blob resource type.&#x27;);
+    }
+    // Construct permissions string (in correct order)
+    var permissions = &#x27;&#x27;;
+    if (options.permissions.read)    permissions += &#x27;r&#x27;;
+    if (options.permissions.add)     permissions += &#x27;a&#x27;;
+    if (options.permissions.create)  permissions += &#x27;c&#x27;;
+    if (options.permissions.write)   permissions += &#x27;w&#x27;;
+    if (options.permissions.delete)  permissions += &#x27;d&#x27;;
+    if (options.permissions.list &amp;&amp; options.resourceType === &#x27;container&#x27;) permissions += &#x27;l&#x27;;
+
+    query.sp = permissions;
+  }
+
+  // Add optional parameters to query-string
+  if (options.cacheControl)       query.rscc = options.cacheControl;
+  if (options.contentDisposition) query.rscd = options.contentDisposition;
+  if (options.contentEncoding)    query.rsce = options.contentEncoding;
+  if (options.contentLanguage)    query.rscl = options.contentLanguage;
+  if (options.contentType)        query.rsct = options.contentType;
+
+  if (options.start) {
+    assert(options.start instanceof Date, &quot;if specified start must be a Date object&quot;);
+    query.st = utils.dateToISOWithoutMS(options.start);
+  }
+
+  if (options.accessPolicy) {
+    assert(/^[0-9a-fA-F]{1,64}$/i.test(options.accessPolicy), &#x27;The &#x60;options.accessPolicy&#x60; is not valid.&#x27; );
+    query.si = options.accessPolicy;
+  }
+
+  // Construct string-to-sign
+  var canonicalizedResource = &#x27;/blob/&#x27; + this.options.accountId.toLowerCase() + &#x27;/&#x27; + container;
+  if (blob){
+    canonicalizedResource += &#x27;/&#x27; + blob;
+  }
+  var stringToSign = [
+    query.sp || &#x27;&#x27;,
+    query.st || &#x27;&#x27;,
+    query.se || &#x27;&#x27;,
+    canonicalizedResource,
+    query.si  || &#x27;&#x27;,
+    &#x27;&#x27;, // TODO: Support signed IP addresses
+    query.spr,
+    query.sv,
+    query.rscc || &#x27;&#x27;,
+    query.rscd || &#x27;&#x27;,
+    query.rsce || &#x27;&#x27;,
+    query.rscl || &#x27;&#x27;,
+    query.rsct || &#x27;&#x27;
+  ].join(&#x27;\n&#x27;);
+
+  // Compute signature
+  query.sig = utils.hmacSha256(this._accessKey, stringToSign);
+
+  // Return Shared-Access-Signature as query-string
+  return querystring.stringify(query);
+};
+
+/**
+ * Construct authorized request options by adding signature or
+ * shared-access-signature, return promise for the request options.
+ *
+ * @protected
+ * @method authorize
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on blob resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @returns {Promise} A promise for an options object compatible with
+ * &#x60;https.request&#x60;.
+ */
+Blob.prototype.authorize = function(method, path, query, headers) {
+  throw new Error(&quot;authorize is not implemented, must be defined!&quot;);
+};
+
+/**
+ * Make a signed request to &#x60;path&#x60; using &#x60;method&#x60; in upper-case and all &#x60;query&#x60;
+ * parameters and &#x60;headers&#x60; keys in lower-case. The request will carry &#x60;data&#x60;
+ * as payload and will be retried using the configured retry policy,
+ *
+ * @private
+ * @method request
+ * @param {string} method - HTTP verb in upper case, e.g. &#x60;GET&#x60;.
+ * @param {string} path - Path on blob resource for storage account.
+ * @param {object} query - Query-string parameters.
+ * @param {object} header - Mapping from header key in lowercase to value.
+ * @return {Promise} A promise for HTTPS response with &#x60;payload&#x60; property as
+ * string containing the response payload.
+ */
+Blob.prototype.request = function request(method, path, query, headers, data) {
+  // Set timeout, if not provided
+  if (query.timeout === undefined) {
+    query.timeout = this.timeoutInSeconds;
+  }
+
+  // Set date, version and client-request-id headers
+  headers[&#x27;x-ms-date&#x27;]              = new Date().toUTCString();
+  headers[&#x27;x-ms-version&#x27;]           = this.options.version;
+  headers[&#x27;x-ms-client-request-id&#x27;] = this.options.clientId;
+
+  // Set content-length, if data is given
+  if (data &amp;&amp; data.length &gt; 0 &amp;&amp; !headers[&#x27;content-length&#x27;]) {
+    headers[&#x27;content-length&#x27;] = Buffer.byteLength(data, &#x27;utf-8&#x27;);
+  }
+
+  // Construct authorized request options with shared key signature or
+  // shared-access-signature.
+  var self = this;
+  return this.authorize(method, path, query, headers).then(function(options) {
+    // Retry with retry policy
+    return utils.retry(function(retry) {
+      debug(&quot;Request: %s %s, retry: %s&quot;, method, path, retry);
+
+      // Construct a promise chain first handling the request, and then parsing
+      // any potential error message
+      return utils.request(options, data, self.timeout).then(function(res) {
+        // Accept the response if it&#x27;s 2xx, otherwise we construct and
+        // throw an error
+        if (200 &lt;= res.statusCode &amp;&amp; res.statusCode &lt; 300) {
+          return res;
+        }
+
+        // Parse error message
+        var data = xml.parseError(res);
+
+        // Construct error object
+        var err         = new Error(data.message);
+        err.name        = data.code + &#x27;Error&#x27;;
+        err.code        = data.code;
+        err.statusCode  = res.statusCode;
+        err.message     = data.message;
+        err.retries     = retry;
+
+        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
+          err.code, method, path, retry);
+
+        // Throw the constructed error
+        throw err;
+      });
+    }, self.options);
+  });
+};
+
+/**
+ * Sets properties for a storage account’s Blob service endpoint
+ *
+ * @method setServiceProperties
+ * @param {object} options - Options on the following form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    logging: {                 // The Azure Analytics Logging settings.
+ *      version: &#x27;...&#x27;,          // The version of Storage Analytics to configure (required if logging specified)
+ *      delete: true|false,      // Indicates whether all delete requests should be logged
+ *                               // (required if logging specified)
+ *      read: true|false,        // Indicates whether all read requests should be logged
+ *                               // (required if logging specified)
+ *      write: true|false,       // Indicates whether all write requests should be logged
+ *                               // (required if logging specified)
+ *      retentionPolicy: {
+ *        enabled: true|false,   // Indicates whether a retention policy is enabled for the
+ *                               // storage service. (required)
+ *        days: &#x27;...&#x27;,           // Indicates the number of days that metrics or logging data should be retained.
+ *                               // Required only if a retention policy is enabled.
+ *      },
+ *    },
+ *    hourMetrics: {             // The Azure Analytics HourMetrics settings
+ *      version: &#x27;...&#x27;,          // The version of Storage Analytics to configure
+ *                               // (required if hourMetrics specified)
+ *      enabled: true|false,     // Indicates whether metrics are enabled for the Blob service
+ *                               //(required if hourMetrics specified).
+ *      includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API
+ *                               // operations (Required only if metrics are enabled).
+ *      retentionPolicy: {
+ *        enabled: true|false,
+ *        days: &#x27;...&#x27;,
+ *      },
+ *    },
+ *    minuteMetrics: {           // The Azure Analytics MinuteMetrics settings
+ *      version: &#x27;...&#x27;,          // The version of Storage Analytics to configure
+ *                               // (required if minuteMetrics specified)
+ *      enabled: true|false,     // Indicates whether metrics are enabled for the Blob service
+ *                               // (required if minuteMetrics specified).
+ *      includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API
+ *                               // operations (Required only if metrics are enabled).
+ *      retentionPolicy: {
+ *        enabled: true|false,
+ *        days: &#x27;...&#x27;,
+ *      },
+ *    },
+ *    corsRules: [{              // CORS rules
+ *      allowedOrigins: [],      // A list of origin domains that will be allowed via CORS,
+ *                               // or &quot;*&quot; to allow all domains
+ *      allowedMethods: [],      // List of HTTP methods that are allowed to be executed by the origin
+ *      maxAgeInSeconds: [],     // The number of seconds that the client/browser should cache a
+ *                               // preflight response
+ *      exposedHeaders: [],      // List of response headers to expose to CORS clients
+ *      allowedHeaders: [],      // List of headers allowed to be part of the cross-origin request
+ *    }]
+ * }
+ * &#x60;&#x60;&#x60;
+ * @return {Promise} A promise that the properties have been set
+ */
+Blob.prototype.setServiceProperties = function setServiceProperties(options) {
+
+  var payload = &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#x27;;
+  payload += &#x27;&lt;StorageServiceProperties&gt;&#x27;;
+
+  if (options) {
+    if (options.logging) {
+      payload += &#x27;&lt;Logging&gt;&#x27;;
+      var logging = options.logging;
+      assert(logging.version, &#x27;The &#x60;options.logging.version&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Version&gt;&#x27; + logging.version + &#x27;&lt;/Version&gt;&#x27;;
+
+      assert(logging.delete, &#x27;The &#x60;options.logging.delete&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Delete&gt;&#x27; + logging.delete + &#x27;&lt;/Delete&gt;&#x27;;
+
+      assert(logging.read, &#x27;The &#x60;options.logging.read&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Read&gt;&#x27; + logging.read + &#x27;&lt;/Read&gt;&#x27;;
+
+      assert(logging.write, &#x27;The &#x60;options.logging.write&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Write&gt;&#x27; + logging.write + &#x27;&lt;/Write&gt;&#x27;;
+
+      assert(logging.retentionPolicy, &#x27;The &#x60;options.logging.retentionPolicy&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;RetentionPolicy&gt;&#x27;;
+      assert(logging.retentionPolicy.enabled, &#x27;The &#x60;options.logging.retentionPolicy.enabled&#x60; must be supplied if &#x60;options.logging&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Enabled&gt;&#x27; + logging.retentionPolicy.enabled + &#x27;&lt;/Enabled&gt;&#x27;;
+      if (logging.retentionPolicy.enabled === true) {
+        assert(logging.retentionPolicy.days, &#x27;The &#x60;options.logging.retentionPolicy.days&#x60; must be supplied if a retention policy is enabled&#x27;);
+        assert(logging.retentionPolicy.days &gt; 1 &amp;&amp; logging.retentionPolicy.days &lt; 365,
+          &#x27;The &#x60;options.logging.retentionPolicy.days&#x60; must be a number between 1 and 365.&#x27;);
+        payload += &#x27;&lt;Days&gt;&#x27; + logging.retentionPolicy.days + &#x27;&lt;/Days&gt;&#x27;;
+      }
+      payload += &#x27;&lt;/RetentionPolicy&gt;&#x27;;
+
+      payload += &#x27;&lt;/Logging&gt;&#x27;;
+    }
+
+    if(options.hourMetrics) {
+      payload += &#x27;&lt;HourMetrics&gt;&#x27;;
+      var hourMetrics = options.hourMetrics;
+
+      assert(hourMetrics.version, &#x27;The &#x60;options.hourMetrics.version&#x60; must be supplied if &#x60;options.hourMetrics&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Version&gt;&#x27; + hourMetrics.version + &#x27;&lt;/Version&gt;&#x27;;
+
+      if (hourMetrics.enabled === undefined || hourMetrics.enabled === null) {
+        throw new Error(&#x27;The &#x60;options.hourMetrics.enabled&#x60; must be supplied if &#x60;options.hourMetrics&#x60; is specified&#x27;);
+      }
+      payload += &#x27;&lt;Enabled&gt;&#x27; + hourMetrics.enabled + &#x27;&lt;/Enabled&gt;&#x27;;
+
+      if (hourMetrics.enabled === true) {
+        if (hourMetrics.includeAPIs === undefined || hourMetrics.includeAPIs === null) {
+          throw new Error(&#x27;The &#x60;options.hourMetrics.includeAPIs&#x60; must be supplied if &#x60;options.hourMetrics&#x60; is specified&#x27;);
+        }
+        payload += &#x27;&lt;IncludeAPIs&gt;&#x27; + hourMetrics.includeAPIs + &#x27;&lt;/IncludeAPIs&gt;&#x27;;
+      }
+
+      assert(hourMetrics.retentionPolicy, &#x27;The &#x60;options.hourMetrics.retentionPolicy&#x60; must be supplied if &#x60;options.hourMetrics&#x60; is specified&#x27;);
+      payload += &#x27;&lt;RetentionPolicy&gt;&#x27;;
+      if (hourMetrics.retentionPolicy.enabled === undefined || hourMetrics.retentionPolicy.enabled === null) {
+        throw new Error(&#x27;The &#x60;options.hourMetrics.retentionPolicy.enabled&#x60; must be supplied if &#x60;options.hourMetrics&#x60; is specified&#x27;);
+      }
+      payload += &#x27;&lt;Enabled&gt;&#x27; + hourMetrics.retentionPolicy.enabled + &#x27;&lt;/Enabled&gt;&#x27;;
+      if (hourMetrics.retentionPolicy.enabled === true) {
+        assert(hourMetrics.retentionPolicy.days, &#x27;The &#x60;options.hourMetrics.retentionPolicy.days&#x60; must be supplied if a retention policy is enabled&#x27;);
+        assert(hourMetrics.retentionPolicy.days &gt; 1 &amp;&amp; hourMetrics.retentionPolicy.days &lt; 365,
+          &#x27;The &#x60;options.hourMetrics.retentionPolicy.days&#x60; must be a number between 1 and 365.&#x27;);
+        payload += &#x27;&lt;Days&gt;&#x27; + hourMetrics.retentionPolicy.days + &#x27;&lt;/Days&gt;&#x27;;
+      }
+      payload += &#x27;&lt;/RetentionPolicy&gt;&#x27;;
+
+      payload += &#x27;&lt;/HourMetrics&gt;&#x27;;
+    }
+
+    if(options.minuteMetrics) {
+      payload += &#x27;&lt;MinuteMetrics&gt;&#x27;;
+      var minuteMetrics = options.minuteMetrics;
+
+      assert(minuteMetrics.version, &#x27;The &#x60;options.minuteMetrics.version&#x60; must be supplied if &#x60;options.minuteMetrics&#x60; is specified&#x27;);
+      payload += &#x27;&lt;Version&gt;&#x27; + minuteMetrics.version + &#x27;&lt;/Version&gt;&#x27;;
+
+      if (minuteMetrics.enabled === undefined || minuteMetrics.enabled === null) {
+        throw new Error(&#x27;The &#x60;options.minuteMetrics.enabled&#x60; must be supplied if &#x60;options.minuteMetrics&#x60; is specified&#x27;);
+      }
+      payload += &#x27;&lt;Enabled&gt;&#x27; + minuteMetrics.enabled + &#x27;&lt;/Enabled&gt;&#x27;;
+
+      if (minuteMetrics.enabled === true) {
+        if (minuteMetrics.includeAPIs === undefined || minuteMetrics.includeAPIs === null) {
+          throw new Error(&#x27;The &#x60;options.minuteMetrics.includeAPIs&#x60; must be supplied if &#x60;options.minuteMetrics&#x60; is specified&#x27;);
+        }
+        payload += &#x27;&lt;IncludeAPIs&gt;&#x27; + minuteMetrics.includeAPIs + &#x27;&lt;/IncludeAPIs&gt;&#x27;;
+      }
+
+      assert(minuteMetrics.retentionPolicy, &#x27;The &#x60;options.minuteMetrics.retentionPolicy&#x60; must be supplied if &#x60;options.minuteMetrics&#x60; is specified&#x27;);
+      payload += &#x27;&lt;RetentionPolicy&gt;&#x27;;
+      if (minuteMetrics.retentionPolicy.enabled === undefined || minuteMetrics.retentionPolicy.enabled === null) {
+        throw new Error(&#x27;The &#x60;options.minuteMetrics.retentionPolicy.enabled&#x60; must be supplied if &#x60;options.minuteMetrics&#x60; is specified&#x27;);
+      }
+      payload += &#x27;&lt;Enabled&gt;&#x27; + minuteMetrics.retentionPolicy.enabled + &#x27;&lt;/Enabled&gt;&#x27;;
+      if (minuteMetrics.retentionPolicy.enabled === true) {
+        assert(minuteMetrics.retentionPolicy.days, &#x27;The &#x60;options.minuteMetrics.retentionPolicy.days&#x60; must be supplied if a retention policy is enabled&#x27;);
+        assert(minuteMetrics.retentionPolicy.days &gt;= 1 &amp;&amp; minuteMetrics.retentionPolicy.days &lt;= 365,
+          &#x27;The &#x60;options.minuteMetrics.retentionPolicy.days&#x60; must be a number between 1 and 365.&#x27;);
+        payload += &#x27;&lt;Days&gt;&#x27; + minuteMetrics.retentionPolicy.days + &#x27;&lt;/Days&gt;&#x27;;
+      }
+      payload += &#x27;&lt;/RetentionPolicy&gt;&#x27;;
+
+      payload += &#x27;&lt;/MinuteMetrics&gt;&#x27;;
+    }
+
+    if(options.corsRules) {
+      payload += &#x27;&lt;Cors&gt;&#x27;;
+      options.corsRules.forEach(function(rule) {
+        payload += &#x27;&lt;CorsRule&gt;&#x27;;
+
+        assert(rule.allowedOrigins, &#x27;For CORS rule, the allowedOrigins must be specified&#x27;);
+        payload += &#x27;&lt;AllowedOrigins&gt;&#x27; + rule.allowedOrigins.join(&#x27;,&#x27;) + &#x27;&lt;/AllowedOrigins&gt;&#x27;;
+
+        assert(rule.allowedMethods, &#x27;For CORS rule, the allowedMethods must be specified&#x27;);
+        payload += &#x27;&lt;AllowedMethods&gt;&#x27; + rule.allowedMethods.join(&#x27;,&#x27;) + &#x27;&lt;/AllowedMethods&gt;&#x27;;
+
+        assert(rule.maxAgeInSeconds, &#x27;For CORS rule, the maxAgeInSeconds must be specified&#x27;);
+        if (rule.maxAgeInSeconds) payload += &#x27;&lt;MaxAgeInSeconds&gt;&#x27; + rule.maxAgeInSeconds + &#x27;&lt;/MaxAgeInSeconds&gt;&#x27;;
+
+        assert(rule.exposedHeaders, &#x27;For CORS rule, the exposedHeaders must be specified&#x27;);
+        if (rule.exposedHeaders) payload += &#x27;&lt;ExposedHeaders&gt;&#x27; + rule.exposedHeaders.join(&#x27;,&#x27;) + &#x27;&lt;/ExposedHeaders&gt;&#x27;;
+
+        assert(rule.allowedHeaders, &#x27;For CORS rule, the allowedHeaders must be specified&#x27;);
+        if (rule.allowedHeaders) payload += &#x27;&lt;AllowedHeaders&gt;&#x27; + rule.allowedHeaders.join(&#x27;,&#x27;) + &#x27;&lt;/AllowedHeaders&gt;&#x27;;
+
+        payload += &#x27;&lt;/CorsRule&gt;&#x27;;
+      });
+      payload += &#x27;&lt;/Cors&gt;&#x27;;
+    }
+  }
+  payload += &#x27;&lt;/StorageServiceProperties&gt;&#x27;;
+
+  var query = {
+    restype: &#x27;service&#x27;,
+    comp: &#x27;properties&#x27;
+  };
+
+  return this.request(&#x27;PUT&#x27;, &#x27;/&#x27;, query, {}, payload).then(function(response) {
+    if (response.statusCode !== 202) {
+      throw new Error(&quot;setServiceProperties: Unexpected statusCode: &quot; + response.statusCode);
+    }
+  });
+};
+
+/**
+ * Gets the properties of a storage account’s Blob service, including properties for Storage Analytics and
+ * CORS (Cross-Origin Resource Sharing) rules.
+ *
+ * @method getServiceProperties
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    logging: {                  // The Azure Analytics Logging settings.
+ *      version: &#x27;...&#x27;,           // The version of Storage Analytics to configure
+ *      delete: true|false,       // Indicates whether all delete requests should be logged
+ *      read: true|false,         // Indicates whether all read requests should be logged
+ *      write: true|false,        // Indicates whether all write requests should be logged
+ *      retentionPolicy: {
+ *        enabled: true|false,    // Indicates whether a retention policy is enabled for the storage service
+ *        days: &#x27;...&#x27;,            // Indicates the number of days that metrics or logging data should be retained.
+ *      },
+ *    },
+ *    hourMetrics: {              // The Azure Analytics HourMetrics settings
+ *      version: &#x27;...&#x27;,           // The version of Storage Analytics to configure
+ *      enabled: true|false,      // Indicates whether metrics are enabled for the Blob service
+ *      includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics
+ *                                // for called API operations.
+ *      retentionPolicy: {
+ *        enabled: true|false,
+ *        days: &#x27;...&#x27;,
+ *      },
+ *    },
+ *    minuteMetrics: {            // The Azure Analytics MinuteMetrics settings
+ *      version: &#x27;...&#x27;,           // The version of Storage Analytics to configure
+ *      enabled: true|false,      // Indicates whether metrics are enabled for the Blob service
+ *      includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics
+ *                                // for called API operations.
+ *      retentionPolicy: {
+ *        enabled: true|false,
+ *        days: &#x27;...&#x27;,
+ *      },
+ *    },
+ *    corsRules: [{               // CORS rules
+ *      allowedOrigins: [],       // A list of origin domains that will be allowed via CORS,
+ *                                // or &quot;*&quot; to allow all domains.
+ *      allowedMethods: [],       // List of HTTP methods that are allowed to be executed by the origin
+ *      maxAgeInSeconds: [],      // The number of seconds that the client/browser should cache a preflight response
+ *      exposedHeaders: [],       // List of response headers to expose to CORS clients
+ *      allowedHeaders: [],       // List of headers allowed to be part of the cross-origin request
+ *    }]
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getSeviceProperties = function getSeviceProperties() {
+  var query = {
+    restype: &#x27;service&#x27;,
+    comp: &#x27;properties&#x27;
+  };
+  return this.request(&#x27;GET&#x27;, &#x27;/&#x27;, query, {}).then(function(response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;setServiceProperties: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    return xml.blobParseServiceProperties(response);
+  });
+};
+
+/**
+ * Create a new container with the given &#x27;name&#x27; under the storage account.
+ *
+ * @method createContainer
+ * @param {string} name -  Name of the container to create
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    metadata: &#x27;...&#x27;,          // Mapping from metadata keys to values. (optional)
+ *    publicAccessLevel: &#x27;...&#x27;, // Specifies whether data in the container may be accessed
+ *                              // publicly and the level of access.
+ *                              // Possible values: container, blob. (optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} a promise for metadata key/value pair
+ * A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the container
+ *      lastModified: &#x27;...&#x27;,       // The date/time the container was last modified
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.createContainer = function createContainer(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  // Construct headers
+  var headers = {};
+  if (options){
+    if (options.metadata) {
+      for(var key in options.metadata) {
+        if (options.metadata.hasOwnProperty(key)) {
+          headers[&#x27;x-ms-meta-&#x27; + key] = options.metadata[key];
+        }
+      }
+    }
+    if(options.publicAccessLevel) {
+      assert( options.publicAccessLevel === &#x27;container&#x27; || options.publicAccessLevel === &#x27;blob&#x27;,
+        &#x27;The &#x60;publicAccessLevel&#x60; is invalid. The possible values are: container and blob.&#x27;
+      )
+      headers[&#x27;x-ms-blob-public-access&#x27;] = options.publicAccessLevel;
+    }
+  }
+
+  // Construct query string
+  var query = {
+    restype: &#x27;container&#x27;
+  };
+  var path = &#x27;/&#x27; + name;
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function(response) {
+    // container was created - response code 201
+    if (response.statusCode !== 201) {
+      throw new Error(&quot;createContainer: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    };
+  });
+};
+
+/**
+ * Sets metadata for the specified container.
+ * Overwrites all existing metadata that is associated with the container.
+ *
+ * @method setContainerMetadata
+ * @param {string} name - Name of the container to set metadata on
+ * @param {object} metadata - Mapping from metadata keys to values.
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27;,               // Lease unique identifier. A GUID string.(optional)
+ *    ifModifiedSince: new Date(),  // Specify this to perform the operation only if the resource has been
+ *                                  // modified since the specified time. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @returns {Promise} a promise for metadata key/value pair
+ * A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the container
+ *      lastModified: &#x27;...&#x27;,       // The date/time the container was last modified
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.setContainerMetadata = function setContainerMetadata(name, metadata, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  // Construct query string
+  var query = {
+    restype: &#x27;container&#x27;,
+    comp: &#x27;metadata&#x27;
+  };
+  // Construct headers
+  var headers = {};
+  if (options) {
+    if (options.leaseId) {
+      assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+      headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+    }
+    // set conditional header
+    if (options.ifModifiedSince){
+      assert(options.ifModifiedSince instanceof Date,
+        &#x27;If specified, the &#x60;options.ifModifiedSince&#x60; must be a Date&#x27;);
+      headers[&#x27;if-modified-since&#x27;] = options.ifModifiedSince.toUTCString();
+    }
+  }
+
+  for(var key in metadata) {
+    if (metadata.hasOwnProperty(key)) {
+      headers[&#x27;x-ms-meta-&#x27; + key] = metadata[key];
+    }
+  }
+  var path = &quot;/&quot; + name;
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function(response) {
+    if(response.statusCode !== 200) {
+      throw new Error(&#x27;setContainerMetadata: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    }
+  });
+};
+
+/**
+ * Get the metadata for the container with the given name.
+ *
+ * Note, this is a &#x60;HEAD&#x60; request, so if the container is missing you get an
+ * error with &#x60;err.statusCode = 404&#x60;, but &#x60;err.code&#x60; property will be
+ * &#x60;ErrorWithoutCode&#x60;.
+ *
+ * @method getContainerMetadata
+ * @param {string} name - the name of the container to get metadata from.
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27;  // Lease unique identifier. A GUID string.(optional)
+ * }
+ * @returns {Promise} a promise for metadata key/value pair
+ * A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the container
+ *      lastModified: &#x27;...&#x27;,       // The date/time the container was last modified
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getContainerMetadata = function getContainerMetadata(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  // Construct the query string
+  var query = {
+    comp: &#x27;metadata&#x27;,
+    restype: &#x27;container&#x27;
+  }
+  var path = &quot;/&quot; + name;
+  var headers = {};
+  if (options &amp;&amp; options.leaseId) {
+    assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+    headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+  }
+
+  return this.request(&#x27;HEAD&#x27;, path, query, headers).then(function(response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getContainerMetadata: Unexpected statusCode: &quot; + response.statusCode);
+    }
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
+      metadata: utils.extractMetadataFromHeaders(response)
+    }
+  });
+};
+
+/**
+ * Delete container with the given &#x27;name&#x27;.
+ *
+ * Note, when a container is deleted, a container with the same name cannot be created for at least 30 seconds;
+ * the container may not be available for more than 30 seconds if the service is still processing the request.
+ * Please see the documentation for more details.
+ *
+ * @method deleteContainer
+ * @param {string} name -  Name of the container to delete
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27;,                   // Lease unique identifier. A GUID string.(optional)
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has
+ *                                      // been modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has
+ *                                      // not been modified since the specified date/time. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @returns {Promise} A promise that container has been marked for deletion.
+ */
+Blob.prototype.deleteContainer = function deleteContainer(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  // construct query string
+  var query = {
+    restype: &#x27;container&#x27;
+  };
+  var path = &#x27;/&#x27; + name;
+  var headers = {};
+  if (options) {
+    if (options.leaseId) {
+      assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+      headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+    }
+
+    utils.setConditionalHeaders(headers, options, true);
+  }
+
+  return this.request(&#x27;DELETE&#x27;, path, query, headers).then(function(response) {
+    if(response.statusCode !== 202) {
+      throw new Error(&#x27;deleteContainer: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+  });
+};
+
+/**
+ * List the containers under the storage account
+ *
+ * @method listContainers
+ * @param {object} options - Options on the following form:
+ *
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   prefix:          &#x27;...&#x27;,    // Prefix of containers to list
+ *   marker:          &#x27;...&#x27;,    // Marker to list containers from
+ *   maxResults:      5000,     // Max number of results
+ *   metadata:        false     // Whether or not to include metadata
+ * }
+ *
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   containers: [
+ *     {
+ *       name:       &#x27;...&#x27;,           // Name of container
+ *       properties: {
+ *          lastModified: &#x27;...&#x27;,      // Container&#x27;s last modified time
+ *          eTag: &#x27;...&#x27;,              // The entity tag of the container
+ *          leaseStatus: &#x27;...&#x27;,       // The lease status of the container
+ *          leaseState: &#x27;...&#x27;,        // The lease state of the container
+ *          leaseDuration: &#x27;...&#x27;      // The lease duration of the container
+ *          publicAccessLevel: &#x27;...&#x27;  // Indicates whether data in the container may be accessed publicly
+ *                                    // and the level of access. If this is not returned in the response,
+ *                                    // the container is private to the account owner.
+ *       }
+ *       metadata:   {}               // Meta-data dictionary if requested
+ *     }
+ *   ],
+ *   prefix:         &#x27;...&#x27;,           // prefix given in options (if given)
+ *   marker:         &#x27;...&#x27;,           // marker given in options (if given)
+ *   maxResults:     5000,            // maxResults given in options (if given)
+ *   nextMarker:     &#x27;...&#x27;            // Next marker if not at end of list
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.listContainers = function listContainers(options) {
+  // Ensure options
+  options = options || {};
+
+  // Construct query string
+  var query = {
+    comp: &#x27;list&#x27;
+  };
+  if (options.prefix)     query.prefix      = options.prefix;
+  if (options.marker)     query.marker      = options.marker;
+  if (options.maxResults) query.maxresults  = options.maxResults;
+  if (options.metadata)   query.include     = &#x27;metadata&#x27;;
+
+  return this.request(&#x27;GET&#x27;, &#x27;/&#x27;, query, {}).then(function(response) {
+    if(response.statusCode !== 200) {
+      throw new Error(&#x27;listContainers: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+    return xml.blobParseListContainers(response);
+  });
+};
+
+/**
+ * Get all user-defined metadata and system properties for the container with the given name.
+ *
+ * Note, this is a &#x60;HEAD&#x60; request, so if the container is missing you get an
+ * error with &#x60;err.statusCode = 404&#x60;, but &#x60;err.code&#x60; property will be
+ * &#x60;ErrorWithoutCode&#x60;.
+ *
+ * @method getContainerProperties
+ * @param {string} name - The name of the container to get properties from.
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27; // GUID string; lease unique identifier (optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   metadata: {                 // Mapping from meta-data keys to values
+ *     &#x27;&lt;key&gt;&#x27;:      &#x27;&lt;value&gt;&#x27;,  // Meta-data key/value pair
+ *     ...
+ *   },
+ *   properties: {                // System properties
+ *     eTag:          &#x27;...&#x27;,      // The entity tag for the container
+ *     lastModified: &#x27;...&#x27;        // The date and time the container was last modified
+ *     leaseStatus: &#x27;...&#x27;,        // The lease status of the container
+ *     leaseState:  &#x27;...&#x27;,        // Lease state of the container
+ *     leaseDuration: &#x27;...&#x27;,      // Specifies whether the lease on a container is of infinite or fixed duration.
+ *     publicAccessLevel: &#x27;...&#x27;,  // Indicates whether data in the container may be accessed publicly and
+ *                                // the level of access. If this is not returned in the response,
+ *                                // the container is private to the account owner.
+ *   }
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getContainerProperties = function getContainerProperties(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  var query = {
+    restype: &#x27;container&#x27;
+  }
+  var path = &#x27;/&#x27; + name;
+  var headers = {};
+  if (options &amp;&amp; options.leaseId) {
+    assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+    headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+  }
+
+  return this.request(&#x27;HEAD&#x27;, path, query, headers).then(function(response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getContainerProperties: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    // Extract metadata
+    var metadata = utils.extractMetadataFromHeaders(response);
+
+    // Extract system properties
+    var properties = {};
+    properties.eTag = response.headers.etag;
+    properties.lastModified = new Date(response.headers[&#x27;last-modified&#x27;]);
+    properties.leaseStatus = response.headers[&#x27;x-ms-lease-status&#x27;];
+    properties.leaseState = response.headers[&#x27;x-ms-lease-state&#x27;];
+    if (response.headers[&#x27;x-ms-lease-duration&#x27;]) {
+      properties.leaseDuration = response.headers[&#x27;x-ms-lease-duration&#x27;];
+    }
+    if (response.headers[&#x27;x-ms-blob-public-access&#x27;]) {
+      properties.publicAccessLevel = response.headers[&#x27;x-ms-blob-public-access&#x27;];
+    }
+
+    return {
+      metadata: metadata,
+      properties: properties
+    }
+  });
+};
+
+/**
+ * Gets the permissions for the container with the given name
+ *
+ * @method getContainerACL
+ * @param {string} name - Name of the container to get ACL from
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27; // GUID string; lease unique identifier (optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for permissions
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,                      // The entity tag of the container
+ *    lastModified: &#x27;...&#x27;,              // The date/time the container was last modified
+ *    publicAccessLevel: &#x27;...&#x27;,         // Indicate whether blobs in a container may be accessed publicly.(optional)
+ *                                      // Possible values: container (full public read access for container
+ *                                      // and blob data) or blob (public read access for blobs)
+ *                                      // If it is not specified, the resource will be private and will be
+ *                                      // accessed only by the account owner.
+ *    accessPolicies: [{                // The container ACL settings.
+ *                                      // An array with five maximum access policies objects (optional)
+ *      id:     &#x27;...&#x27;,                  // Unique identifier, up to 64 chars in length
+ *      start:  new Date(),             // Time from which access policy is valid
+ *      expiry: new Date(),             // Expiration of access policy
+ *      permission: {                   // Set of permissions delegated
+ *        read:              false,     // Read the content, properties, metadata or block list of a blob or, of
+ *                                      // any blob in the container if the resource is a container.
+ *        add:               false,     // Add a block to an append blob or, to any append blob
+ *                                      // if the resource is a container.
+ *        create:            false,     // Write a new blob, snapshot a blob, or copy a blob to a new blob.
+ *                                      // These operations can be done to any blob in the container
+ *                                      // if the resource is a container.
+ *        write:             false,     // Create or write content, properties, metadata, or block list.
+ *                                      // Snapshot or lease the blob. Resize the blob (page blob only).
+ *                                      // These operations can be done for every blob in the container
+ *                                      // f the resource is a container.
+ *        delete:            false,     // Delete the blob or, any blob in the container if the resource
+ *                                      // is a container.
+ *        list:              false,     // List blobs in the container.
+ *      }
+ *    }]
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getContainerACL = function getContainerACL(name, options){
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  var query = {
+    restype: &#x27;container&#x27;,
+    comp: &#x27;acl&#x27;
+  }
+  var path = &#x27;/&#x27; + name;
+
+  var headers = {};
+  if (options &amp;&amp; options.leaseId) {
+    assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+    headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+  }
+
+  return this.request(&#x27;GET&#x27;, path, query, headers).then(function (response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getContainerACL: Unexpected statusCode: &quot; + response.statusCode);
+    }
+    return {
+      accessPolicies: xml.blobParseContainerACL(response),
+      publicAccessLevel: response.headers[&#x27;x-ms-blob-public-access&#x27;],
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    };
+  });
+};
+
+/**
+ * Sets the permissions for the container with the given name.
+ * The permissions indicate whether blobs in a container may be accessed publicly.
+ *
+ * @method setContainerACL
+ * @param {string} name - Name of the container to set ACL to
+ * @param {object} options - Options on the following form
+ *&#x60;&#x60;&#x60;js
+ * {
+ *    publicAccessLevel: &#x27;...&#x27;,       // Indicate whether blobs in a container may be accessed publicly.(optional)
+ *                                    // Possible values: container (full public read access for container
+ *                                    // and blob data) or blob (public read access for blobs).
+ *                                    // If it is not specified, the resource will be private and will be accessed
+ *                                    // only by the account owner.
+ *    accessPolicies: [{              // The container ACL settings.
+ *                                    // An array with five maximum access policies objects (optional)
+ *      id:     &#x27;...&#x27;,                // Unique identifier, up to 64 chars in length
+ *      start:  new Date(),           // Time from which access policy is valid
+ *      expiry: new Date(),           // Expiration of access policy
+ *      permission: {                 // Set of permissions delegated
+ *        read:              false,   // Read the content, properties, metadata or block list of a blob or of
+ *                                    // any blob in the container if the resourceType is a container.
+ *        add:               false,   // Add a block to an append blob or to any append blob
+ *                                    // if the resourceType is a container.
+ *        create:            false,   // Write a new blob, snapshot a blob, or copy a blob to a new blob.
+ *                                    // These operations can be done to any blob in the container
+ *                                    // if the resourceType is a container.
+ *        write:             false,   // Create or write content, properties, metadata, or block list.
+ *                                    // Snapshot or lease the blob. Resize the blob (page blob only).
+ *                                    // These operations can be done for every blob in the container
+ *                                    // if the resourceType is a container.
+ *        delete:            false,   // Delete the blob or any blob in the container
+ *                                    // if the resourceType is a container.
+ *        list:              false,   // List blobs in the container.
+ *      }
+ *    }],
+ *    leaseId: &#x27;...&#x27;,                 // GUID string; lease unique identifier (optional)
+ *    ifModifiedSince: new Date(),    // Specify this to perform the operation only if the resource has
+ *                                    // been modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),  // Specify this to perform the operation only if the resource has
+ *                                    // not been modified since the specified date/time. (optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} a promise for metadata key/value pair
+ * A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the container
+ *      lastModified: &#x27;...&#x27;,       // The date/time the container was last modified
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.setContainerACL = function setContainerACL(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  var query = {
+    restype: &#x27;container&#x27;,
+    comp: &#x27;acl&#x27;
+  };
+  var path = &#x27;/&#x27; + name;
+  var headers = {};
+  if (options) {
+    if (options.leaseId) {
+      assert(utils.isValidGUID(options.leaseId), &#x27;&#x60;leaseId&#x60; is not a valid GUID.&#x27;);
+      headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+    }
+
+    if (options.publicAccessLevel){
+      assert(options.publicAccessLevel === &#x27;container&#x27; || options.publicAccessLevel === &#x27;blob&#x27;,
+        &quot;The supplied &#x60;publicAccessLevel&#x60; is incorrect. The possible values are: container and blob&quot;)
+      headers[&#x27;x-ms-blob-public-access&#x27;] = options.publicAccessLevel;
+    }
+    if (options.accessPolicies &amp;&amp; options.accessPolicies.length &gt; 5){
+      throw new Error(&quot;The supplied access policy is wrong. The maximum number of the access policies is 5&quot;);
+    }
+
+    // Construct the payload
+    var data = &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#x27;;
+    data += &#x27;&lt;SignedIdentifiers&gt;&#x27;;
+    if (options.accessPolicies) {
+      options.accessPolicies.forEach(function(policy){
+        assert(/^[0-9a-fA-F]{1,64}$/i.test(policy.id), &#x27;The access policy id is not valid.&#x27; );
+
+        data += &#x27;&lt;SignedIdentifier&gt;&lt;Id&gt;&#x27; + policy.id + &#x27;&lt;/Id&gt;&#x27;;
+        data += &#x27;&lt;AccessPolicy&gt;&#x27;;
+        if (policy.start) {
+          assert(policy.start instanceof Date, &quot;If specified, policy.start must be a Date object&quot;);
+          data += &#x27;&lt;Start&gt;&#x27; + utils.dateToISOWithoutMS(policy.start) + &#x27;&lt;/Start&gt;&#x27;;
+        }
+        if (policy.expiry) {
+          assert(policy.expiry instanceof Date, &quot;If specified, policy.expiry must be a Date object&quot;);
+          data += &#x27;&lt;Expiry&gt;&#x27; + utils.dateToISOWithoutMS(policy.expiry) + &#x27;&lt;/Expiry&gt;&#x27;;
+        }
+
+        if (policy.permission) {
+          var permissions = &#x27;&#x27;;
+          if (policy.permission.read)    permissions += &#x27;r&#x27;;
+          if (policy.permission.add)     permissions += &#x27;a&#x27;;
+          if (policy.permission.create)  permissions += &#x27;c&#x27;;
+          if (policy.permission.write)   permissions += &#x27;w&#x27;;
+          if (policy.permission.delete)  permissions += &#x27;d&#x27;;
+          if (policy.permission.list)    permissions += &#x27;l&#x27;;
+
+          data += &#x27;&lt;Permission&gt;&#x27; + permissions + &#x27;&lt;/Permission&gt;&#x27;;
+        }
+
+        data += &#x27;&lt;/AccessPolicy&gt;&lt;/SignedIdentifier&gt;&#x27;;
+      });
+    }
+
+    data += &#x27;&lt;/SignedIdentifiers&gt;&#x27;;
+
+    utils.setConditionalHeaders(headers, options, true);
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers, data).then(function(response){
+    if(response.statusCode !== 200){
+      throw new Error(&quot;setContainerACL: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    }
+  });
+};
+
+/**
+ * Get the list of blobs under the specified container.
+ *
+ * @method listBlobs
+ * @param {string} container - Name of the container(required)
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    prefix: &#x27;...&#x27;,              // Prefix of blobs to list (optional)
+ *    delimiter: &#x27;...&#x27;,           // Delimiter, i.e. &#x27;/&#x27;, for specifying folder hierarchy. (optional)
+ *    marker: &#x27;...&#x27;,              // Marker to list blobs from (optional)
+ *    maxResults: 5000,           // The maximum number of blobs to return (optional)
+ *    include: {                  // Specifies one or more datasets to include in the response (optional)
+ *      snapshots: false,         // Include snapshots in listing
+ *      metadata: false,          // Include blob metadata in listing
+ *      uncommittedBlobs: false,  // Include uncommitted blobs in listing
+ *      copy: false               // Include metadata related to any current or previous Copy Blob operation
+ *    }
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *   blobs: [
+ *     {
+ *       name:       &#x27;...&#x27;,               // Name of blob
+ *       snapshot:    &#x27;...&#x27;,              // A date and time value that uniquely identifies the snapshot
+ *                                        // relative to its base blob
+ *       properties:  {
+ *          lastModified: &#x27;...&#x27;,          // The date and time the blob was last modified
+ *          eTag: &#x27;...&#x27;,                  // The entity tag of the blob
+ *          contentLength: &#x27;...&#x27;,         // The content length of the blob
+ *          contentType: &#x27;...&#x27;,           // The MIME content type of the blob
+ *          contentEncoding: &#x27;...&#x27;,       // The content encoding of the blob
+ *          contentLanguage: &#x27;...&#x27;,       // The content language of the blob
+ *          contentMD5: &#x27;...&#x27;,            // An MD5 hash of the blob content
+ *          cacheControl: &#x27;...&#x27;,          // The blob cache control
+ *          xmsBlobSequenceNumber: &#x27;...&#x27;, // The page blob sequence number
+ *          blobType: &#x27;...&#x27;,              // The type of the blob: BlockBlob | PageBlob | AppendBlob
+ *          leaseStatus: &#x27;...&#x27;,           // The lease status of the blob
+ *          leaseState: &#x27;...&#x27;,            // The lease state of the blob
+ *          leaseDuration: &#x27;...&#x27;,         // The lease duration of the blob
+ *          copyId: &#x27;...&#x27;,                // String identifier for the copy operation
+ *          copyStatus: &#x27;...&#x27;,            // The state of the copy operation: pending | success | aborted | failed
+ *          copySource: &#x27;...&#x27;,            // The name of the source blob of the copy operation
+ *          copyProgress: &#x27;...&#x27;,          // The bytes copied/total bytes
+ *          copyCompletionTime: &#x27;...&#x27;,    // The date and time the copy operation finished
+ *          copyStatusDescription: &#x27;...&#x27;, // The status of the copy operation
+ *          serverEncrypted: false,       // true if the blob and application metadata are completely encrypted,
+ *                                        // and false otherwise
+ *          incrementalCopy: &#x27;...&#x27;,       // true for the incremental copy blobs operation and snapshots
+ *       }
+ *       metadata:   {}                   // Meta-data dictionary if requested
+ *     }
+ *   ],
+ *   blobPrefixName: &#x27;...&#x27;,
+ *   prefix:         &#x27;...&#x27;,               // prefix given in options (if given)
+ *   marker:         &#x27;...&#x27;,               // marker given in options (if given)
+ *   maxResults:     5000,                // maxResults given in options (if given)
+ *   nextMarker:     &#x27;...&#x27;                // Next marker if not at end of list
+ *   delimiter:      &#x27;...&#x27;                // Delimiter
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.listBlobs = function listBlobs(container, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  // Construct the query string
+  var query = {
+    restype: &#x27;container&#x27;,
+    comp: &#x27;list&#x27;
+  };
+
+  assert(container, &#x27;The container name must be specified&#x27;);
+
+  if (options) {
+    if (options.prefix)     query.prefix      = options.prefix;
+    if (options.marker)     query.marker      = options.marker;
+    if (options.maxResults) query.maxresults  = options.maxResults;
+    if (options.include)  {
+      var includeValues = [];
+      if (options.include.snapshot) includeValues.push(&#x27;snapshot&#x27;);
+      if (options.include.metadata) includeValues.push(&#x27;metadata&#x27;);
+      if (options.include.uncommittedBlobs) includeValues.push(&#x27;uncommittedblobs&#x27;);
+      if (options.include.copy) includeValues.push(&#x27;copy&#x27;);
+
+      query.include = includeValues.join(&#x27;,&#x27;);
+    }
+    if (options.delimiter)  query.delimiter = options.delimiter;
+  }
+
+  var path = &#x27;/&#x27; + container;
+  var headers = {};
+
+  return this.request(&#x27;GET&#x27;, path, query, headers).then(function(response){
+    if(response.statusCode !== 200){
+      throw new Error(&quot;listBlobs: Unexpected statusCode: &quot; + response.statusCode);
+    }
+    return xml.blobParseListBlobs(response);
+  });
+};
+
+/**
+ * Establishes and manages a lock on a container for delete operations.
+ * The lock duration can be 15 to 60 seconds, or can be infinite.
+ *
+ * @method leaseContainer
+ * @param name - Name of the container
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27;,                   // GUID string; it is required in case of renew, change,
+ *                                      // or release of the lease
+ *    leaseAction: &#x27;...&#x27;,               // Lease container operation. The possible values are: acquire, renew,
+ *                                      // change, release, break (required)
+ *    leaseBreakPeriod: &#x27;...&#x27;,          // For a break operation, proposed duration the lease should continue
+ *                                      // before it is broken, in seconds, between 0 and 60.
+ *    leaseDuration: &#x27;...&#x27;,             // Specifies the duration of the lease, in seconds, or negative one (-1)
+ *                                      // for a lease that never expires. Required for &#x60;acquire&#x60; action.
+ *    proposedLeaseId: &#x27;...&#x27;            // GUID string; Optional for &#x60;acquire&#x60;, required for &#x60;change&#x60; action.
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+ *                                      // modified since the specified date/time. (optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    leaseId: &#x27;...&#x27;,             // The unique lease id.
+ *    leaseTime: &#x27;...&#x27;            // Approximate time remaining in the lease period, in seconds.
+ *    eTag: &#x27;...&#x27;,                // The entity tag of the container
+ *    lastModified: &#x27;...&#x27;,        // The date/time the container was last modified
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.leaseContainer = function leaseContainer(name, options) {
+  assert(typeof name === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(options, &quot;options is required&quot;);
+  var query = {
+    restype: &#x27;container&#x27;,
+    comp: &#x27;lease&#x27;
+  };
+
+  var path = &#x27;/&#x27; + name;
+  var headers = {};
+
+  assert(options.leaseAction, &quot;The &#x60;options.leaseAction&#x60; must be given&quot;);
+
+  if (options.leaseId) {
+    assert(utils.isValidGUID(options.leaseId), &#x27;The supplied &#x60;leaseId&#x60; is not a valid GUID&#x27;);
+    headers[&#x27;x-ms-lease-id&#x27;] = options.leaseId;
+  }
+
+  assert(
+    options.leaseAction === &#x27;acquire&#x27;
+    || options.leaseAction === &#x27;renew&#x27;
+    || options.leaseAction === &#x27;change&#x27;
+    || options.leaseAction === &#x27;release&#x27;
+    || options.leaseAction === &#x27;break&#x27;,
+    &#x27;The supplied &#x60;options.leaseAction&#x60; is not valid. The possible values are: acquire, renew, change, release, break&#x27;
+  );
+  headers[&#x27;x-ms-lease-action&#x27;] = options.leaseAction;
+
+  if((options.leaseAction === &#x27;renew&#x27;
+    || options.leaseAction === &#x27;change&#x27;
+    || options.leaseAction === &#x27;release&#x27;)
+    &amp;&amp; !options.leaseId) {
+    throw new Error(&#x27;The &#x60;options.leaseId&#x60; must be given if the &#x60;options.leaseAction&#x60; is &#x60;renew&#x60; or &#x60;change&#x60; or &#x60;release&#x60;&#x27;);
+  }
+
+  if (options.leaseBreakPeriod){
+    assert(Number.isInteger(options.leaseBreakPeriod) &amp;&amp; (options.leaseBreakPeriod &gt;= 0 || options.leaseBreakPeriod &lt;= 60),
+      &#x27;The &#x60;options.leaseBreakPeriod&#x60; is not valid; it should be a number between 0 and 60&#x27;);
+    headers[&#x27;x-ms-lease-break-period&#x27;] = this.options.leaseBreakPeriod;
+  }
+
+  if(options.leaseAction === &#x27;acquire&#x27; &amp;&amp; !options.leaseDuration){
+    throw new Error (&#x27;The &#x60;options.leaseDuration&#x60; must be given if the lease action is &#x60;acquire&#x60;&#x27;);
+  }
+
+  if (options.leaseDuration) {
+    assert(options.leaseDuration &gt;= 15 &amp;&amp; (options.leaseDuration &lt;= 60 || options.leaseDuration === -1),
+      &#x27;The &#x60;options.leaseDuration&#x60; must be a value between 15 and 60 or -1.&#x27;);
+    headers[&#x27;x-ms-lease-duration&#x27;] = options.leaseDuration.toString();
+  }
+
+  if (options.leaseAction === &#x27;change&#x27; &amp;&amp; !options.proposedLeaseId) {
+    throw new Error(&#x27;The &#x60;options.proposedLeaseId&#x60; must be given if the lease action is &#x60;change&#x60;&#x27;);
+  }
+  if(options.proposedLeaseId){
+    assert(utils.isValidGUID(this.options.leaseId), &#x27;The supplied &#x60;proposedLeaseId&#x60; is not a valid GUID&#x27;);
+    headers[&#x27;x-ms-proposed-lease-id&#x27;] = options.proposedLeaseId;
+  }
+
+  utils.setConditionalHeaders(headers, options, true);
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function(response) {
+    if (response.statusCode !== 200 &amp;&amp; response.statusCode !== 201 &amp;&amp; response.statusCode !== 202) {
+      throw new Error(&quot;leaseContainer: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    var result = {
+      leaseId: response.headers[&#x27;x-ms-lease-id&#x27;],
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    };
+    if (response.headers[&#x27;x-ms-lease-time&#x27;]) {
+      result.leaseTime = response.headers[&#x27;x-ms-lease-time&#x27;];
+    }
+    return result;
+  });
+};
+
+/**
+ * Creates a new block, page, or append blob, or updates the content of an existing block blob.
+ * Updating an existing block blob overwrites any existing metadata on the blob,
+ * and the content of the existing blob is overwritten with the content of the new blob.
+ *
+ * Note that a call to a putBlob to create a page blob or an append blob only initializes the blob.
+ * To add content to a page blob, call the putPage. To add content to an append blob, call the appendBlock.
+ *
+ * @method putBlob
+ * @param {string} container - Name of the container where the blob should be stored
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    metadata: &#x27;...&#x27;,                          // Name-value pairs associated with the blob as metadata
+ *    contentType: &#x27;application/octet-stream&#x27;,  // The MIME content type of the blob (optional)
+ *    contentEncoding: &#x27;...&#x27;,                   // Specifies which content encodings have been applied
+ *                                              // to the blob. (optional)
+ *    contentLanguage: &#x27;...&#x27;,                   // Specifies the natural languages used by this resource(optional)
+ *    cacheControl: &#x27;...&#x27;,                      // The Blob service stores this value but does not
+ *                                              // use or modify it. (optional)
+ *    disableContentMD5Check: &#x27;false&#x27;,          // Enable/disable the content md5 check is disabled.(optional)
+ *    type: BlockBlob|PageBlob|AppendBlob,      // The type of blob to create: block blob, page blob,
+ *                                              // or append blob (required)
+ *    leaseId: &#x27;...&#x27;,                           // Lease id (required if the blob has an active lease)
+ *    contentDisposition: &#x27;...&#x27;,                // Specifies the content disposition of the blob (optional)
+ *    ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource
+ *                                              // has been modified since the specified time.
+ *    ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource
+ *                                              // has not been modified since the specified date/time.
+ *    ifMatch: &#x27;...&#x27;,                           // ETag value. Specify this to perform the operation only if the
+ *                                              // resource&#x27;s ETag matches the value specified.
+ *    ifNoneMatch: &#x27;...&#x27;,                       // ETag value. Specify this to perform the operation only if the
+ *                                              //resource&#x27;s ETag does not match the value specified.
+ *    pageBlobContentLength: &#x27;...&#x27;,             // Specifies the maximum size for the page blob, up to 1 TB.
+ *                                              // (required for page blobs)
+ *    pageBlobSequenceNumber: 0,                // The sequence number - a user-controlled value that you can use
+ *                                              // to track requests (optional, only for page blobs)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @param {string|buffer} content - The content of the blob
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,         // The entity tag of the blob
+ *    lastModified: &#x27;...&#x27;, // The date/time the blob was last modified
+ *    contentMD5: &#x27;...&#x27;,   // The MD5 hash of the blob
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.putBlob = function putBlob(container, blob, options, content) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+  assert(options, &quot;options is required&quot;);
+  assert(options.type, &#x27;The blob type must be specified&#x27;);
+  assert(options.type === &#x27;BlockBlob&#x27;
+    || options.type === &#x27;PageBlob&#x27;
+    || options.type === &#x27;AppendBlob&#x27;,
+    &#x27;The blob type is invalid. The possible types are: BlockBlob, PageBlob or AppendBlob.&#x27;);
+
+  if (options.type === &#x27;PageBlob&#x27; &amp;&amp; content) {
+    throw new Error(&#x27;Do not include content when a page blob is created. Use putPage() to add/modify the content of a page blob&#x27;);
+  }
+  if(options.type === &#x27;AppendBlob&#x27; &amp;&amp; content) {
+    throw new Error(&#x27;Do not include content when an append blob is created. Use appendBlock() to add content to the end of the append blob&#x27;);
+  }
+
+  if ((options.type === &#x27;BlockBlob&#x27;
+    || options.type === &#x27;AppendBlob&#x27;)) {
+
+    if (options.pageBlobContentLength) {
+      throw new Error(&#x27;Do not include page blob content length to a block blob or to an append blob.&#x27;);
+    }
+    if (options.pageBlobSequenceNumber) {
+      throw new Error(&#x27;Do not include page blob sequence number to a block blob or to an append blob.&#x27;);
+    }
+  }
+
+  // check the content length
+  var contentLength = 0;
+  if (content &amp;&amp; Buffer.isBuffer(content)) {
+    contentLength = content.length;
+  } else if (content) {
+    contentLength = Buffer.byteLength(content);
+  }
+
+  if (options.type === &#x27;BlockBlob&#x27;
+    &amp;&amp; contentLength &gt; MAX_SINGLE_UPLOAD_BLOCK_BLOB_SIZE_IN_BYTES) {
+    throw new Error(&#x27;The maximum size of a block blob that can be uploaded with putBlob() is &#x27; + MAX_SINGLE_UPLOAD_BLOCK_BLOB_SIZE_IN_BYTES + &#x27;.&#x27; +
+      &#x27;In order to upload larger blobs, use putBlock() and putBlockList()&#x27;);
+  }
+  if (options.type === &#x27;PageBlob&#x27;){
+    if (options.pageBlobContentLength % PAGE_SIZE !== 0) {
+      throw new Error(&#x27;Page blob length must be multiple of &#x27; + PAGE_SIZE + &#x27;.&#x27;);
+    }
+    if (options.pageBlobContentLength &lt; MAX_PAGE_SIZE) {
+      throw new Error(&#x27;The maximum size of the page blob (options.pageBlobContentLength) is &#x27; + MAX_PAGE_SIZE + &#x27;.&#x27;);
+    }
+    if (options.pageBlobSequenceNumber &amp;&amp; typeof options.pageBlobSequenceNumber !== &#x27;number&#x27;) {
+      throw new Error(&#x27;The &#x60;options.pageBlobSequenceNumber&#x60; is invalid. It must be a number&#x27;);
+    }
+    if (options.pageBlobSequenceNumber
+      &amp;&amp; options.pageBlobSequenceNumber &gt;= 0
+      &amp;&amp; options.pageBlobSequenceNumber &lt; Math.pow(2, 63)) {
+      throw new Error(&#x27;The &#x60;options.pageBlobSequenceNumber&#x60; is invalid. It must be a number between 0 and 2^63 - 1&#x27;);
+    }
+  }
+
+  var query = {};
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  headers[&#x27;content-length&#x27;] = options.type === &#x27;PageBlob&#x27; || options.type === &#x27;AppendBlob&#x27; ? 0 : contentLength;
+
+  if (options.contentType) {
+    headers[&#x27;content-type&#x27;] = options.contentType;
+  }
+  if (options.contentEncoding) {
+    headers[&#x27;content-encoding&#x27;] = options.contentEncoding;
+  }
+  if (options.contentLanguage) {
+    headers[&#x27;content-language&#x27;] = options.contentLanguage;
+  }
+  if (options.cacheControl) {
+    headers[&#x27;cache-control&#x27;] = options.cacheControl;
+  }
+
+  headers[&#x27;x-ms-blob-type&#x27;] = options.type;
+
+  if (!options.disableContentMD5Check &amp;&amp; options.type === &#x27;BlockBlob&#x27; &amp;&amp; content) {
+    headers[&#x27;content-md5&#x27;] = utils.md5(content);
+  }
+
+  if (options.contentDisposition) {
+    headers[&#x27;x-ms-blob-content-disposition&#x27;] = options.contentDisposition;
+  }
+
+  // support for condition headers
+  utils.setConditionalHeaders(headers, options);
+
+  if (options.pageBlobContentLength) {
+    headers[&#x27;x-ms-blob-content-length&#x27;] = options.pageBlobContentLength;
+  }
+  if (options.pageBlobSequenceNumber) {
+    headers[&#x27;x-ms-blob-sequence-number&#x27;] = options.pageBlobSequenceNumber;
+  }
+
+  // add metadata
+  if (options.metadata){
+    for(var key in options.metadata) {
+      if (options.metadata.hasOwnProperty(key)) {
+        headers[&#x27;x-ms-meta-&#x27; + key] = options.metadata[key];
+      }
+    }
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers, content).then(function(response){
+    if(response.statusCode !== 201) {
+      throw new Error(&quot;putBlob: Unexpected statusCode: &quot; + response.statusCode);
+    }
+
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
+      contentMd5: response.headers[&#x27;content-md5&#x27;]
+    }
+  });
+};
+
+/**
+ * Reads or downloads a blob from the system, including its metadata and properties.
+ *
+ * @method getBlob
+ * @param {string} container - Name of the container where the blob should be stored
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+ *                                      // been modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,                    // The entity tag of the blob
+ *    lastModified: &#x27;...&#x27;,            // The date/time the blob was last modified.
+ *    contentMD5: &#x27;...&#x27;,              // The MD5 hash fo the blob
+ *    contentEncoding: &#x27;...&#x27;,         // The content encoding of the blob
+ *    contentLanguage: &#x27;...&#x27;,         // The content language of the blob
+ *    cacheControl: &#x27;...&#x27;,            // The cache control of the blob
+ *    contentDisposition: &#x27;...&#x27;,      // The content disposition of the blob
+ *    pageBlobSequenceNumber: &#x27;...&#x27;,  // The current sequence number for a page blob.
+ *    type: &#x27;...&#x27;,                    // The blob type: block, page or append blob.
+ *    blobCommittedBlockCount: &#x27;...&#x27;, // The number of committed blocks present in the blob.
+ *                                    // This is returned only for append blobs.
+ *    metadata: &#x27;...&#x27;,                // Name-value pairs associated with the blob as metadata
+ *    content: &#x27;...&#x27;                  // The content
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getBlob = function getBlob(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {};
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  utils.setConditionalHeaders(headers, options);
+
+  return this.request(&#x27;GET&#x27;, path, query, headers).then(function (response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getBlob: Unexpected statusCode: &quot; + response);
+    }
+    var responseHeaders = response.headers;
+
+    return {
+      contentMD5: responseHeaders[&#x27;content-md5&#x27;],
+      contentEncoding: responseHeaders[&#x27;content-encoding&#x27;],
+      contentLanguage: responseHeaders[&#x27;content-language&#x27;],
+      cacheControl: responseHeaders[&#x27;cache-control&#x27;],
+      contentDisposition: responseHeaders[&#x27;content-disposition&#x27;],
+      pageBlobSequenceNumber: responseHeaders[&#x27;x-ms-blob-sequence-number&#x27;],
+      blobCommittedBlockCount: responseHeaders[&#x27;x-ms-blob-committed-block-count&#x27;],
+      metadata: utils.extractMetadataFromHeaders(response),
+      type: responseHeaders[&#x27;x-ms-blob-type&#x27;],
+      eTag: responseHeaders[&#x27;etag&#x27;],
+      lastModified: new Date(responseHeaders[&#x27;last-modified&#x27;]),
+      content: response.payload
+    };
+  });
+};
+
+/**
+ * Returns all user-defined metadata, standard HTTP properties, and system properties for the blob.
+ *
+ * @method getBlobProperties
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+ *                                      // modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ *
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    metadata: &#x27;...&#x27;,                // Name-value pairs that correspond to the user-defined metadata
+ *                                    // associated with this blob.
+ *    lastModified: &#x27;...&#x27;,            // The date/time the blob was last modified.
+ *    type: &#x27;...&#x27;,                    // The blob type
+ *    leaseDuration: &#x27;...&#x27;,           // When a blob is leased, specifies whether the lease is of
+ *                                    // infinite or fixed duration
+ *    leaseState: &#x27;...&#x27;,              // Lease state of the blob
+ *    leaseStatus: &#x27;...&#x27;,             // The lease status of the blob.
+ *    contentLength: &#x27;...&#x27;,           // The size of the blob in bytes
+ *    contentType: &#x27;...&#x27;,             // The content type specified for the blob
+ *    eTag: &#x27;...&#x27;,                    // The blob Etag
+ *    contentMD5: &#x27;...&#x27;               // The content-md5 of the blob
+ *    contentEncoding: &#x27;...&#x27;,         // The content encoding of the blob
+ *    contentLanguage: &#x27;...&#x27;          // The content language of the blob
+ *    contentDisposition: &#x27;...&#x27;,      // The content disposition of the blob
+ *    cacheControl: &#x27;...&#x27;,            // The cache control of the blob
+ *    pageBlobSequenceNumber: &#x27;...&#x27;,  // The current sequence number for a page blob.
+ *    committedBlockCount: &#x27;...&#x27;,     // The number of committed blocks present in the blob (for append blob).
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getBlobProperties = function getBlobProperties(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {};
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  utils.setConditionalHeaders(headers, options);
+
+  return this.request(&#x27;HEAD&#x27;, path, query, headers).then(function (response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getBlobProperties: Unexpected statusCode: &quot; + response);
+    }
+
+    /**
+     * TODO information about:
+     * - copyCompletionTime,
+     * - copyStatusDescription,
+     * - copyStatusDescription,
+     * - copyId,
+     * - copyProgress,
+     * - copySource,
+     * - copyStatus,
+     * - copyDestinationSnapshot
+     * - incrementalCopy
+     *
+     * will be added after the copyBlob will be implemented
+     */
+    var result = {
+      metadata: utils.extractMetadataFromHeaders(response),
+      type: response.headers[&#x27;x-ms-blob-type&#x27;],
+      leaseState: response.headers[&#x27;x-ms-lease-state&#x27;],
+      leaseStatus: response.headers[&#x27;x-ms-lease-status&#x27;],
+      contentLength: response.headers[&#x27;content-length&#x27;],
+      contentType: response.headers[&#x27;content-type&#x27;],
+      eTag: response.headers[&#x27;etag&#x27;]
+    };
+    if (response.headers[&#x27;last-modified&#x27;]) {
+      result.lastModified = new Date(response.headers[&#x27;last-modified&#x27;]);
+    }
+    if (response.headers[&#x27;x-ms-lease-duration&#x27;]) {
+      result.leaseDuration = response.headers[&#x27;x-ms-lease-duration&#x27;];
+    }
+    if (response.headers[&#x27;content-md5&#x27;]) {
+      result.contentMD5 = response.headers[&#x27;content-md5&#x27;];
+    }
+    if (response.headers[&#x27;content-encoding&#x27;]) {
+      result.contentEncoding = response.headers[&#x27;content-encoding&#x27;];
+    }
+    if (response.headers[&#x27;content-language&#x27;]) {
+      result.contentLanguage = response.headers[&#x27;content-language&#x27;];
+    }
+    if (response.headers[&#x27;content-disposition&#x27;]) {
+      result.contentDisposition = response.headers[&#x27;content-disposition&#x27;];
+    }
+    if (response.headers[&#x27;content-control&#x27;]) {
+      result.cacheControl = response.headers[&#x27;content-control&#x27;];
+    }
+    if (response.headers[&#x27;x-ms-blob-sequence-number&#x27;]) {
+      result.pageBlobSequenceNumber = response.headers[&#x27;x-ms-blob-sequence-number&#x27;];
+    }
+    if (response.headers[&#x27;x-ms-blob-committed-block-count&#x27;]) {
+      result.committedBlockCount = response.headers[&#x27;x-ms-blob-committed-block-count&#x27;];
+    }
+    return result;
+  });
+};
+
+/**
+ * Sets system properties on the blob
+ *
+ * @method setBlobProperties
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    cacheControl: &#x27;...&#x27;,                      // The cache control string for the blob (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    contentType: &#x27;...&#x27;,                       // The MIME content type of the blob (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    contentMD5: &#x27;...&#x27;,                        // The MD5 hash of the blob (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    contentEncoding: &#x27;...&#x27;,                   // The content encodings of the blob. (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    contentLanguage: &#x27;...&#x27;,                   // The content language of the blob. (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    contentDisposition: &#x27;...&#x27;,                // The content disposition (optional)
+ *                                              // If this property is not specified, then the property
+ *                                              // will be cleared for the blob.
+ *    pageBlobContentLength: &#x27;...&#x27;,             // The new size of a page blob. If the specified value is
+ *                                              // less than the current size of the blob, then all pages
+ *                                              // above the specified value are cleared.
+ *                                              // This property applies to page blobs only.
+ *    pageBlobSequenceNumberAction:
+ *              &#x27;max|update|increment&#x27;,         // Indicates how the service should modify the blob&#x27;s
+ *                                              // sequence number.
+ *                                              // - max: Sets the sequence number to be the higher of the
+ *                                              //        value included with the request and the value
+ *                                              //        currently stored for the blob.
+ *                                              // - update: Sets the sequence number to the value
+ *                                              //           included with the request.
+ *                                              // - increment: Increments the value of the sequence
+ *                                              //              number by 1.
+ *                                              // This property applies to page blobs only. (optional)
+ *    pageBlobSequenceNumber: &#x27;...&#x27;,            // The page blob sequence number.
+ *                                              // Optional, but required if the
+ *                                              // &#x60;pageBlobSequenceNumberAction&#x60; option is set to &#x60;max&#x60;
+ *                                              // or &#x60;update&#x60;.
+ *                                              // This property applies to page blobs only.
+ *    ifModifiedSince: new Date(),              // Specify this to perform the operation only if the
+ *                                              // resource has been modified since the specified time.
+ *                                              // (optional)
+ *    ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the
+ *                                              // resource has not been modified since the specified
+ *                                              // date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                           // ETag value. Specify this to perform the operation only
+ *                                              // if the resource&#x27;s ETag matches the value specified.
+ *                                              // (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,                       // ETag value. Specify this to perform the operation only
+ *                                              // if the resource&#x27;s ETag does not match the value
+ *                                              // specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ *
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the blob
+ *      lastModified: &#x27;...&#x27;,       // The date/time the blob was last modified
+ *      blobSequenceNumber: &#x27;...&#x27;, // The blob&#x27;s current sequence number (if the blob is a page blob)
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.setBlobProperties = function setBlobProperties(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {
+    comp: &#x27;properties&#x27;
+  };
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  if (options){
+    if (options.cacheControl) headers[&#x27;x-ms-blob-cache-control&#x27;] = options.cacheControl;
+    if (options.contentType) headers[&#x27;x-ms-blob-content-type&#x27;] = options.contentType;
+    if (options.contentMD5) headers[&#x27;x-ms-blob-content-md5&#x27;] = options.contentMD5;
+    if (options.contentEncoding) headers[&#x27;x-ms-blob-content-encoding&#x27;] = options.contentEncoding;
+    if (options.contentLanguage) headers[&#x27;x-ms-blob-content-language&#x27;] = options.contentLanguage;
+    if (options.contentDisposition) headers[&#x27;x-ms-blob-content-disposition&#x27;] = options.contentDisposition;
+    if (options.pageBlobContentLength) headers[&#x27;x-ms-blob-content-length&#x27;] = options.pageBlobContentLength;
+    if (options.pageBlobSequenceNumberAction){
+      assert(options.pageBlobSequenceNumberAction === &#x27;max&#x27;
+        || options.pageBlobSequenceNumberAction === &#x27;update&#x27;
+        || options.pageBlobSequenceNumberAction === &#x27;increment&#x27;,
+        &#x27;The &#x60;options.pageBlobSequenceNumberAction&#x60; is invalid. The possible values are: max, update and increment.&#x27;);
+      headers[&#x27;x-ms-sequence-number-action&#x27;] = options.pageBlobSequenceNumberAction;
+      if (options.pageBlobSequenceNumberAction === &#x27;max&#x27;
+        || options.pageBlobSequenceNumberAction === &#x27;update&#x27;
+        &amp;&amp; !options.pageBlobSequenceNumber) {
+        throw new Error(&#x27;If &#x60;options.pageBlobSequenceNumberAction&#x60; is &#x60;max&#x60; or &#x60;update&#x60;, the &#x60;options.pageBlobSequenceNumber&#x60; must be supplied.&#x27;);
+      }
+      if (options.pageBlobSequenceNumber) headers[&#x27;x-ms-blob-sequence-number&#x27;] = options.pageBlobSequenceNumber;
+    }
+
+    utils.setConditionalHeaders(headers, options);
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function (response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;setBlobProperties: Unexpected statusCode: &quot; + response);
+    }
+
+    var result = {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    };
+    if (response.headers[&#x27;x-ms-blob-sequence-number&#x27;]) {
+      result.blobSequenceNumber = response.headers[&#x27;x-ms-blob-sequence-number&#x27;];
+    }
+
+    return result;
+  });
+};
+
+/**
+ * Get the metadata for the blob with the given name.
+ *
+ * Note, this is a &#x60;HEAD&#x60; request, so if the container is missing you get an
+ * error with &#x60;err.statusCode = 404&#x60;, but &#x60;err.code&#x60; property will be
+ * &#x60;ErrorWithoutCode&#x60;.
+ *
+ * @method getBlobMetadata
+ * @param {string} container - the name of the container
+ * @param {string} blob - the name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+ *                                      // been modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ *
+ * @returns {Promise} a promise for metadata key/value pair
+ * A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the blob
+ *      lastModified: &#x27;...&#x27;,       // The date/time the blob was last modified
+ *      metadata: &#x27;...&#x27;            // Name-value pairs that correspond to the user-defined metadata
+ *                                 // associated with this blob.
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getBlobMetadata = function getBlobMetadata(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {
+    comp: &#x27;metadata&#x27;
+  }
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  utils.setConditionalHeaders(headers, options);
+
+  return this.request(&#x27;HEAD&#x27;, path, query, headers).then(function(response) {
+    if (response.statusCode !== 200) {
+      throw new Error(&quot;getBlobMetadata: Unexpected statusCode: &quot; + response.statusCode);
+    }
+    var result = {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
+      metadata: utils.extractMetadataFromHeaders(response)
+    };
+    return result;
+  });
+};
+
+/**
+ * Sets metadata for the specified blob.
+ * Overwrites all existing metadata that is associated with that blob.
+ *
+ * @method setBlobMetadata
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} metadata - Mapping from metadata keys to values.
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+ *                                      // been modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @returns {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *      eTag: &#x27;...&#x27;,               // The entity tag of the blob
+ *      lastModified: &#x27;...&#x27;        // The date/time the blob was last modified.
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.setBlobMetadata = function setBlobMetadata(container, blob, metadata, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  // Construct query string
+  var query = {
+    comp: &#x27;metadata&#x27;
+  };
+  // Construct headers
+  var headers = {};
+
+  utils.setConditionalHeaders(headers, options);
+
+  for(var key in metadata) {
+    if (metadata.hasOwnProperty(key)) {
+      headers[&#x27;x-ms-meta-&#x27; + key] = metadata[key];
+    }
+  }
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  return this.request(&#x27;PUT&#x27;, path, query, headers).then(function(response) {
+    if(response.statusCode !== 200) {
+      throw new Error(&#x27;setBlobMetadata: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+
+    return {
+      eTag: response.headers.etag,
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;])
+    }
+  });
+};
+
+/**
+ * Marks the specified blob for deletion. The blob is later deleted during garbage collection.
+ *
+ * @method deleteBlob
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+ *                                      // modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @return {Promise} A promise that container has been marked for deletion.
+ */
+Blob.prototype.deleteBlob = function deleteBlob(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {};
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  utils.setConditionalHeaders(headers, options);
+
+  return this.request(&#x27;DELETE&#x27;, path, query, headers).then(function(response) {
+    if(response.statusCode !== 202) {
+      throw new Error(&#x27;deleteBlob: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+  });
+};
+
+/**
+ * Creates a new block to be committed as part of a blob.
+ *
+ * @method putBlock
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    blockId: &#x27;...&#x27;,                  // A valid Base64 string value that identifies the block
+ *                                     // For a given blob, the length of the value specified for the
+ *                                     // blockId must be the same size for each block.(required)
+ *    disableContentMD5Check: &#x27;false&#x27;, // Enable/disable the content md5 check is disabled.(optional)
+ * }
+ * &#x60;&#x60;&#x60;
+ * @param {string|buffer} content - The content of the block
+ *
+ * @returns {Promise}  A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    contentMD5: &#x27;...&#x27;   // The MD5 hash of the block
+ * }
+ */
+Blob.prototype.putBlock = function putBlock(container, blob, options, content) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+  assert(content, &#x27;The content must be specified&#x27;);
+  assert(options, &#x27;options is required&#x27;);
+  assert(options.blockId, &#x27;The block identifier must be specified&#x27;);
+
+  var blockIdLength = Buffer.byteLength(new Buffer(options.blockId, &#x27;base64&#x27;));
+  assert(blockIdLength &lt;= 64, &#x27;The block id is invalid. It must be less than or equal to 64 bytes in size.&#x27;);
+
+  var contentLength = 0;
+  if (content &amp;&amp; Buffer.isBuffer(content)) {
+    contentLength = content.length;
+  } else if (content){
+    contentLength = Buffer.byteLength(content);
+  }
+  if (contentLength &gt; MAX_BLOCK_SIZE) {
+    throw new Error(&#x27;The maximum size of a block is &#x27; + MAX_BLOCK_SIZE + &#x27;.&#x27;);
+  }
+
+  var query = {
+    comp: &#x27;block&#x27;,
+    blockid: options.blockId
+  };
+
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+  headers[&#x27;content-length&#x27;] = contentLength;
+  if (options &amp;&amp; !options.disableContentMD5Check){
+    headers[&#x27;content-md5&#x27;] = utils.md5(content);
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers, content).then(function(response) {
+    if(response.statusCode !== 201) {
+      throw new Error(&#x27;putBlock: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+
+    return {
+      contentMD5: response.headers[&#x27;content-md5&#x27;]
+    }
+  });
+};
+
+/**
+ * Writes a blob by specifying the list of block IDs that make up the blob.
+ * In order to be written as part of a blob, a block must have been successfully written
+ * to the server in a prior putBlock operation.
+ *
+ * @method putBlockList
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    cacheControl: &#x27;...&#x27;,              // Blob&#x27;s cache control (optional)
+ *    contentType: &#x27;...&#x27;,               // Blob&#x27;s content type (optional)
+ *    contentEncoding: &#x27;...&#x27;,           // Blob&#x27;s content encoding (optional)
+ *    contentLanguage: &#x27;...&#x27;,           // Blob&#x27;s content language (optional)
+ *    metadata: &#x27;...&#x27;,                  // Name-value pairs that correspond to the user-defined metadata
+ *                                      // associated with this blob.
+ *    contentDisposition: &#x27;...&#x27;,        // Blob&#x27;s content disposition
+ *    ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+ *                                      // modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+ *                                      // modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                   // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,               // ETag value. Specify this to perform the operation only if the resource&#x27;s
+ *                                      // ETag does not match the value specified. (optional)
+ *    committedBlockIds: [],            // List of block ids to indicate that the Blob service should search only
+ *                                      // the committed block list for the named blocks(optional)
+ *    uncommittedBlockIds: [],          // List of block ids to indicate that the Blob service should search only
+ *                                      // the uncommitted block list for the named blocks (optional)
+ *    latestBlockIds: [],               // List of block ids to indicate that the Blob service should first
+ *                                      // search the uncommitted block list. If the block is found in the
+ *                                      // uncommitted list, that version of the block is the latest and should
+ *                                      // be written to the blob.
+ *                                      // If the block is not found in the uncommitted list, then the service
+ *                                      // should search the committed block list for the named block and write
+ *                                      // that block to the blob if it is found. (optional)
+ * }
+ *
+ * @return {Promise} - A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,         // The entity tag of the blob
+ *    lastModified: &#x27;...&#x27;, // The date/time the blob was last modified.
+ * }
+ */
+Blob.prototype.putBlockList = function putBlockList(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {
+    comp: &#x27;blocklist&#x27;
+  };
+
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  // TODO content-md5 check
+  if (options) {
+    var data = &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#x27;;
+    data += &#x27;&lt;BlockList&gt;&#x27;;
+    if (options.committedBlockIds){
+      for(var i = 0; i &lt; options.committedBlockIds.length; i++){
+        data += &#x27;&lt;Committed&gt;&#x27; + options.committedBlockIds[i] + &#x27;&lt;/Committed&gt;&#x27;;
+      }
+    }
+
+    if (options.uncommittedBlockIds){
+      for(var i = 0; i &lt; options.uncommittedBlockIds.length; i++){
+        data += &#x27;&lt;Uncommitted&gt;&#x27; + options.uncommittedBlockIds[i] + &#x27;&lt;/Uncommitted&gt;&#x27;;
+      }
+    }
+
+    if (options.latestBlockIds){
+      for(var i = 0; i &lt; options.latestBlockIds.length; i++){
+        data += &#x27;&lt;Latest&gt;&#x27; + options.latestBlockIds[i] + &#x27;&lt;/Latest&gt;&#x27;;
+      }
+    }
+    data += &#x27;&lt;/BlockList&gt;&#x27;;
+
+    if (options.cacheControl){
+      headers[&#x27;x-ms-blob-cache-control&#x27;] = options.cacheControl;
+    }
+    if (options.contentType) {
+      headers[&#x27;x-ms-blob-content-type&#x27;] = options.contentType;
+    }
+    if (options.contentEncoding) {
+      headers[&#x27;x-ms-blob-content-encoding&#x27;] = options.contentEncoding;
+    }
+    if (options.contentLanguage) {
+      headers[&#x27;x-ms-blob-content-language&#x27;] = options.contentLanguage;
+    }
+    if (options.metadata) {
+      for(var key in options.metadata) {
+        if (options.metadata.hasOwnProperty(key)) {
+          headers[&#x27;x-ms-meta-&#x27; + key] = options.metadata[key];
+        }
+      }
+    }
+    if (options.contentDisposition) {
+      headers[&#x27;x-ms-blob-content-disposition&#x27;] = options.contentDisposition;
+    }
+    utils.setConditionalHeaders(headers, options);
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers, data).then(function(response) {
+    if(response.statusCode !== 201) {
+      throw new Error(&#x27;putBlockList: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
+    }
+  });
+};
+
+/**
+ * Retrieves the list of committed list blocks (that that have been successfully committed to a given blob with
+ * putBlockList()), and uncommitted list blocks (that have been uploaded for a blob using Put Block, but that have
+ * not yet been committed)
+ *
+ * @method getBlockList
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    blockListType: &#x27;committed&#x27;  // Specifies whether to return the list of committed blocks, the list of
+ *                                // uncommitted blocks, or both lists together. Valid values are committed,
+ *                                // uncommitted, or all
+ * }
+ *&#x60;&#x60;&#x60;
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,
+ *    committedBlocks: [
+ *      {
+ *        blockId: &#x27;...&#x27;,     // Base64 encoded block identifier
+ *        size: &#x27;...&#x27;         // Block size in bytes
+ *      }
+ *    ],
+ *    uncommittedBlocks: [
+ *    {
+ *        blockId: &#x27;...&#x27;,     // Base64 encoded block identifier
+ *        size: &#x27;...&#x27;         // Block size in bytes
+ *      }
+ *   ]
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.getBlockList = function getBlockList(container, blob, options) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+
+  var query = {
+    comp: &#x27;blocklist&#x27;
+  };
+  if (options &amp;&amp; options.blockListType){
+    if(options.blockListType !== &#x27;committed&#x27;
+      &amp;&amp; options.blockListType !== &#x27;uncommitted&#x27;
+      &amp;&amp; options.blockListType !== &#x27;all&#x27;) {
+      throw new Error(&#x27;The &#x60;options.blockListType&#x60; is invalid. The possible values are: committed, uncommitted and all&#x27;);
+    }
+    query.blocklisttype = options.blockListType;
+  }
+
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+
+  return this.request(&#x27;GET&#x27;, path, query, headers).then(function(response) {
+    if(response.statusCode !== 200) {
+      throw new Error(&#x27;getBlockList: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+
+    var result = xml.blobParseListBlock(response);
+
+    // The ETag is returned only if the blob has committed blocks
+    if (response.headers[&#x27;ETag&#x27;]) {
+      result.eTag = response.headers[&#x27;ETag&#x27;];
+    }
+
+    return result;
+  });
+};
+
+/**
+ * Generates a base64 string that identifies a block.
+ *
+ * @method getBlockId
+ * @param {string} prefix - the prefix of the block id
+ * @param {number} blockNumber - the block number
+ * @param {number} length - length of the block id
+ *
+ * @return {string} - a base64 string as a block identifier
+ */
+Blob.prototype.getBlockId = function getBlockId(prefix, blockNumber, length) {
+  assert (typeof prefix === &#x27;string&#x27;, &#x27;prefix must be specified and must be a string value and must be a string value.&#x27;);
+  assert (typeof blockNumber === &#x27;number&#x27;, &#x27;blockNumber must be specified and must be a number.&#x27;);
+  assert (length, &#x27;The block id length must be specified&#x27;);
+
+  var paddingStr = blockNumber + &#x27;&#x27;;
+  while (paddingStr.length &lt; length){
+    paddingStr = &#x27;0&#x27; + paddingStr;
+  }
+  return new Buffer(prefix + &#x27;-&#x27; + paddingStr).toString(&#x27;base64&#x27;);
+};
+
+/**
+ * Commits a new block of data to the end of an existing append blob.
+ *
+ * @method appendBlock
+ * @param {string} container - Name of the container
+ * @param {string} blob - Name of the blob
+ * @param {object} options - Options on the following form
+ * &#x60;&#x60;&#x60;js
+ * {
+ *
+ *    disableContentMD5Check: &#x27;false&#x27;,          // Enable/disable the content md5 check is disabled.(optional)
+ *    blobConditionMaxSize: &#x27;...&#x27;,              // The max length in bytes permitted for the append blob (optional)
+ *    blobConditionAppendPositionOffset: &#x27;...&#x27;, // A number indicating the byte offset to compare (optional)
+ *    ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource has
+ *                                              // been modified since the specified time. (optional)
+ *    ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource has
+ *                                              // not been modified since the specified date/time. (optional)
+ *    ifMatch: &#x27;...&#x27;,                           // ETag value. Specify this to perform the operation only if the
+ *                                              // resource&#x27;s ETag matches the value specified. (optional)
+ *    ifNoneMatch: &#x27;...&#x27;,                       // ETag value. Specify this to perform the operation only if the
+ *                                              // resource&#x27;s ETag does not match the value specified. (optional)
+ * }
+ *&#x60;&#x60;&#x60;
+ * @param {string|buffer} content - the content of the block
+ *
+ * @return {Promise} A promise for an object on the form:
+ * &#x60;&#x60;&#x60;js
+ * {
+ *    eTag: &#x27;...&#x27;,                // The entity tag for the append blob
+ *    lastModified: &#x27;...&#x27;,        // The date/time the blob was last modified
+ *    contentMD5: &#x27;...&#x27;,          // The MD5 hash of the append blob
+ *    appendOffset: &#x27;...&#x27;,        // The offset at which the block was committed, in bytes.
+ *    committedBlockCount: &#x27;...&#x27;, // The number of committed blocks present in the blob.
+ *                                // This can be used to control how many more appends can be done.
+ * }
+ * &#x60;&#x60;&#x60;
+ */
+Blob.prototype.appendBlock = function appendBlock(container, blob, options, content) {
+  assert(typeof container === &#x27;string&#x27;, &#x27;The name of the container must be specified and must be a string value.&#x27;);
+  assert(typeof blob === &#x27;string&#x27;, &#x27;The name of the blob must be specified and must be a string value.&#x27;);
+  assert(content, &#x27;The content of block must be specified&#x27;);
+
+  var contentLength = 0;
+  if (content &amp;&amp; Buffer.isBuffer(content)) {
+    contentLength = content.length;
+  } else if (content){
+    contentLength = Buffer.byteLength(content);
+  }
+  if (contentLength &gt; MAX_APPEND_BLOCK_SIZE) {
+    throw new Error(&#x27;The maximum size of an append block is &#x27; + MAX_APPEND_BLOCK_SIZE + &#x27;.&#x27;);
+  }
+  var query = {
+    comp: &#x27;appendblock&#x27;
+  };
+
+  var path = &#x27;/&#x27; + container + &#x27;/&#x27; + blob;
+  var headers = {};
+  headers[&#x27;content-length&#x27;] = contentLength;
+  if (options) {
+    if (!options.disableContentMD5Check) {
+      headers[&#x27;content-md5&#x27;] = utils.md5(content);
+    }
+    if (options.blobConditionMaxSize) {
+      headers[&#x27;x-ms-blob-condition-maxsize&#x27;] = options.blobConditionMaxSize;
+    }
+    if (options.blobConditionAppendPositionOffset) {
+      assert(typeof options.blobConditionAppendPositionOffset === &#x27;number&#x27;,
+        &#x27;The &#x60;options.blobConditionAppendPositionOffset&#x60; must be a number&#x27;);
+      headers[&#x27;x-ms-blob-condition-appendpos&#x27;] = options.blobConditionAppendPositionOffset;
+    }
+    utils.setConditionalHeaders(headers, options);
+  }
+
+  return this.request(&#x27;PUT&#x27;, path, query, headers, content).then(function(response) {
+    if(response.statusCode !== 201) {
+      throw new Error(&#x27;appendBlock: Unexpected statusCode: &#x27; + response.statusCode);
+    }
+
+    return {
+      eTag: response.headers[&#x27;etag&#x27;],
+      lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
+      contentMD5: response.headers[&#x27;content-md5&#x27;],
+      appendOffset: response.headers[&#x27;x-ms-blob-append-offset&#x27;],
+      committedBlockCount: response.headers[&#x27;x-ms-blob-committed-block-count&#x27;]
+    };
+  });
+};
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>
