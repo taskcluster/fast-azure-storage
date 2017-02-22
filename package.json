@@ -1,6 +1,6 @@
 {
   "name":         "fast-azure-storage",
-  "version":      "0.3.7",
+  "version":      "1.0.0",
   "author":       "Jonas Finnemann Jensen <jopsen@gmail.com>",
   "description":  "Fast client library for azure storage services",
   "license":      "MPL-2.0",
@@ -13,6 +13,9 @@
   "repository": {
     "type":       "git",
     "url":        "https://github.com/taskcluster/fast-azure-storage.git"
+  },
+  "engines": {
+    "node": ">=4"
   },
   "dependencies": {
     "debug":                            "^2.2.0",
