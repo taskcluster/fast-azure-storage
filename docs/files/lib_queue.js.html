@@ -21,12 +21,12 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>0.3.2</b>
+                    API Docs for Version: <b>0.3.7</b>
                 </p>
             </li>
         </div>
         <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
-            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Blob", "classes/Queue", "classes/Table", "modules/azure"]'>
         </form>
     </div>
 </div>
@@ -38,6 +38,7 @@
     <div id="classes">
         <ul id="api-classes" class="nav nav-list">
                 <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Blob.html">Blob</a></li>
                 <li><a href="../classes/Queue.html">Queue</a></li>
                 <li><a href="../classes/Table.html">Table</a></li>
         </ul>
@@ -90,6 +91,7 @@ var util        = require(&#x27;util&#x27;);
 var agent       = require(&#x27;./agent&#x27;);
 var utils       = require(&#x27;./utils&#x27;);
 var xml         = require(&#x27;./xml-parser&#x27;);
+var auth        = require(&#x27;./authorization&#x27;);
 
 /*
  * Azure storage service version
@@ -110,16 +112,6 @@ var TRANSIENT_ERROR_CODES = [
 ].concat(utils.TRANSIENT_HTTP_ERROR_CODES);
 
 /*
- * List of x-ms-* headers supported in lexicographical order, used for
- * construction of the canonicalized headers.
- */
-var X_MS_HEADERS_SUPPORTED = [
-  &#x27;x-ms-client-request-id&#x27;,
-  &#x27;x-ms-date&#x27;,
-  &#x27;x-ms-version&#x27;
-].sort();
-
-/*
  * List of query-string parameter supported in lexicographical order, used for
  * construction of the canonicalized resource.
  */
@@ -136,174 +128,6 @@ var QUERY_PARAMS_SUPPORTED = [
   &#x27;peekonly&#x27;,
   &#x27;popreceipt&#x27;
 ].sort();
-
-/*
- * Authorize the request with shared key
- * Intended to define &#x60;Queue.prototype.authorize&#x60;.
- */
-var authorizeWithSharedKey = function (method, path, query, headers) {
-  // Find account id
-  var accountId = this.options.accountId;
-
-  // Build string to sign
-  var stringToSign = (
-    method + &#x27;\n&#x27; +
-    (headers[&#x27;content-encoding&#x27;]     || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;content-language&#x27;]     || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;content-length&#x27;]       || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;content-md5&#x27;]          || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;content-type&#x27;]         || &#x27;&#x27;) + &#x27;\n&#x27; +
-    &#x27;\n&#x27; + // we always include x-ms-date, so we never specify date header
-    (headers[&#x27;if-modified-since&#x27;]    || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;if-match&#x27;]             || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;if-none-match&#x27;]        || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;if-unmodified-since&#x27;]  || &#x27;&#x27;) + &#x27;\n&#x27; +
-    (headers[&#x27;range&#x27;]                || &#x27;&#x27;)
-  );
-
-  // Check if we have meta-data header fields, if we don&#x27;t we can use a
-  // presorted list of headers which doesn&#x27;t involve any allocations.
-  // Otherwise, we callback to building a list of &#x27;x-ms-&#x27; prefixed headers and
-  // sorting it.
-  var hasMetadata = false;
-  for (var field in headers) {
-    hasMetadata = hasMetadata || /^x-ms-meta/.test(field);
-  }
-  var fields;
-  if (hasMetadata) {
-    // Construct fields as a sorted list of &#x27;x-ms-&#x27; prefixed headers
-    fields = [];
-    for (var field in headers) {
-      if (/^x-ms-/.test(field)) {
-        fields.push(field);
-      }
-    }
-    fields.sort();
-  } else {
-    // Fields used in most API methods presorted in lexicographical order.
-    fields = X_MS_HEADERS_SUPPORTED;
-  }
-
-  // Add lines for canonicalized headers using presorted list of fields
-  var N = fields.length;
-  for(var i = 0; i &lt; N; i++) {
-    var field = fields[i];
-    var value = headers[field];
-    if (value) {
-      stringToSign += &#x27;\n&#x27; + field + &#x27;:&#x27; + value;
-    }
-  }
-
-  // Added lines from canonicalized resource and query-string parameters
-  // supported by this library in lexicographical order as presorted in
-  // QUERY_PARAMS_SUPPORTED
-  stringToSign += &#x27;\n/&#x27; + accountId + path;
-  var M = QUERY_PARAMS_SUPPORTED.length;
-  for(var j = 0; j &lt; M; j++) {
-    var param = QUERY_PARAMS_SUPPORTED[j];
-    var value = query[param];
-    if (value) {
-      stringToSign += &#x27;\n&#x27; + param + &#x27;:&#x27; + value;
-    }
-  }
-
-  // Compute signature
-  var signature = crypto
-                    .createHmac(&#x27;sha256&#x27;, this._accessKey)
-                    .update(stringToSign)
-                    .digest(&#x27;base64&#x27;);
-
-  // Set authorization header
-  headers.authorization = &#x27;SharedKey &#x27; + accountId + &#x27;:&#x27; + signature;
-
-  // Encode query string
-  var qs = querystring.stringify(query);
-
-  // Construct request options
-  return Promise.resolve({
-    host:       this.hostname,
-    method:     method,
-    path:       (qs.length &gt; 0 ? path + &#x27;?&#x27; + qs : path),
-    headers:    headers,
-    agent:      this.options.agent,
-  });
-}
-
-/*
- * Authorize the request with a shared-access-signature that is refreshed with
- * the a function given as &#x60;options.sas&#x60;.
- * Intended to define &#x60;Queue.prototype.authorize&#x60;.
- */
-function authorizeWithRefreshSAS(method, path, query, headers) {
-  var self = this;
-  // Check if we should refresh SAS
-  if (Date.now() &gt; this._nextSASRefresh &amp;&amp; this._nextSASRefresh !== 0) {
-    debug(&quot;Refreshing shared-access-signature&quot;);
-    // Avoid refreshing more than once
-    this._nextSASRefresh = 0;
-    // Refresh SAS
-    this._sas = Promise.resolve(this.options.sas());
-    // Update _nextSASRefresh when the SAS has been refreshed
-    this._sas.then(function(sas) {
-      sas = querystring.parse(sas);
-      // Find next sas refresh time
-      self._nextSASRefresh = (
-        new Date(sas.se).getTime() - self.options.minSASAuthExpiry
-      );
-      debug(&quot;Refreshed shared-access-signature, will refresh in %s ms&quot;,
-            self._nextSASRefresh);
-      // Throw an error if the signature expiration comes too soon
-      if (Date.now() &gt; self._nextSASRefresh) {
-        throw new Error(&quot;Refreshed SAS, but got a Shared-Access-Signature &quot; +
-                        &quot;that expires less than options.minSASAuthExpiry &quot; +
-                        &quot;from now, signature expiry: &quot; + sas.se);
-      }
-    }).catch(function(err) {
-      // If we have an error freshing SAS that&#x27;s bad and we&#x27;ll emit it; for most
-      // apps it&#x27;s probably best to ignore this error and just crash.
-      self.emit(&#x27;error&#x27;, err);
-    });
-  }
-
-  // Construct request options, whenever the &#x60;_sas&#x60; promise is resolved.
-  return this._sas.then(function(sas) {
-    // Serialize query-string
-    var qs = querystring.stringify(query);
-    if (qs.length &gt; 0) {
-      qs += &#x27;&amp;&#x27;;
-    }
-    qs += sas
-    return {
-      host:       self.hostname,
-      method:     method,
-      path:       path + &#x27;?&#x27; + qs,
-      headers:    headers,
-      agent:      self.options.agent,
-    };
-  });
-}
-
-/*
- * Authorize the request with a shared-access-signature that is given with
- * &#x60;options.sas&#x60; as string.
- * Intended to define &#x60;Queue.prototype.authorize&#x60;.
- */
-function authorizeWithSAS(method, path, query, headers) {
-  // Serialize query-string
-  var qs = querystring.stringify(query);
-  if (qs.length &gt; 0) {
-    qs += &#x27;&amp;&#x27;;
-  }
-  qs += this.options.sas;
-  // Construct request options
-  return Promise.resolve({
-    host:       this.hostname,
-    method:     method,
-    path:       path + &#x27;?&#x27; + qs,
-    headers:    headers,
-    agent:      this.options.agent,
-  });
-}
 
 /**
  * Queue client class for interacting with Azure Queue Storage.
@@ -333,6 +157,10 @@ function authorizeWithSAS(method, path, query, headers) {
  *
  *   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
  *   delayFactor:          100,
+ *
+ *   // Randomization factor added as:
+ *   // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+ *   randomizationFactor:  0.25,
  *
  *   // Maximum retry delay in ms (defaults to 30 seconds)
  *   maxDelay:             30 * 1000,
@@ -400,18 +228,18 @@ function Queue(options) {
   // Define &#x60;this.authorize&#x60;
   if (this.options.accessKey) {
     // If set authorize to use shared key signatures
-    this.authorize = authorizeWithSharedKey;
+    this.authorize = auth.authorizeWithSharedKey.call(this, &#x27;queue&#x27;, QUERY_PARAMS_SUPPORTED);
     // Decode accessKey
     this._accessKey = new Buffer(this.options.accessKey, &#x27;base64&#x27;);
   } else if (this.options.sas instanceof Function) {
     // Set authorize to use shared-access-signatures with refresh function
-    this.authorize = authorizeWithRefreshSAS;
+    this.authorize = auth.authorizeWithRefreshSAS;
     // Set state with _nextSASRefresh = -1, we&#x27;ll refresh on the first request
     this._nextSASRefresh = -1;
     this._sas = &#x27;&#x27;;
   } else if (typeof(this.options.sas) === &#x27;string&#x27;) {
     // Set authorize to use shared-access-signature as hardcoded
-    this.authorize = authorizeWithSAS;
+    this.authorize = auth.authorizeWithSAS;
   } else {
     throw new Error(&quot;Either options.accessKey, options.sas as function or &quot; +
                     &quot;options.sas as string must be given!&quot;);
@@ -496,10 +324,7 @@ Queue.prototype.sas = function sas(queue, options) {
   ].join(&#x27;\n&#x27;);
 
   // Compute signature
-  query.sig = crypto
-                .createHmac(&#x27;sha256&#x27;, this._accessKey)
-                .update(stringToSign)
-                .digest(&#x27;base64&#x27;);
+  query.sig = utils.hmacSha256(this._accessKey, stringToSign);;
 
   // Return Shared-Access-Signature as query-string
   return querystring.stringify(query);
@@ -571,7 +396,7 @@ Queue.prototype.request = function request(method, path, query, headers, data) {
         }
 
         // Parse error message
-        var data = xml.queueParseError(res);
+        var data = xml.parseError(res);
 
         // Construct error object
         var err         = new Error(data.message);
@@ -728,16 +553,10 @@ Queue.prototype.getMetadata = function getMetadata(queue) {
     if (res.statusCode !== 200) {
       throw new Error(&quot;getMetadata: Unexpected statusCode: &quot; + res.statusCode);
     }
-    // Extract meta-data
-    var metadata = {};
-    for(var field in res.headers) {
-      if (/x-ms-meta-/.test(field)) {
-        metadata[field.substr(10)] = res.headers[field];
-      }
-    }
+
     return {
       messageCount: parseInt(res.headers[&#x27;x-ms-approximate-messages-count&#x27;]),
-      metadata:     metadata
+      metadata:     utils.extractMetadataFromHeaders(res)
     };
   });
 };

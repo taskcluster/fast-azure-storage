@@ -3,7 +3,7 @@
         "name": "fast-azure-storage",
         "description": "Fast client library for azure storage services",
         "url": "https://github.com/taskcluster/fast-azure-storage",
-        "version": "0.3.2"
+        "version": "0.3.7"
     },
     "files": {
         "docs/assets/vendor/bootstrap/js/bootstrap.min.js": {
@@ -18,6 +18,15 @@
             "modules": {},
             "classes": {
                 "Agent": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "lib/blob.js": {
+            "name": "lib/blob.js",
+            "modules": {},
+            "classes": {
+                "Blob": 1
             },
             "fors": {},
             "namespaces": {}
@@ -57,6 +66,7 @@
             "elements": {},
             "classes": {
                 "Agent": 1,
+                "Blob": 1,
                 "Queue": 1,
                 "Table": 1
             },
@@ -64,7 +74,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "lib/table.js",
-            "line": 152,
+            "line": 70,
             "description": "The `fast-azure-storage` package provides a fast and minimalistic interface\nfor Azure Storage Service."
         }
     },
@@ -91,6 +101,27 @@
                 }
             ]
         },
+        "Blob": {
+            "name": "Blob",
+            "shortname": "Blob",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "azure",
+            "file": "lib/blob.js",
+            "line": 90,
+            "description": "Blob client class for interacting with Azure Blob Storage.",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- options on the form:\n\n```js\n{\n  // Value for the x-ms-version header fixing the API version\n  version:              SERVICE_VERSION,\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // Max number of request retries\n  retries:              5,\n\n   // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                azure.Agent.globalAgent,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Randomization factor added as:\n  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])\n  randomizationFactor:  0.25,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
+                    "type": "Object"
+                }
+            ]
+        },
         "Queue": {
             "name": "Queue",
             "shortname": "Queue",
@@ -102,13 +133,13 @@
             "module": "azure",
             "namespace": "",
             "file": "lib/queue.js",
-            "line": 228,
+            "line": 51,
             "description": "Queue client class for interacting with Azure Queue Storage.",
             "is_constructor": 1,
             "params": [
                 {
                     "name": "options",
-                    "description": "- options on the form:\n```js\n{\n  // Value for the x-ms-version header fixing the API version\n  version:              SERVICE_VERSION,\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                azure.Agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
+                    "description": "- options on the form:\n```js\n{\n  // Value for the x-ms-version header fixing the API version\n  version:              SERVICE_VERSION,\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                azure.Agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Randomization factor added as:\n  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])\n  randomizationFactor:  0.25,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
                     "type": "Object"
                 }
             ]
@@ -124,13 +155,13 @@
             "module": "azure",
             "namespace": "",
             "file": "lib/table.js",
-            "line": 152,
+            "line": 70,
             "description": "Table client class for interacting with Azure Table Storage.\n\nSubclasses `EventEmitter` and emits the `error` event on failure to refresh\nshared-access-signature, if `options.sas` is a function.",
             "is_constructor": 1,
             "params": [
                 {
                     "name": "options",
-                    "description": "- Options on the following form:\n```js\n{\n  // Value for the `x-ms-version` header fixing the API version\n  version:              '2014-02-14',\n\n  // OData Service version, must work with API version, refer to azure\n  // documentation. This just specifies the `DataServiceVersion` header.\n  dataServiceVersion:   '3.0',\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // Set meta-data level for responses (use full to get eTag in queryEntities)\n  metadata:             'fullmetadata',\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
+                    "description": "- Options on the following form:\n```js\n{\n  // Value for the `x-ms-version` header fixing the API version\n  version:              '2014-02-14',\n\n  // OData Service version, must work with API version, refer to azure\n  // documentation. This just specifies the `DataServiceVersion` header.\n  dataServiceVersion:   '3.0',\n\n  // Value for the x-ms-client-request-id header identifying the client\n  clientId:             'fast-azure-storage',\n\n  // Server-side request timeout\n  timeout:              30 * 1000,\n\n  // Delay between client- and server-side timeout\n  clientTimeoutDelay:   500,\n\n  // Set meta-data level for responses (use full to get eTag in queryEntities)\n  metadata:             'fullmetadata',\n\n  // HTTP Agent to use (defaults to a global azure.Agent instance)\n  agent:                agent.globalAgent,\n\n  // Max number of request retries\n  retries:              5,\n\n  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor\n  delayFactor:          100,\n\n  // Randomization factor added as:\n  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])\n  randomizationFactor:  0.25,\n\n  // Maximum retry delay in ms (defaults to 30 seconds)\n  maxDelay:             30 * 1000,\n\n  // Error codes for which we should retry\n  transientErrorCodes:  TRANSIENT_ERROR_CODES,\n\n  // Azure storage accountId (required)\n  accountId:            undefined,\n\n  // Azure shared accessKey, required unless options.sas is given\n  accessKey:            undefined,\n\n  // Function that returns SAS string or promise for SAS string, in which\n  // case we will refresh SAS when a request occurs less than\n  // minSASAuthExpiry from signature expiry. This property may also be a\n  // SAS string.\n  sas:                  undefined,\n\n  // Minimum SAS expiry before refreshing SAS credentials, if a function for\n  // refreshing SAS credentials is given as options.sas\n  minSASAuthExpiry:     15 * 60 * 1000\n}\n```",
                     "type": "Object"
                 }
             ]
@@ -165,8 +196,753 @@
             "class": "Agent"
         },
         {
+            "file": "lib/blob.js",
+            "line": 213,
+            "description": "Generate a SAS string on the form 'key1=va1&key2=val2&...'.",
+            "itemtype": "method",
+            "name": "sas",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container that this SAS string applies to.",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob that this SAS string applies to.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options for the following form:\n```js\n{\n  start:               new Date(),             // Time from which signature is valid (optional)\n  expiry:              new Date(),             // Expiration of signature (required).\n  resourceType:        'blob|container',       // Specifies which resources are accessible via the SAS(required)\n                                               // Possible values are: 'blob' or 'container'.\n                                               // Specify 'blob' if the shared resource is a 'blob'.\n                                               // This grants access to the content and metadata of the blob.\n                                               // Specify 'container' if the shared resource is a 'container'.\n                                               // This grants access to the content and metadata of any\n                                               // blob in the container, and to the list of blobs in\n                                               // the container.\n  permissions: {                               // Set of permissions delegated (required)\n                                               // It must be omitted if it has been specified in the associated\n                                               // stored access policy.\n    read:              false,                  // Read the content, properties, metadata or block list of a blob\n                                               // or of any blob in the container if the resourceType is\n                                               // a container.\n    add:               false,                  // Add a block to an append blob or to any append blob if the\n                                               // resourceType is a container.\n    create:            false,                  // Write a new blob, snapshot a blob, or copy a blob\n                                               // to a new blob.\n                                               // These operations can be done to any blob in the container\n                                               // if the resourceType is a container.\n    write:             false,                  // Create or write content, properties, metadata, or block list.\n                                               // Snapshot or lease the blob. Resize the blob (page blob only).\n                                               // These operations can be done for every blob in the container\n                                               // if the resourceType is a container.\n    delete:            false,                  // Delete the blob or any blob in the container if the\n                                               // resourceType is a container.\n    list:              false,                  // List blobs in the container.\n  },\n  cacheControl:        '...',                  // The value of the Cache-Control response header\n                                               // to be returned. (optional)\n  contentDisposition:  '...',                  // The value of the Content-Disposition response header\n                                               // to be returned. (optional)\n  contentEncoding:     '...',                  // The value of the Content-Encoding response header\n                                               // to be returned. (optional)\n  contentLanguage:     '...',                  // The value of the Content-Language response header\n                                               // to be returned. (optional)\n  contentType:         '...',                  // The value of the Content-Type response header to\n                                               // be returned. (optional)\n  accessPolicy:        '...'                   // Reference to stored access policy (optional)\n                                               // A GUID string\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Shared-Access-Signature on string form.",
+                "type": "String"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 357,
+            "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
+            "access": "protected",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "authorize",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on blob resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an options object compatible with\n`https.request`.",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 374,
+            "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `data`\nas payload and will be retried using the configured retry policy,",
+            "access": "private",
+            "tagname": "",
+            "itemtype": "method",
+            "name": "request",
+            "params": [
+                {
+                    "name": "method",
+                    "description": "- HTTP verb in upper case, e.g. `GET`.",
+                    "type": "String"
+                },
+                {
+                    "name": "path",
+                    "description": "- Path on blob resource for storage account.",
+                    "type": "String"
+                },
+                {
+                    "name": "query",
+                    "description": "- Query-string parameters.",
+                    "type": "Object"
+                },
+                {
+                    "name": "header",
+                    "description": "- Mapping from header key in lowercase to value.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for HTTPS response with `payload` property as\nstring containing the response payload.",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 442,
+            "description": "Sets properties for a storage account’s Blob service endpoint",
+            "itemtype": "method",
+            "name": "setServiceProperties",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n```js\n{\n   logging: {                 // The Azure Analytics Logging settings.\n     version: '...',          // The version of Storage Analytics to configure (required if logging specified)\n     delete: true|false,      // Indicates whether all delete requests should be logged\n                              // (required if logging specified)\n     read: true|false,        // Indicates whether all read requests should be logged\n                              // (required if logging specified)\n     write: true|false,       // Indicates whether all write requests should be logged\n                              // (required if logging specified)\n     retentionPolicy: {\n       enabled: true|false,   // Indicates whether a retention policy is enabled for the\n                              // storage service. (required)\n       days: '...',           // Indicates the number of days that metrics or logging data should be retained.\n                              // Required only if a retention policy is enabled.\n     },\n   },\n   hourMetrics: {             // The Azure Analytics HourMetrics settings\n     version: '...',          // The version of Storage Analytics to configure\n                              // (required if hourMetrics specified)\n     enabled: true|false,     // Indicates whether metrics are enabled for the Blob service\n                              //(required if hourMetrics specified).\n     includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API\n                              // operations (Required only if metrics are enabled).\n     retentionPolicy: {\n       enabled: true|false,\n       days: '...',\n     },\n   },\n   minuteMetrics: {           // The Azure Analytics MinuteMetrics settings\n     version: '...',          // The version of Storage Analytics to configure\n                              // (required if minuteMetrics specified)\n     enabled: true|false,     // Indicates whether metrics are enabled for the Blob service\n                              // (required if minuteMetrics specified).\n     includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API\n                              // operations (Required only if metrics are enabled).\n     retentionPolicy: {\n       enabled: true|false,\n       days: '...',\n     },\n   },\n   corsRules: [{              // CORS rules\n     allowedOrigins: [],      // A list of origin domains that will be allowed via CORS,\n                              // or \"*\" to allow all domains\n     allowedMethods: [],      // List of HTTP methods that are allowed to be executed by the origin\n     maxAgeInSeconds: [],     // The number of seconds that the client/browser should cache a\n                              // preflight response\n     exposedHeaders: [],      // List of response headers to expose to CORS clients\n     allowedHeaders: [],      // List of headers allowed to be part of the cross-origin request\n   }]\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that the properties have been set",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 648,
+            "description": "Gets the properties of a storage account’s Blob service, including properties for Storage Analytics and\nCORS (Cross-Origin Resource Sharing) rules.",
+            "itemtype": "method",
+            "name": "getServiceProperties",
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   logging: {                  // The Azure Analytics Logging settings.\n     version: '...',           // The version of Storage Analytics to configure\n     delete: true|false,       // Indicates whether all delete requests should be logged\n     read: true|false,         // Indicates whether all read requests should be logged\n     write: true|false,        // Indicates whether all write requests should be logged\n     retentionPolicy: {\n       enabled: true|false,    // Indicates whether a retention policy is enabled for the storage service\n       days: '...',            // Indicates the number of days that metrics or logging data should be retained.\n     },\n   },\n   hourMetrics: {              // The Azure Analytics HourMetrics settings\n     version: '...',           // The version of Storage Analytics to configure\n     enabled: true|false,      // Indicates whether metrics are enabled for the Blob service\n     includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics\n                               // for called API operations.\n     retentionPolicy: {\n       enabled: true|false,\n       days: '...',\n     },\n   },\n   minuteMetrics: {            // The Azure Analytics MinuteMetrics settings\n     version: '...',           // The version of Storage Analytics to configure\n     enabled: true|false,      // Indicates whether metrics are enabled for the Blob service\n     includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics\n                               // for called API operations.\n     retentionPolicy: {\n       enabled: true|false,\n       days: '...',\n     },\n   },\n   corsRules: [{               // CORS rules\n     allowedOrigins: [],       // A list of origin domains that will be allowed via CORS,\n                               // or \"*\" to allow all domains.\n     allowedMethods: [],       // List of HTTP methods that are allowed to be executed by the origin\n     maxAgeInSeconds: [],      // The number of seconds that the client/browser should cache a preflight response\n     exposedHeaders: [],       // List of response headers to expose to CORS clients\n     allowedHeaders: [],       // List of headers allowed to be part of the cross-origin request\n   }]\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 711,
+            "description": "Create a new container with the given 'name' under the storage account.",
+            "itemtype": "method",
+            "name": "createContainer",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "-  Name of the container to create",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   metadata: '...',          // Mapping from metadata keys to values. (optional)\n   publicAccessLevel: '...', // Specifies whether data in the container may be accessed\n                             // publicly and the level of access.\n                             // Possible values: container, blob. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "a promise for metadata key/value pair\nA promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the container\n     lastModified: '...',       // The date/time the container was last modified\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 772,
+            "description": "Sets metadata for the specified container.\nOverwrites all existing metadata that is associated with the container.",
+            "itemtype": "method",
+            "name": "setContainerMetadata",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of the container to set metadata on",
+                    "type": "String"
+                },
+                {
+                    "name": "metadata",
+                    "description": "- Mapping from metadata keys to values.",
+                    "type": "Object"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...',               // Lease unique identifier. A GUID string.(optional)\n   ifModifiedSince: new Date(),  // Specify this to perform the operation only if the resource has been\n                                 // modified since the specified time. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "a promise for metadata key/value pair\nA promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the container\n     lastModified: '...',       // The date/time the container was last modified\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 835,
+            "description": "Get the metadata for the container with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
+            "itemtype": "method",
+            "name": "getContainerMetadata",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- the name of the container to get metadata from.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...'  // Lease unique identifier. A GUID string.(optional)\n}",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "a promise for metadata key/value pair\nA promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the container\n     lastModified: '...',       // The date/time the container was last modified\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 884,
+            "description": "Delete container with the given 'name'.\n\nNote, when a container is deleted, a container with the same name cannot be created for at least 30 seconds;\nthe container may not be available for more than 30 seconds if the service is still processing the request.\nPlease see the documentation for more details.",
+            "itemtype": "method",
+            "name": "deleteContainer",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "-  Name of the container to delete",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...',                   // Lease unique identifier. A GUID string.(optional)\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has\n                                     // been modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has\n                                     // not been modified since the specified date/time. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that container has been marked for deletion.",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 929,
+            "description": "List the containers under the storage account",
+            "itemtype": "method",
+            "name": "listContainers",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "- Options on the following form:\n\n```js\n{\n  prefix:          '...',    // Prefix of containers to list\n  marker:          '...',    // Marker to list containers from\n  maxResults:      5000,     // Max number of results\n  metadata:        false     // Whether or not to include metadata\n}",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  containers: [\n    {\n      name:       '...',           // Name of container\n      properties: {\n         lastModified: '...',      // Container's last modified time\n         eTag: '...',              // The entity tag of the container\n         leaseStatus: '...',       // The lease status of the container\n         leaseState: '...',        // The lease state of the container\n         leaseDuration: '...'      // The lease duration of the container\n         publicAccessLevel: '...'  // Indicates whether data in the container may be accessed publicly\n                                   // and the level of access. If this is not returned in the response,\n                                   // the container is private to the account owner.\n      }\n      metadata:   {}               // Meta-data dictionary if requested\n    }\n  ],\n  prefix:         '...',           // prefix given in options (if given)\n  marker:         '...',           // marker given in options (if given)\n  maxResults:     5000,            // maxResults given in options (if given)\n  nextMarker:     '...'            // Next marker if not at end of list\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 990,
+            "description": "Get all user-defined metadata and system properties for the container with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
+            "itemtype": "method",
+            "name": "getContainerProperties",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- The name of the container to get properties from.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...' // GUID string; lease unique identifier (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  metadata: {                 // Mapping from meta-data keys to values\n    '<key>':      '<value>',  // Meta-data key/value pair\n    ...\n  },\n  properties: {                // System properties\n    eTag:          '...',      // The entity tag for the container\n    lastModified: '...'        // The date and time the container was last modified\n    leaseStatus: '...',        // The lease status of the container\n    leaseState:  '...',        // Lease state of the container\n    leaseDuration: '...',      // Specifies whether the lease on a container is of infinite or fixed duration.\n    publicAccessLevel: '...',  // Indicates whether data in the container may be accessed publicly and\n                               // the level of access. If this is not returned in the response,\n                               // the container is private to the account owner.\n  }\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1065,
+            "description": "Gets the permissions for the container with the given name",
+            "itemtype": "method",
+            "name": "getContainerACL",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of the container to get ACL from",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...' // GUID string; lease unique identifier (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for permissions\n```js\n{\n   eTag: '...',                      // The entity tag of the container\n   lastModified: '...',              // The date/time the container was last modified\n   publicAccessLevel: '...',         // Indicate whether blobs in a container may be accessed publicly.(optional)\n                                     // Possible values: container (full public read access for container\n                                     // and blob data) or blob (public read access for blobs)\n                                     // If it is not specified, the resource will be private and will be\n                                     // accessed only by the account owner.\n   accessPolicies: [{                // The container ACL settings.\n                                     // An array with five maximum access policies objects (optional)\n     id:     '...',                  // Unique identifier, up to 64 chars in length\n     start:  new Date(),             // Time from which access policy is valid\n     expiry: new Date(),             // Expiration of access policy\n     permission: {                   // Set of permissions delegated\n       read:              false,     // Read the content, properties, metadata or block list of a blob or, of\n                                     // any blob in the container if the resource is a container.\n       add:               false,     // Add a block to an append blob or, to any append blob\n                                     // if the resource is a container.\n       create:            false,     // Write a new blob, snapshot a blob, or copy a blob to a new blob.\n                                     // These operations can be done to any blob in the container\n                                     // if the resource is a container.\n       write:             false,     // Create or write content, properties, metadata, or block list.\n                                     // Snapshot or lease the blob. Resize the blob (page blob only).\n                                     // These operations can be done for every blob in the container\n                                     // f the resource is a container.\n       delete:            false,     // Delete the blob or, any blob in the container if the resource\n                                     // is a container.\n       list:              false,     // List blobs in the container.\n     }\n   }]\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1138,
+            "description": "Sets the permissions for the container with the given name.\nThe permissions indicate whether blobs in a container may be accessed publicly.",
+            "itemtype": "method",
+            "name": "setContainerACL",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of the container to set ACL to",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   publicAccessLevel: '...',       // Indicate whether blobs in a container may be accessed publicly.(optional)\n                                   // Possible values: container (full public read access for container\n                                   // and blob data) or blob (public read access for blobs).\n                                   // If it is not specified, the resource will be private and will be accessed\n                                   // only by the account owner.\n   accessPolicies: [{              // The container ACL settings.\n                                   // An array with five maximum access policies objects (optional)\n     id:     '...',                // Unique identifier, up to 64 chars in length\n     start:  new Date(),           // Time from which access policy is valid\n     expiry: new Date(),           // Expiration of access policy\n     permission: {                 // Set of permissions delegated\n       read:              false,   // Read the content, properties, metadata or block list of a blob or of\n                                   // any blob in the container if the resourceType is a container.\n       add:               false,   // Add a block to an append blob or to any append blob\n                                   // if the resourceType is a container.\n       create:            false,   // Write a new blob, snapshot a blob, or copy a blob to a new blob.\n                                   // These operations can be done to any blob in the container\n                                   // if the resourceType is a container.\n       write:             false,   // Create or write content, properties, metadata, or block list.\n                                   // Snapshot or lease the blob. Resize the blob (page blob only).\n                                   // These operations can be done for every blob in the container\n                                   // if the resourceType is a container.\n       delete:            false,   // Delete the blob or any blob in the container\n                                   // if the resourceType is a container.\n       list:              false,   // List blobs in the container.\n     }\n   }],\n   leaseId: '...',                 // GUID string; lease unique identifier (optional)\n   ifModifiedSince: new Date(),    // Specify this to perform the operation only if the resource has\n                                   // been modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),  // Specify this to perform the operation only if the resource has\n                                   // not been modified since the specified date/time. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "a promise for metadata key/value pair\nA promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the container\n     lastModified: '...',       // The date/time the container was last modified\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1264,
+            "description": "Get the list of blobs under the specified container.",
+            "itemtype": "method",
+            "name": "listBlobs",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container(required)",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   prefix: '...',              // Prefix of blobs to list (optional)\n   delimiter: '...',           // Delimiter, i.e. '/', for specifying folder hierarchy. (optional)\n   marker: '...',              // Marker to list blobs from (optional)\n   maxResults: 5000,           // The maximum number of blobs to return (optional)\n   include: {                  // Specifies one or more datasets to include in the response (optional)\n     snapshots: false,         // Include snapshots in listing\n     metadata: false,          // Include blob metadata in listing\n     uncommittedBlobs: false,  // Include uncommitted blobs in listing\n     copy: false               // Include metadata related to any current or previous Copy Blob operation\n   }\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n  blobs: [\n    {\n      name:       '...',               // Name of blob\n      snapshot:    '...',              // A date and time value that uniquely identifies the snapshot\n                                       // relative to its base blob\n      properties:  {\n         lastModified: '...',          // The date and time the blob was last modified\n         eTag: '...',                  // The entity tag of the blob\n         contentLength: '...',         // The content length of the blob\n         contentType: '...',           // The MIME content type of the blob\n         contentEncoding: '...',       // The content encoding of the blob\n         contentLanguage: '...',       // The content language of the blob\n         contentMD5: '...',            // An MD5 hash of the blob content\n         cacheControl: '...',          // The blob cache control\n         xmsBlobSequenceNumber: '...', // The page blob sequence number\n         blobType: '...',              // The type of the blob: BlockBlob | PageBlob | AppendBlob\n         leaseStatus: '...',           // The lease status of the blob\n         leaseState: '...',            // The lease state of the blob\n         leaseDuration: '...',         // The lease duration of the blob\n         copyId: '...',                // String identifier for the copy operation\n         copyStatus: '...',            // The state of the copy operation: pending | success | aborted | failed\n         copySource: '...',            // The name of the source blob of the copy operation\n         copyProgress: '...',          // The bytes copied/total bytes\n         copyCompletionTime: '...',    // The date and time the copy operation finished\n         copyStatusDescription: '...', // The status of the copy operation\n         serverEncrypted: false,       // true if the blob and application metadata are completely encrypted,\n                                       // and false otherwise\n         incrementalCopy: '...',       // true for the incremental copy blobs operation and snapshots\n      }\n      metadata:   {}                   // Meta-data dictionary if requested\n    }\n  ],\n  blobPrefixName: '...',\n  prefix:         '...',               // prefix given in options (if given)\n  marker:         '...',               // marker given in options (if given)\n  maxResults:     5000,                // maxResults given in options (if given)\n  nextMarker:     '...'                // Next marker if not at end of list\n  delimiter:      '...'                // Delimiter\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1365,
+            "description": "Establishes and manages a lock on a container for delete operations.\nThe lock duration can be 15 to 60 seconds, or can be infinite.",
+            "itemtype": "method",
+            "name": "leaseContainer",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "- Name of the container"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   leaseId: '...',                   // GUID string; it is required in case of renew, change,\n                                     // or release of the lease\n   leaseAction: '...',               // Lease container operation. The possible values are: acquire, renew,\n                                     // change, release, break (required)\n   leaseBreakPeriod: '...',          // For a break operation, proposed duration the lease should continue\n                                     // before it is broken, in seconds, between 0 and 60.\n   leaseDuration: '...',             // Specifies the duration of the lease, in seconds, or negative one (-1)\n                                     // for a lease that never expires. Required for `acquire` action.\n   proposedLeaseId: '...'            // GUID string; Optional for `acquire`, required for `change` action.\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been\n                                     // modified since the specified date/time. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   leaseId: '...',             // The unique lease id.\n   leaseTime: '...'            // Approximate time remaining in the lease period, in seconds.\n   eTag: '...',                // The entity tag of the container\n   lastModified: '...',        // The date/time the container was last modified\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1477,
+            "description": "Creates a new block, page, or append blob, or updates the content of an existing block blob.\nUpdating an existing block blob overwrites any existing metadata on the blob,\nand the content of the existing blob is overwritten with the content of the new blob.\n\nNote that a call to a putBlob to create a page blob or an append blob only initializes the blob.\nTo add content to a page blob, call the putPage. To add content to an append blob, call the appendBlock.",
+            "itemtype": "method",
+            "name": "putBlob",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container where the blob should be stored",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   metadata: '...',                          // Name-value pairs associated with the blob as metadata\n   contentType: 'application/octet-stream',  // The MIME content type of the blob (optional)\n   contentEncoding: '...',                   // Specifies which content encodings have been applied\n                                             // to the blob. (optional)\n   contentLanguage: '...',                   // Specifies the natural languages used by this resource(optional)\n   cacheControl: '...',                      // The Blob service stores this value but does not\n                                             // use or modify it. (optional)\n   disableContentMD5Check: 'false',          // Enable/disable the content md5 check is disabled.(optional)\n   type: BlockBlob|PageBlob|AppendBlob,      // The type of blob to create: block blob, page blob,\n                                             // or append blob (required)\n   leaseId: '...',                           // Lease id (required if the blob has an active lease)\n   contentDisposition: '...',                // Specifies the content disposition of the blob (optional)\n   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource\n                                             // has been modified since the specified time.\n   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource\n                                             // has not been modified since the specified date/time.\n   ifMatch: '...',                           // ETag value. Specify this to perform the operation only if the\n                                             // resource's ETag matches the value specified.\n   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only if the\n                                             //resource's ETag does not match the value specified.\n   pageBlobContentLength: '...',             // Specifies the maximum size for the page blob, up to 1 TB.\n                                             // (required for page blobs)\n   pageBlobSequenceNumber: 0,                // The sequence number - a user-controlled value that you can use\n                                             // to track requests (optional, only for page blobs)\n}\n```",
+                    "type": "Object"
+                },
+                {
+                    "name": "content",
+                    "description": "- The content of the blob",
+                    "type": "String|buffer"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',         // The entity tag of the blob\n   lastModified: '...', // The date/time the blob was last modified\n   contentMD5: '...',   // The MD5 hash of the blob\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1646,
+            "description": "Reads or downloads a blob from the system, including its metadata and properties.",
+            "itemtype": "method",
+            "name": "getBlob",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container where the blob should be stored",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not\n                                     // been modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',                    // The entity tag of the blob\n   lastModified: '...',            // The date/time the blob was last modified.\n   contentMD5: '...',              // The MD5 hash fo the blob\n   contentEncoding: '...',         // The content encoding of the blob\n   contentLanguage: '...',         // The content language of the blob\n   cacheControl: '...',            // The cache control of the blob\n   contentDisposition: '...',      // The content disposition of the blob\n   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.\n   type: '...',                    // The blob type: block, page or append blob.\n   blobCommittedBlockCount: '...', // The number of committed blocks present in the blob.\n                                   // This is returned only for append blobs.\n   metadata: '...',                // Name-value pairs associated with the blob as metadata\n   content: '...'                  // The content\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1717,
+            "description": "Returns all user-defined metadata, standard HTTP properties, and system properties for the blob.",
+            "itemtype": "method",
+            "name": "getBlobProperties",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been\n                                     // modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   metadata: '...',                // Name-value pairs that correspond to the user-defined metadata\n                                   // associated with this blob.\n   lastModified: '...',            // The date/time the blob was last modified.\n   type: '...',                    // The blob type\n   leaseDuration: '...',           // When a blob is leased, specifies whether the lease is of\n                                   // infinite or fixed duration\n   leaseState: '...',              // Lease state of the blob\n   leaseStatus: '...',             // The lease status of the blob.\n   contentLength: '...',           // The size of the blob in bytes\n   contentType: '...',             // The content type specified for the blob\n   eTag: '...',                    // The blob Etag\n   contentMD5: '...'               // The content-md5 of the blob\n   contentEncoding: '...',         // The content encoding of the blob\n   contentLanguage: '...'          // The content language of the blob\n   contentDisposition: '...',      // The content disposition of the blob\n   cacheControl: '...',            // The cache control of the blob\n   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.\n   committedBlockCount: '...',     // The number of committed blocks present in the blob (for append blob).\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1776,
+            "description": "TODO information about:\n- copyCompletionTime,\n- copyStatusDescription,\n- copyStatusDescription,\n- copyId,\n- copyProgress,\n- copySource,\n- copyStatus,\n- copyDestinationSnapshot\n- incrementalCopy\n\nwill be added after the copyBlob will be implemented",
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1830,
+            "description": "Sets system properties on the blob",
+            "itemtype": "method",
+            "name": "setBlobProperties",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   cacheControl: '...',                      // The cache control string for the blob (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   contentType: '...',                       // The MIME content type of the blob (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   contentMD5: '...',                        // The MD5 hash of the blob (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   contentEncoding: '...',                   // The content encodings of the blob. (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   contentLanguage: '...',                   // The content language of the blob. (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   contentDisposition: '...',                // The content disposition (optional)\n                                             // If this property is not specified, then the property\n                                             // will be cleared for the blob.\n   pageBlobContentLength: '...',             // The new size of a page blob. If the specified value is\n                                             // less than the current size of the blob, then all pages\n                                             // above the specified value are cleared.\n                                             // This property applies to page blobs only.\n   pageBlobSequenceNumberAction:\n             'max|update|increment',         // Indicates how the service should modify the blob's\n                                             // sequence number.\n                                             // - max: Sets the sequence number to be the higher of the\n                                             //        value included with the request and the value\n                                             //        currently stored for the blob.\n                                             // - update: Sets the sequence number to the value\n                                             //           included with the request.\n                                             // - increment: Increments the value of the sequence\n                                             //              number by 1.\n                                             // This property applies to page blobs only. (optional)\n   pageBlobSequenceNumber: '...',            // The page blob sequence number.\n                                             // Optional, but required if the\n                                             // `pageBlobSequenceNumberAction` option is set to `max`\n                                             // or `update`.\n                                             // This property applies to page blobs only.\n   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the\n                                             // resource has been modified since the specified time.\n                                             // (optional)\n   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the\n                                             // resource has not been modified since the specified\n                                             // date/time. (optional)\n   ifMatch: '...',                           // ETag value. Specify this to perform the operation only\n                                             // if the resource's ETag matches the value specified.\n                                             // (optional)\n   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only\n                                             // if the resource's ETag does not match the value\n                                             // specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the blob\n     lastModified: '...',       // The date/time the blob was last modified\n     blobSequenceNumber: '...', // The blob's current sequence number (if the blob is a page blob)\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 1953,
+            "description": "Get the metadata for the blob with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
+            "itemtype": "method",
+            "name": "getBlobMetadata",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- the name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- the name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not\n                                     // been modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "a promise for metadata key/value pair\nA promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the blob\n     lastModified: '...',       // The date/time the blob was last modified\n     metadata: '...'            // Name-value pairs that correspond to the user-defined metadata\n                                // associated with this blob.\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2013,
+            "description": "Sets metadata for the specified blob.\nOverwrites all existing metadata that is associated with that blob.",
+            "itemtype": "method",
+            "name": "setBlobMetadata",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "metadata",
+                    "description": "- Mapping from metadata keys to values.",
+                    "type": "Object"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not\n                                     // been modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n     eTag: '...',               // The entity tag of the blob\n     lastModified: '...'        // The date/time the blob was last modified.\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2073,
+            "description": "Marks the specified blob for deletion. The blob is later deleted during garbage collection.",
+            "itemtype": "method",
+            "name": "deleteBlob",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been\n                                     // modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise that container has been marked for deletion.",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2111,
+            "description": "Creates a new block to be committed as part of a blob.",
+            "itemtype": "method",
+            "name": "putBlock",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   blockId: '...',                  // A valid Base64 string value that identifies the block\n                                    // For a given blob, the length of the value specified for the\n                                    // blockId must be the same size for each block.(required)\n   disableContentMD5Check: 'false', // Enable/disable the content md5 check is disabled.(optional)\n}\n```",
+                    "type": "Object"
+                },
+                {
+                    "name": "content",
+                    "description": "- The content of the block",
+                    "type": "String|buffer"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   contentMD5: '...'   // The MD5 hash of the block\n}",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2177,
+            "description": "Writes a blob by specifying the list of block IDs that make up the blob.\nIn order to be written as part of a blob, a block must have been successfully written\nto the server in a prior putBlock operation.",
+            "itemtype": "method",
+            "name": "putBlockList",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   cacheControl: '...',              // Blob's cache control (optional)\n   contentType: '...',               // Blob's content type (optional)\n   contentEncoding: '...',           // Blob's content encoding (optional)\n   contentLanguage: '...',           // Blob's content language (optional)\n   metadata: '...',                  // Name-value pairs that correspond to the user-defined metadata\n                                     // associated with this blob.\n   contentDisposition: '...',        // Blob's content disposition\n   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been\n                                     // modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been\n                                     // modified since the specified date/time. (optional)\n   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag matches the value specified. (optional)\n   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's\n                                     // ETag does not match the value specified. (optional)\n   committedBlockIds: [],            // List of block ids to indicate that the Blob service should search only\n                                     // the committed block list for the named blocks(optional)\n   uncommittedBlockIds: [],          // List of block ids to indicate that the Blob service should search only\n                                     // the uncommitted block list for the named blocks (optional)\n   latestBlockIds: [],               // List of block ids to indicate that the Blob service should first\n                                     // search the uncommitted block list. If the block is found in the\n                                     // uncommitted list, that version of the block is the latest and should\n                                     // be written to the blob.\n                                     // If the block is not found in the uncommitted list, then the service\n                                     // should search the committed block list for the named block and write\n                                     // that block to the blob if it is found. (optional)\n}",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "- A promise for an object on the form:\n```js\n{\n   eTag: '...',         // The entity tag of the blob\n   lastModified: '...', // The date/time the blob was last modified.\n}",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2293,
+            "description": "Retrieves the list of committed list blocks (that that have been successfully committed to a given blob with\nputBlockList()), and uncommitted list blocks (that have been uploaded for a blob using Put Block, but that have\nnot yet been committed)",
+            "itemtype": "method",
+            "name": "getBlockList",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n   blockListType: 'committed'  // Specifies whether to return the list of committed blocks, the list of\n                               // uncommitted blocks, or both lists together. Valid values are committed,\n                               // uncommitted, or all\n}\n```",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',\n   committedBlocks: [\n     {\n       blockId: '...',     // Base64 encoded block identifier\n       size: '...'         // Block size in bytes\n     }\n   ],\n   uncommittedBlocks: [\n   {\n       blockId: '...',     // Base64 encoded block identifier\n       size: '...'         // Block size in bytes\n     }\n  ]\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2363,
+            "description": "Generates a base64 string that identifies a block.",
+            "itemtype": "method",
+            "name": "getBlockId",
+            "params": [
+                {
+                    "name": "prefix",
+                    "description": "- the prefix of the block id",
+                    "type": "String"
+                },
+                {
+                    "name": "blockNumber",
+                    "description": "- the block number",
+                    "type": "Number"
+                },
+                {
+                    "name": "length",
+                    "description": "- length of the block id",
+                    "type": "Number"
+                }
+            ],
+            "return": {
+                "description": "- a base64 string as a block identifier",
+                "type": "String"
+            },
+            "class": "Blob"
+        },
+        {
+            "file": "lib/blob.js",
+            "line": 2385,
+            "description": "Commits a new block of data to the end of an existing append blob.",
+            "itemtype": "method",
+            "name": "appendBlock",
+            "params": [
+                {
+                    "name": "container",
+                    "description": "- Name of the container",
+                    "type": "String"
+                },
+                {
+                    "name": "blob",
+                    "description": "- Name of the blob",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "- Options on the following form\n```js\n{\n\n   disableContentMD5Check: 'false',          // Enable/disable the content md5 check is disabled.(optional)\n   blobConditionMaxSize: '...',              // The max length in bytes permitted for the append blob (optional)\n   blobConditionAppendPositionOffset: '...', // A number indicating the byte offset to compare (optional)\n   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource has\n                                             // been modified since the specified time. (optional)\n   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource has\n                                             // not been modified since the specified date/time. (optional)\n   ifMatch: '...',                           // ETag value. Specify this to perform the operation only if the\n                                             // resource's ETag matches the value specified. (optional)\n   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only if the\n                                             // resource's ETag does not match the value specified. (optional)\n}\n```",
+                    "type": "Object"
+                },
+                {
+                    "name": "content",
+                    "description": "- the content of the block",
+                    "type": "String|buffer"
+                }
+            ],
+            "return": {
+                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',                // The entity tag for the append blob\n   lastModified: '...',        // The date/time the blob was last modified\n   contentMD5: '...',          // The MD5 hash of the append blob\n   appendOffset: '...',        // The offset at which the block was committed, in bytes.\n   committedBlockCount: '...', // The number of committed blocks present in the blob.\n                               // This can be used to control how many more appends can be done.\n}\n```",
+                "type": "Promise"
+            },
+            "class": "Blob"
+        },
+        {
             "file": "lib/queue.js",
-            "line": 347,
+            "line": 174,
             "description": "Generate a SAS string on the form `'key1=val1&key2=val2&...'`.",
             "itemtype": "method",
             "name": "sas",
@@ -191,7 +967,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 428,
+            "line": 252,
             "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
             "access": "protected",
             "tagname": "",
@@ -228,7 +1004,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 445,
+            "line": 269,
             "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `data`\nas payload and will be retried using the configured retry policy,",
             "access": "private",
             "tagname": "",
@@ -270,7 +1046,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 515,
+            "line": 339,
             "description": "List queues under the storage account.",
             "itemtype": "method",
             "name": "listQueues",
@@ -290,7 +1066,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 567,
+            "line": 391,
             "description": "Create queue with given `name`, returns promise that resolves to `true`, if\nthe queue didn't already exist. Do not rely on this behavior unless you\ndisable the retry logic. Note, if queue exists with different\nmeta-data an error will be thrown.",
             "itemtype": "method",
             "name": "createQueue",
@@ -315,7 +1091,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 602,
+            "line": 426,
             "description": "Delete queue, return promise queue is deleted.\nNote, Azure may take a while to garbage collect the queue, see documentation\nfor relevant details, if you plan to recreate the queue again.",
             "itemtype": "method",
             "name": "deleteQueue",
@@ -335,7 +1111,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 619,
+            "line": 443,
             "description": "Get meta-data for given `queue`. This includes approximate message count,\nnote that the approximate message is an upper-bound on the number of messages\nin the queue.\n\nWarning, this is a `HEAD` request, so if the queue is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`. The same goes for all other error codes.",
             "itemtype": "method",
             "name": "getMetadata",
@@ -355,7 +1131,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 665,
+            "line": 483,
             "description": "Set meta-data for given `queue`, note that this overwrites all existing\nmeta-data key/value pairs.",
             "itemtype": "method",
             "name": "setMetadata",
@@ -380,7 +1156,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 698,
+            "line": 516,
             "description": "Put a message with XML-safe `text` into `queue` with TTL and visibility-\ntimeout, as given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "putMessage",
@@ -410,7 +1186,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 743,
+            "line": 561,
             "description": "Peek messages from `queue`, returns up to `options.numberOfMessages`, note,\nthat Azure Queue Storage only allows up to 32 messages at once.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "peekMessages",
@@ -435,7 +1211,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 787,
+            "line": 605,
             "description": "Get messages from `queue`, returns up to `options.numberOfMessages` of\nmessages, note, that Azure Queue Storage only allows up to 32 messages per\nrequest.\nSee, `deleteMessage` for how to delete messages once you have processed them.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "getMessages",
@@ -460,7 +1236,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 839,
+            "line": 657,
             "description": "Delete a message from `queue` using `messageId` and `popReceipt`",
             "itemtype": "method",
             "name": "deleteMessage",
@@ -490,7 +1266,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 869,
+            "line": 687,
             "description": "Clear all messages from `queue`, note this may timeout if there is a lot of\nmessages in the queue, in this case you'll get a error with the code:\n`OperationTimedOut`, and you should retry until the operation is successful.\nSee Azure Queue Storage REST API documentation for details.",
             "itemtype": "method",
             "name": "clearMessages",
@@ -510,7 +1286,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 890,
+            "line": 708,
             "description": "Update a message from `queue` with XML-safe `text` and visibility-timeout,\nas given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "updateMessage",
@@ -550,7 +1326,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 289,
+            "line": 211,
             "description": "Generate a SAS string on the form `'key1=val1&key2=val2&...'`.",
             "itemtype": "method",
             "name": "sas",
@@ -575,7 +1351,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 393,
+            "line": 312,
             "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
             "access": "protected",
             "tagname": "",
@@ -612,7 +1388,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 410,
+            "line": 329,
             "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `json`\nas payload and will be retried using the configured retry policy.",
             "access": "private",
             "tagname": "",
@@ -654,7 +1430,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 499,
+            "line": 422,
             "description": "Query for tables on the storage account.",
             "itemtype": "method",
             "name": "queryTables",
@@ -674,7 +1450,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 538,
+            "line": 461,
             "description": "Create table with given `name`.",
             "itemtype": "method",
             "name": "createTable",
@@ -694,7 +1470,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 561,
+            "line": 484,
             "description": "Delete table with given `name`",
             "itemtype": "method",
             "name": "deleteTable",
@@ -714,7 +1490,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 579,
+            "line": 502,
             "description": "Convert nested array structure to filter string.\nSee `Table.Operators` for details and examples.",
             "itemtype": "method",
             "name": "filter",
@@ -734,7 +1510,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 605,
+            "line": 528,
             "description": "Operators and helpers for constructing $filter strings using `Table.filter`.\n\nWe have the following comparison operators:\n - `azure.Table.Operators.Equal`,\n - `azure.Table.Operators.GreaterThan`,\n - `azure.Table.Operators.GreaterThanOrEqual`,\n - `azure.Table.Operators.LessThan`,\n - `azure.Table.Operators.LessThanOrEqual`, and\n - `azure.Table.Operators.NotEqual`.\n\nThey should be used in the middle of a triple as follows:\n`['key1', op.Equal, op.string('my-string')]`.\n\nThe boolean operators `And`, `Not` and `Or` should be used to connect\ntriples made with comparison operators. Note, that each set of array brackets\ntranslates into a parentheses. Boolean operators:\n - `azure.Table.Operators.And`,\n - `azure.Table.Operators.Not`, and\n - `azure.Table.Operators.Or`.\n\nWe also have formatting helpers, `string`, `number`, `bool`, `date` and\n`guid` which takes constant values and encodes them correctly for use in\nfilter expression. It's strongly recommended that you employ these, as Azure\nhas some undocumented and semi obscure escaping rules. Constant formatters:\n - `azure.Table.Operators.string(\"...\")`,\n - `azure.Table.Operators.number(42.2)`,\n - `azure.Table.Operators.bool(true)`,\n - `azure.Table.Operators.date(new Date())`, and\n - `azure.Table.Operators.guid('...')`.\n\nComplete example:\n```js\nvar op = azure.Table.Operators;\nvar filter = azure.Table.filter([\n ['key1', op.Equal, op.string('my-string')],\n  op.And,\n ['key2', op.LessThan, op.date(new Date())]\n]) // \"((key1 eq 'my-string') and (key2 le datetime'...'))\"\n```",
             "itemtype": "attribute",
             "name": "Operators",
@@ -745,7 +1521,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 681,
+            "line": 604,
             "description": "Get entity from `table` with given `partitionKey` and `rowKey`.",
             "itemtype": "method",
             "name": "getEntity",
@@ -780,7 +1556,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 726,
+            "line": 649,
             "description": "Query entities from `table`.",
             "itemtype": "method",
             "name": "queryEntitites",
@@ -805,7 +1581,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 804,
+            "line": 727,
             "description": "Insert `entity` into `table`, the `entity` object must be on the format\naccepted by azure table storage. See Azure Table Storage documentation for\ndetails. Essentially, data-types will be inferred if `...@odata.type`\nproperties aren't specified. Also note that `PartitionKey` and `RowKey`\nproperties must be specified.",
             "itemtype": "method",
             "name": "insertEntity",
@@ -830,7 +1606,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 835,
+            "line": 758,
             "description": "Update entity from `table` identified by `entity.partitionKey` and\n`entity.rowKey`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  mode:  'replace' || 'merge'  // Replace entity or merge entity\n  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert\n}\n```\n\nIf `options.mode` is `'replace'` the remote entity will be completely\nreplaced by the structure given as `entity`. If `options.mode` is `'merge'`\nproperties from `entity` will overwrite existing properties on remote entity.\n\nIf **`options.eTag` is not given** (or `null`) the remote entity will be\ninserted if it does not exist, and otherwise replaced or merged depending\non `mode`.\n\nIf **`options.eTag` is the string `'*'`** the remote entity will be replaced\nor merged depending on `mode`, but it will not be inserted if it doesn't\nexist.\n\nIf **`options.eTag` is a string** (other than `'*'`) the remote entity will be\nreplaced or merged depending on `mode`, if the ETag of the remote entity\nmatches the string given in `options.eTag`.\n\nCombining `mode` and `eTag` options this method implements the following\noperations:\n * Insert or replace (regardless of existence or ETag),\n * Replace if exists (regardless of ETag),\n * Replace if exists and has given ETag,\n * Insert or merge (regardless of existence or ETag),\n * Merge if exists (regardless of ETag), and\n * Merge if exists and has given ETag.",
             "itemtype": "method",
             "name": "updateEntity",
@@ -855,7 +1631,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 916,
+            "line": 839,
             "description": "Delete entity identified by `partitionKey` and `rowKey` from `table`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag\n}\n```\n\nNote, `options.eTag` is `'*'` will delete the entity regardless of its ETag.",
             "itemtype": "method",
             "name": "deleteEntity",
@@ -892,79 +1668,143 @@
     "warnings": [
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:347"
+            "line": " lib/blob.js:213"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:428"
+            "line": " lib/blob.js:357"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:515"
+            "line": " lib/blob.js:711"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:567"
+            "line": " lib/blob.js:772"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:602"
+            "line": " lib/blob.js:835"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:619"
+            "line": " lib/blob.js:884"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:665"
+            "line": " lib/blob.js:929"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:698"
+            "line": " lib/blob.js:990"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:743"
+            "line": " lib/blob.js:1065"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:787"
+            "line": " lib/blob.js:1138"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:839"
+            "line": " lib/blob.js:1264"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:869"
+            "line": " lib/blob.js:1365"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:289"
+            "line": " lib/blob.js:1953"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:393"
+            "line": " lib/blob.js:2013"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:410"
+            "line": " lib/blob.js:2111"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:499"
+            "line": " lib/queue.js:174"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:579"
+            "line": " lib/queue.js:252"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:916"
+            "line": " lib/queue.js:339"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:391"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:426"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:443"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:483"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:516"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:561"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:605"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:657"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/queue.js:687"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:211"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:312"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:329"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:422"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:502"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " lib/table.js:839"
         },
         {
             "message": "Missing item type\nBootstrap.js by @fat & @mdo\nplugins: bootstrap-transition.js, bootstrap-modal.js, bootstrap-dropdown.js, bootstrap-scrollspy.js, bootstrap-tab.js, bootstrap-tooltip.js, bootstrap-popover.js, bootstrap-affix.js, bootstrap-alert.js, bootstrap-button.js, bootstrap-collapse.js, bootstrap-carousel.js, bootstrap-typeahead.js\nCopyright 2012 Twitter, Inc.\nhttp://www.apache.org/licenses/LICENSE-2.0.txt",
             "line": " docs/assets/vendor/bootstrap/js/bootstrap.min.js:1"
+        },
+        {
+            "message": "Missing item type\nTODO information about:\n- copyCompletionTime,\n- copyStatusDescription,\n- copyStatusDescription,\n- copyId,\n- copyProgress,\n- copySource,\n- copyStatus,\n- copyDestinationSnapshot\n- incrementalCopy\n\nwill be added after the copyBlob will be implemented",
+            "line": " lib/blob.js:1776"
         }
     ]
 }

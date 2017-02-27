@@ -21,12 +21,12 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>0.3.2</b>
+                    API Docs for Version: <b>0.3.7</b>
                 </p>
             </li>
         </div>
         <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
-            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Queue", "classes/Table", "modules/azure"]'>
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Blob", "classes/Queue", "classes/Table", "modules/azure"]'>
         </form>
     </div>
 </div>
@@ -38,6 +38,7 @@
     <div id="classes">
         <ul id="api-classes" class="nav nav-list">
                 <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Blob.html">Blob</a></li>
                 <li><a href="../classes/Queue.html">Queue</a></li>
                 <li><a href="../classes/Table.html">Table</a></li>
         </ul>
@@ -151,7 +152,7 @@ shared-access-signature, if <code>options.sas</code> is a function.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l152"><code>lib&#x2F;table.js:152</code></a>
+		<a href="../files/lib_table.js.html#l70"><code>lib&#x2F;table.js:70</code></a>
 		</p>
 
 
@@ -199,6 +200,10 @@ shared-access-signature, if <code>options.sas</code> is a function.</p>
 
   // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
   delayFactor:          100,
+
+  // Randomization factor added as:
+  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+  randomizationFactor:  0.25,
 
   // Maximum retry delay in ms (defaults to 30 seconds)
   maxDelay:             30 * 1000,
@@ -271,7 +276,7 @@ shared-access-signature, if <code>options.sas</code> is a function.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l393"><code>lib&#x2F;table.js:393</code></a>
+		<a href="../files/lib_table.js.html#l312"><code>lib&#x2F;table.js:312</code></a>
 		</p>
 
 
@@ -369,7 +374,7 @@ shared-access-signature, return promise for the request options.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l538"><code>lib&#x2F;table.js:538</code></a>
+		<a href="../files/lib_table.js.html#l461"><code>lib&#x2F;table.js:461</code></a>
 		</p>
 
 
@@ -441,7 +446,7 @@ shared-access-signature, return promise for the request options.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l916"><code>lib&#x2F;table.js:916</code></a>
+		<a href="../files/lib_table.js.html#l839"><code>lib&#x2F;table.js:839</code></a>
 		</p>
 
 
@@ -547,7 +552,7 @@ Options are <strong>required</strong> for this method and takes form as follows:
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l561"><code>lib&#x2F;table.js:561</code></a>
+		<a href="../files/lib_table.js.html#l484"><code>lib&#x2F;table.js:484</code></a>
 		</p>
 
 
@@ -610,7 +615,7 @@ Options are <strong>required</strong> for this method and takes form as follows:
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l579"><code>lib&#x2F;table.js:579</code></a>
+		<a href="../files/lib_table.js.html#l502"><code>lib&#x2F;table.js:502</code></a>
 		</p>
 
 
@@ -691,7 +696,7 @@ var filter = azure.Table.filter([
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l681"><code>lib&#x2F;table.js:681</code></a>
+		<a href="../files/lib_table.js.html#l604"><code>lib&#x2F;table.js:604</code></a>
 		</p>
 
 
@@ -797,7 +802,7 @@ details.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l804"><code>lib&#x2F;table.js:804</code></a>
+		<a href="../files/lib_table.js.html#l727"><code>lib&#x2F;table.js:727</code></a>
 		</p>
 
 
@@ -879,7 +884,7 @@ documentation for details on how to annotate types.</li>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l726"><code>lib&#x2F;table.js:726</code></a>
+		<a href="../files/lib_table.js.html#l649"><code>lib&#x2F;table.js:649</code></a>
 		</p>
 
 
@@ -975,7 +980,7 @@ documentation for details on how to annotate types.</li>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l499"><code>lib&#x2F;table.js:499</code></a>
+		<a href="../files/lib_table.js.html#l422"><code>lib&#x2F;table.js:422</code></a>
 		</p>
 
 
@@ -1060,7 +1065,7 @@ documentation for details on how to annotate types.</li>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l410"><code>lib&#x2F;table.js:410</code></a>
+		<a href="../files/lib_table.js.html#l329"><code>lib&#x2F;table.js:329</code></a>
 		</p>
 
 
@@ -1173,7 +1178,7 @@ property carrying the payload as string.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l289"><code>lib&#x2F;table.js:289</code></a>
+		<a href="../files/lib_table.js.html#l211"><code>lib&#x2F;table.js:211</code></a>
 		</p>
 
 
@@ -1270,7 +1275,7 @@ property carrying the payload as string.</p>
 	<div class="meta">
 				<p>
 				Defined in
-		<a href="../files/lib_table.js.html#l835"><code>lib&#x2F;table.js:835</code></a>
+		<a href="../files/lib_table.js.html#l758"><code>lib&#x2F;table.js:758</code></a>
 		</p>
 
 
@@ -1378,7 +1383,7 @@ operations:</p>
     <div class="meta">
                 <p>
                 Defined in
-        <a href="../files/lib_table.js.html#l605"><code>lib&#x2F;table.js:605</code></a>
+        <a href="../files/lib_table.js.html#l528"><code>lib&#x2F;table.js:528</code></a>
         </p>
 
 

@@ -1,0 +1,3289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Blob - fast-azure-storage</title>
+    <link rel="stylesheet" href="">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/lucid.css">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.css">
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+</head>
+<body class="yui3-skin-sam">
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <h1 class="brand" style="padding: 10px 16px 10px; height: 20px; line-height: 20px; margin-left: 0;">
+            fast-azure-storage
+        </h1>
+	<div class="nav">
+            <li class="divider-vertical"></li>
+            <li>
+                <p class="navbar-text">
+                    API Docs for Version: <b>0.3.7</b>
+                </p>
+            </li>
+        </div>
+        <form class="navbar-form pull-right" style="line-height: 40px; height: 40px;">
+            <input style="margin-top: 0;" type="text" class="search-query" placeholder="Search for classes/modules..." data-obj='["classes/Agent", "classes/Blob", "classes/Queue", "classes/Table", "modules/azure"]'>
+        </form>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="span3">
+<div>
+    <div id="sidebar">
+    <div id="classes">
+        <ul id="api-classes" class="nav nav-list">
+                <li><a href="../classes/Agent.html">Agent</a></li>
+                <li><a href="../classes/Blob.html">Blob</a></li>
+                <li><a href="../classes/Queue.html">Queue</a></li>
+                <li><a href="../classes/Table.html">Table</a></li>
+        </ul>
+    </div>
+    </div>
+</div>
+        </div>
+        <div class="span9">
+    <form id="options-form" class="form-inline pull-right">
+        Show:
+        <label for="api-show-inherited" class="checkbox">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected" class="checkbox">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private" class="checkbox">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated" class="checkbox">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </form>
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<div class="page-header">
+    <h1>Blob</h1>
+</div>
+
+
+
+	<div class="well well-small">
+            Module: <a href="../modules/azure.html">azure</a>
+    </div>
+
+
+
+<div class="yuidoc-class-description">
+<p>Blob client class for interacting with Azure Blob Storage.</p>
+
+</div>
+
+<!-- table of contents -->
+
+<div id="class-toc" class="page-section">
+	<h2>Table of Contents</h2>
+    <ul>
+		<li>
+			<strong>Methods</strong>
+			<ul>
+				<li><a href="#method-appendBlock"><span class="im">appendBlock</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span><span class="ia">content</span>)</a></li>
+				<li><a href="#method-authorize"><span class="im">authorize</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span>)</a></li>
+				<li><a href="#method-createContainer"><span class="im">createContainer</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-deleteBlob"><span class="im">deleteBlob</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-deleteContainer"><span class="im">deleteContainer</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getBlob"><span class="im">getBlob</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getBlobMetadata"><span class="im">getBlobMetadata</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getBlobProperties"><span class="im">getBlobProperties</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getBlockId"><span class="im">getBlockId</span>(<span class="ia">prefix</span><span class="ia">blockNumber</span><span class="ia">length</span>)</a></li>
+				<li><a href="#method-getBlockList"><span class="im">getBlockList</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getContainerACL"><span class="im">getContainerACL</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getContainerMetadata"><span class="im">getContainerMetadata</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getContainerProperties"><span class="im">getContainerProperties</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-getServiceProperties"><span class="im">getServiceProperties</span>()</a></li>
+				<li><a href="#method-leaseContainer"><span class="im">leaseContainer</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-listBlobs"><span class="im">listBlobs</span>(<span class="ia">container</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-listContainers"><span class="im">listContainers</span>(<span class="ia">options</span>)</a></li>
+				<li><a href="#method-putBlob"><span class="im">putBlob</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span><span class="ia">content</span>)</a></li>
+				<li><a href="#method-putBlock"><span class="im">putBlock</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span><span class="ia">content</span>)</a></li>
+				<li><a href="#method-putBlockList"><span class="im">putBlockList</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-request"><span class="im">request</span>(<span class="ia">method</span><span class="ia">path</span><span class="ia">query</span><span class="ia">header</span>)</a></li>
+				<li><a href="#method-sas"><span class="im">sas</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setBlobMetadata"><span class="im">setBlobMetadata</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">metadata</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setBlobProperties"><span class="im">setBlobProperties</span>(<span class="ia">container</span><span class="ia">blob</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setContainerACL"><span class="im">setContainerACL</span>(<span class="ia">name</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setContainerMetadata"><span class="im">setContainerMetadata</span>(<span class="ia">name</span><span class="ia">metadata</span><span class="ia">options</span>)</a></li>
+				<li><a href="#method-setServiceProperties"><span class="im">setServiceProperties</span>(<span class="ia">options</span>)</a></li>
+			</ul>
+		</li>
+
+
+
+	</ul>
+</div>
+
+<!-- details -->
+
+    <div class="constructor yuidoc-class-constructor page-section">
+        <h2>Constructor</h2>
+        <div class="item-list">
+<div id="method-Blob" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>Blob</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l90"><code>lib&#x2F;blob.js:90</code></a>
+		</p>
+
+
+
+	</div>
+
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>options on the form:</li>
+</ul>
+<pre><code class="language-js">{
+  // Value for the x-ms-version header fixing the API version
+  version:              SERVICE_VERSION,
+
+  // Value for the x-ms-client-request-id header identifying the client
+  clientId:             'fast-azure-storage',
+
+  // Server-side request timeout
+  timeout:              30 * 1000,
+
+  // Delay between client- and server-side timeout
+  clientTimeoutDelay:   500,
+
+  // Max number of request retries
+  retries:              5,
+
+   // HTTP Agent to use (defaults to a global azure.Agent instance)
+  agent:                azure.Agent.globalAgent,
+
+  // Multiplier for computation of retry delay: 2 ^ retry * delayFactor
+  delayFactor:          100,
+
+  // Randomization factor added as:
+  // delay = delay * random([1 - randomizationFactor; 1 + randomizationFactor])
+  randomizationFactor:  0.25,
+
+  // Maximum retry delay in ms (defaults to 30 seconds)
+  maxDelay:             30 * 1000,
+
+  // Error codes for which we should retry
+  transientErrorCodes:  TRANSIENT_ERROR_CODES,
+
+  // Azure storage accountId (required)
+  accountId:            undefined,
+
+  // Azure shared accessKey, required unless options.sas is given
+  accessKey:            undefined,
+
+  // Function that returns SAS string or promise for SAS string, in which
+  // case we will refresh SAS when a request occurs less than
+  // minSASAuthExpiry from signature expiry. This property may also be a
+  // SAS string.
+  sas:                  undefined,
+
+  // Minimum SAS expiry before refreshing SAS credentials, if a function for
+  // refreshing SAS credentials is given as options.sas
+  minSASAuthExpiry:     15 * 60 * 1000
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+
+</div>
+        </div>
+    </div>
+
+    <div id="methods" class="page-section">
+        <h2 class="off-left">Methods</h2>
+        <div class="item-list">
+<div id="method-appendBlock" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>appendBlock</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+				<li class="arg">
+						<code>content</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2385"><code>lib&#x2F;blob.js:2385</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Commits a new block of data to the end of an existing append blob.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+
+   disableContentMD5Check: 'false',          // Enable/disable the content md5 check is disabled.(optional)
+   blobConditionMaxSize: '...',              // The max length in bytes permitted for the append blob (optional)
+   blobConditionAppendPositionOffset: '...', // A number indicating the byte offset to compare (optional)
+   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource has
+                                             // been modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource has
+                                             // not been modified since the specified date/time. (optional)
+   ifMatch: '...',                           // ETag value. Specify this to perform the operation only if the
+                                             // resource's ETag matches the value specified. (optional)
+   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only if the
+                                             // resource's ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">content</code>
+						<span class="type">String  |  Buffer</span>
+
+
+					<div class="param-description"><ul>
+<li>the content of the block</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   eTag: '...',                // The entity tag for the append blob
+   lastModified: '...',        // The date/time the blob was last modified
+   contentMD5: '...',          // The MD5 hash of the append blob
+   appendOffset: '...',        // The offset at which the block was committed, in bytes.
+   committedBlockCount: '...', // The number of committed blocks present in the blob.
+                               // This can be used to control how many more appends can be done.
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-authorize" class="method item protected">
+	<div class="method-signature">
+	<span class="name"><code>authorize</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag protected">protected</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l357"><code>lib&#x2F;blob.js:357</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Construct authorized request options by adding signature or
+shared-access-signature, return promise for the request options.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on blob resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an options object compatible with
+<code>https.request</code>.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-createContainer" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>createContainer</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l711"><code>lib&#x2F;blob.js:711</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Create a new container with the given 'name' under the storage account.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container to create</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   metadata: '...',          // Mapping from metadata keys to values. (optional)
+   publicAccessLevel: '...', // Specifies whether data in the container may be accessed
+                             // publicly and the level of access.
+                             // Possible values: container, blob. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>a promise for metadata key/value pair
+A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the container
+     lastModified: '...',       // The date/time the container was last modified
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteBlob" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteBlob</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2073"><code>lib&#x2F;blob.js:2073</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Marks the specified blob for deletion. The blob is later deleted during garbage collection.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+                                     // modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that container has been marked for deletion.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-deleteContainer" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>deleteContainer</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l884"><code>lib&#x2F;blob.js:884</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Delete container with the given 'name'.</p>
+<p>Note, when a container is deleted, a container with the same name cannot be created for at least 30 seconds;
+the container may not be available for more than 30 seconds if the service is still processing the request.
+Please see the documentation for more details.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container to delete</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...',                   // Lease unique identifier. A GUID string.(optional)
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has
+                                     // been modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has
+                                     // not been modified since the specified date/time. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that container has been marked for deletion.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getBlob" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getBlob</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1646"><code>lib&#x2F;blob.js:1646</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Reads or downloads a blob from the system, including its metadata and properties.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container where the blob should be stored</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+                                     // been modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   eTag: '...',                    // The entity tag of the blob
+   lastModified: '...',            // The date/time the blob was last modified.
+   contentMD5: '...',              // The MD5 hash fo the blob
+   contentEncoding: '...',         // The content encoding of the blob
+   contentLanguage: '...',         // The content language of the blob
+   cacheControl: '...',            // The cache control of the blob
+   contentDisposition: '...',      // The content disposition of the blob
+   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.
+   type: '...',                    // The blob type: block, page or append blob.
+   blobCommittedBlockCount: '...', // The number of committed blocks present in the blob.
+                                   // This is returned only for append blobs.
+   metadata: '...',                // Name-value pairs associated with the blob as metadata
+   content: '...'                  // The content
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getBlobMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getBlobMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1953"><code>lib&#x2F;blob.js:1953</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get the metadata for the blob with the given name.</p>
+<p>Note, this is a <code>HEAD</code> request, so if the container is missing you get an
+error with <code>err.statusCode = 404</code>, but <code>err.code</code> property will be
+<code>ErrorWithoutCode</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>the name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>the name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+                                     // been modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>a promise for metadata key/value pair
+A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the blob
+     lastModified: '...',       // The date/time the blob was last modified
+     metadata: '...'            // Name-value pairs that correspond to the user-defined metadata
+                                // associated with this blob.
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getBlobProperties" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getBlobProperties</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1717"><code>lib&#x2F;blob.js:1717</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Returns all user-defined metadata, standard HTTP properties, and system properties for the blob.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+                                     // modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   metadata: '...',                // Name-value pairs that correspond to the user-defined metadata
+                                   // associated with this blob.
+   lastModified: '...',            // The date/time the blob was last modified.
+   type: '...',                    // The blob type
+   leaseDuration: '...',           // When a blob is leased, specifies whether the lease is of
+                                   // infinite or fixed duration
+   leaseState: '...',              // Lease state of the blob
+   leaseStatus: '...',             // The lease status of the blob.
+   contentLength: '...',           // The size of the blob in bytes
+   contentType: '...',             // The content type specified for the blob
+   eTag: '...',                    // The blob Etag
+   contentMD5: '...'               // The content-md5 of the blob
+   contentEncoding: '...',         // The content encoding of the blob
+   contentLanguage: '...'          // The content language of the blob
+   contentDisposition: '...',      // The content disposition of the blob
+   cacheControl: '...',            // The cache control of the blob
+   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.
+   committedBlockCount: '...',     // The number of committed blocks present in the blob (for append blob).
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getBlockId" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getBlockId</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>prefix</code>
+				</li>
+				<li class="arg">
+						<code>blockNumber</code>
+				</li>
+				<li class="arg">
+						<code>length</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">String</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2363"><code>lib&#x2F;blob.js:2363</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Generates a base64 string that identifies a block.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">prefix</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>the prefix of the block id</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blockNumber</code>
+						<span class="type">Number</span>
+
+
+					<div class="param-description"><ul>
+<li>the block number</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">length</code>
+						<span class="type">Number</span>
+
+
+					<div class="param-description"><ul>
+<li>length of the block id</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">String</span>:
+					<ul>
+<li>a base64 string as a block identifier</li>
+</ul>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getBlockList" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getBlockList</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2293"><code>lib&#x2F;blob.js:2293</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Retrieves the list of committed list blocks (that that have been successfully committed to a given blob with
+putBlockList()), and uncommitted list blocks (that have been uploaded for a blob using Put Block, but that have
+not yet been committed)</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   blockListType: 'committed'  // Specifies whether to return the list of committed blocks, the list of
+                               // uncommitted blocks, or both lists together. Valid values are committed,
+                               // uncommitted, or all
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   eTag: '...',
+   committedBlocks: [
+     {
+       blockId: '...',     // Base64 encoded block identifier
+       size: '...'         // Block size in bytes
+     }
+   ],
+   uncommittedBlocks: [
+   {
+       blockId: '...',     // Base64 encoded block identifier
+       size: '...'         // Block size in bytes
+     }
+  ]
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getContainerACL" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getContainerACL</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1065"><code>lib&#x2F;blob.js:1065</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Gets the permissions for the container with the given name</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container to get ACL from</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...' // GUID string; lease unique identifier (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for permissions</p>
+<pre><code class="language-js">{
+   eTag: '...',                      // The entity tag of the container
+   lastModified: '...',              // The date/time the container was last modified
+   publicAccessLevel: '...',         // Indicate whether blobs in a container may be accessed publicly.(optional)
+                                     // Possible values: container (full public read access for container
+                                     // and blob data) or blob (public read access for blobs)
+                                     // If it is not specified, the resource will be private and will be
+                                     // accessed only by the account owner.
+   accessPolicies: [{                // The container ACL settings.
+                                     // An array with five maximum access policies objects (optional)
+     id:     '...',                  // Unique identifier, up to 64 chars in length
+     start:  new Date(),             // Time from which access policy is valid
+     expiry: new Date(),             // Expiration of access policy
+     permission: {                   // Set of permissions delegated
+       read:              false,     // Read the content, properties, metadata or block list of a blob or, of
+                                     // any blob in the container if the resource is a container.
+       add:               false,     // Add a block to an append blob or, to any append blob
+                                     // if the resource is a container.
+       create:            false,     // Write a new blob, snapshot a blob, or copy a blob to a new blob.
+                                     // These operations can be done to any blob in the container
+                                     // if the resource is a container.
+       write:             false,     // Create or write content, properties, metadata, or block list.
+                                     // Snapshot or lease the blob. Resize the blob (page blob only).
+                                     // These operations can be done for every blob in the container
+                                     // f the resource is a container.
+       delete:            false,     // Delete the blob or, any blob in the container if the resource
+                                     // is a container.
+       list:              false,     // List blobs in the container.
+     }
+   }]
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getContainerMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getContainerMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l835"><code>lib&#x2F;blob.js:835</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get the metadata for the container with the given name.</p>
+<p>Note, this is a <code>HEAD</code> request, so if the container is missing you get an
+error with <code>err.statusCode = 404</code>, but <code>err.code</code> property will be
+<code>ErrorWithoutCode</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>the name of the container to get metadata from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...'  // Lease unique identifier. A GUID string.(optional)
+}</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>a promise for metadata key/value pair
+A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the container
+     lastModified: '...',       // The date/time the container was last modified
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getContainerProperties" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getContainerProperties</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l990"><code>lib&#x2F;blob.js:990</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get all user-defined metadata and system properties for the container with the given name.</p>
+<p>Note, this is a <code>HEAD</code> request, so if the container is missing you get an
+error with <code>err.statusCode = 404</code>, but <code>err.code</code> property will be
+<code>ErrorWithoutCode</code>.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>The name of the container to get properties from.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...' // GUID string; lease unique identifier (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  metadata: {                 // Mapping from meta-data keys to values
+    '&lt;key&gt;':      '&lt;value&gt;',  // Meta-data key/value pair
+    ...
+  },
+  properties: {                // System properties
+    eTag:          '...',      // The entity tag for the container
+    lastModified: '...'        // The date and time the container was last modified
+    leaseStatus: '...',        // The lease status of the container
+    leaseState:  '...',        // Lease state of the container
+    leaseDuration: '...',      // Specifies whether the lease on a container is of infinite or fixed duration.
+    publicAccessLevel: '...',  // Indicates whether data in the container may be accessed publicly and
+                               // the level of access. If this is not returned in the response,
+                               // the container is private to the account owner.
+  }
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-getServiceProperties" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>getServiceProperties</code></span>
+
+		<span class="paren">()</span>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l648"><code>lib&#x2F;blob.js:648</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Gets the properties of a storage account’s Blob service, including properties for Storage Analytics and
+CORS (Cross-Origin Resource Sharing) rules.</p>
+</div>
+
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   logging: {                  // The Azure Analytics Logging settings.
+     version: '...',           // The version of Storage Analytics to configure
+     delete: true|false,       // Indicates whether all delete requests should be logged
+     read: true|false,         // Indicates whether all read requests should be logged
+     write: true|false,        // Indicates whether all write requests should be logged
+     retentionPolicy: {
+       enabled: true|false,    // Indicates whether a retention policy is enabled for the storage service
+       days: '...',            // Indicates the number of days that metrics or logging data should be retained.
+     },
+   },
+   hourMetrics: {              // The Azure Analytics HourMetrics settings
+     version: '...',           // The version of Storage Analytics to configure
+     enabled: true|false,      // Indicates whether metrics are enabled for the Blob service
+     includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics
+                               // for called API operations.
+     retentionPolicy: {
+       enabled: true|false,
+       days: '...',
+     },
+   },
+   minuteMetrics: {            // The Azure Analytics MinuteMetrics settings
+     version: '...',           // The version of Storage Analytics to configure
+     enabled: true|false,      // Indicates whether metrics are enabled for the Blob service
+     includeAPIs: true|false,  // Indicates whether metrics should generate summary statistics
+                               // for called API operations.
+     retentionPolicy: {
+       enabled: true|false,
+       days: '...',
+     },
+   },
+   corsRules: [{               // CORS rules
+     allowedOrigins: [],       // A list of origin domains that will be allowed via CORS,
+                               // or "*" to allow all domains.
+     allowedMethods: [],       // List of HTTP methods that are allowed to be executed by the origin
+     maxAgeInSeconds: [],      // The number of seconds that the client/browser should cache a preflight response
+     exposedHeaders: [],       // List of response headers to expose to CORS clients
+     allowedHeaders: [],       // List of headers allowed to be part of the cross-origin request
+   }]
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-leaseContainer" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>leaseContainer</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1365"><code>lib&#x2F;blob.js:1365</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Establishes and manages a lock on a container for delete operations.
+The lock duration can be 15 to 60 seconds, or can be infinite.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...',                   // GUID string; it is required in case of renew, change,
+                                     // or release of the lease
+   leaseAction: '...',               // Lease container operation. The possible values are: acquire, renew,
+                                     // change, release, break (required)
+   leaseBreakPeriod: '...',          // For a break operation, proposed duration the lease should continue
+                                     // before it is broken, in seconds, between 0 and 60.
+   leaseDuration: '...',             // Specifies the duration of the lease, in seconds, or negative one (-1)
+                                     // for a lease that never expires. Required for <code>acquire</code> action.
+   proposedLeaseId: '...'            // GUID string; Optional for <code>acquire</code>, required for <code>change</code> action.
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+                                     // modified since the specified date/time. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   leaseId: '...',             // The unique lease id.
+   leaseTime: '...'            // Approximate time remaining in the lease period, in seconds.
+   eTag: '...',                // The entity tag of the container
+   lastModified: '...',        // The date/time the container was last modified
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-listBlobs" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>listBlobs</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1264"><code>lib&#x2F;blob.js:1264</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Get the list of blobs under the specified container.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container(required)</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   prefix: '...',              // Prefix of blobs to list (optional)
+   delimiter: '...',           // Delimiter, i.e. '/', for specifying folder hierarchy. (optional)
+   marker: '...',              // Marker to list blobs from (optional)
+   maxResults: 5000,           // The maximum number of blobs to return (optional)
+   include: {                  // Specifies one or more datasets to include in the response (optional)
+     snapshots: false,         // Include snapshots in listing
+     metadata: false,          // Include blob metadata in listing
+     uncommittedBlobs: false,  // Include uncommitted blobs in listing
+     copy: false               // Include metadata related to any current or previous Copy Blob operation
+   }
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  blobs: [
+    {
+      name:       '...',               // Name of blob
+      snapshot:    '...',              // A date and time value that uniquely identifies the snapshot
+                                       // relative to its base blob
+      properties:  {
+         lastModified: '...',          // The date and time the blob was last modified
+         eTag: '...',                  // The entity tag of the blob
+         contentLength: '...',         // The content length of the blob
+         contentType: '...',           // The MIME content type of the blob
+         contentEncoding: '...',       // The content encoding of the blob
+         contentLanguage: '...',       // The content language of the blob
+         contentMD5: '...',            // An MD5 hash of the blob content
+         cacheControl: '...',          // The blob cache control
+         xmsBlobSequenceNumber: '...', // The page blob sequence number
+         blobType: '...',              // The type of the blob: BlockBlob | PageBlob | AppendBlob
+         leaseStatus: '...',           // The lease status of the blob
+         leaseState: '...',            // The lease state of the blob
+         leaseDuration: '...',         // The lease duration of the blob
+         copyId: '...',                // String identifier for the copy operation
+         copyStatus: '...',            // The state of the copy operation: pending | success | aborted | failed
+         copySource: '...',            // The name of the source blob of the copy operation
+         copyProgress: '...',          // The bytes copied/total bytes
+         copyCompletionTime: '...',    // The date and time the copy operation finished
+         copyStatusDescription: '...', // The status of the copy operation
+         serverEncrypted: false,       // true if the blob and application metadata are completely encrypted,
+                                       // and false otherwise
+         incrementalCopy: '...',       // true for the incremental copy blobs operation and snapshots
+      }
+      metadata:   {}                   // Meta-data dictionary if requested
+    }
+  ],
+  blobPrefixName: '...',
+  prefix:         '...',               // prefix given in options (if given)
+  marker:         '...',               // marker given in options (if given)
+  maxResults:     5000,                // maxResults given in options (if given)
+  nextMarker:     '...'                // Next marker if not at end of list
+  delimiter:      '...'                // Delimiter
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-listContainers" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>listContainers</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l929"><code>lib&#x2F;blob.js:929</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>List the containers under the storage account</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  prefix:          '...',    // Prefix of containers to list
+  marker:          '...',    // Marker to list containers from
+  maxResults:      5000,     // Max number of results
+  metadata:        false     // Whether or not to include metadata
+}</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+  containers: [
+    {
+      name:       '...',           // Name of container
+      properties: {
+         lastModified: '...',      // Container's last modified time
+         eTag: '...',              // The entity tag of the container
+         leaseStatus: '...',       // The lease status of the container
+         leaseState: '...',        // The lease state of the container
+         leaseDuration: '...'      // The lease duration of the container
+         publicAccessLevel: '...'  // Indicates whether data in the container may be accessed publicly
+                                   // and the level of access. If this is not returned in the response,
+                                   // the container is private to the account owner.
+      }
+      metadata:   {}               // Meta-data dictionary if requested
+    }
+  ],
+  prefix:         '...',           // prefix given in options (if given)
+  marker:         '...',           // marker given in options (if given)
+  maxResults:     5000,            // maxResults given in options (if given)
+  nextMarker:     '...'            // Next marker if not at end of list
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-putBlob" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>putBlob</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+				<li class="arg">
+						<code>content</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1477"><code>lib&#x2F;blob.js:1477</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Creates a new block, page, or append blob, or updates the content of an existing block blob.
+Updating an existing block blob overwrites any existing metadata on the blob,
+and the content of the existing blob is overwritten with the content of the new blob.</p>
+<p>Note that a call to a putBlob to create a page blob or an append blob only initializes the blob.
+To add content to a page blob, call the putPage. To add content to an append blob, call the appendBlock.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container where the blob should be stored</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   metadata: '...',                          // Name-value pairs associated with the blob as metadata
+   contentType: 'application/octet-stream',  // The MIME content type of the blob (optional)
+   contentEncoding: '...',                   // Specifies which content encodings have been applied
+                                             // to the blob. (optional)
+   contentLanguage: '...',                   // Specifies the natural languages used by this resource(optional)
+   cacheControl: '...',                      // The Blob service stores this value but does not
+                                             // use or modify it. (optional)
+   disableContentMD5Check: 'false',          // Enable/disable the content md5 check is disabled.(optional)
+   type: BlockBlob|PageBlob|AppendBlob,      // The type of blob to create: block blob, page blob,
+                                             // or append blob (required)
+   leaseId: '...',                           // Lease id (required if the blob has an active lease)
+   contentDisposition: '...',                // Specifies the content disposition of the blob (optional)
+   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the resource
+                                             // has been modified since the specified time.
+   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the resource
+                                             // has not been modified since the specified date/time.
+   ifMatch: '...',                           // ETag value. Specify this to perform the operation only if the
+                                             // resource's ETag matches the value specified.
+   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only if the
+                                             //resource's ETag does not match the value specified.
+   pageBlobContentLength: '...',             // Specifies the maximum size for the page blob, up to 1 TB.
+                                             // (required for page blobs)
+   pageBlobSequenceNumber: 0,                // The sequence number - a user-controlled value that you can use
+                                             // to track requests (optional, only for page blobs)
+}
+</code></pre>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">content</code>
+						<span class="type">String  |  Buffer</span>
+
+
+					<div class="param-description"><ul>
+<li>The content of the blob</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   eTag: '...',         // The entity tag of the blob
+   lastModified: '...', // The date/time the blob was last modified
+   contentMD5: '...',   // The MD5 hash of the blob
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-putBlock" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>putBlock</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+				<li class="arg">
+						<code>content</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2111"><code>lib&#x2F;blob.js:2111</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Creates a new block to be committed as part of a blob.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   blockId: '...',                  // A valid Base64 string value that identifies the block
+                                    // For a given blob, the length of the value specified for the
+                                    // blockId must be the same size for each block.(required)
+   disableContentMD5Check: 'false', // Enable/disable the content md5 check is disabled.(optional)
+}
+</code></pre>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">content</code>
+						<span class="type">String  |  Buffer</span>
+
+
+					<div class="param-description"><ul>
+<li>The content of the block</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+   contentMD5: '...'   // The MD5 hash of the block
+}</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-putBlockList" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>putBlockList</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2177"><code>lib&#x2F;blob.js:2177</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Writes a blob by specifying the list of block IDs that make up the blob.
+In order to be written as part of a blob, a block must have been successfully written
+to the server in a prior putBlock operation.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   cacheControl: '...',              // Blob's cache control (optional)
+   contentType: '...',               // Blob's content type (optional)
+   contentEncoding: '...',           // Blob's content encoding (optional)
+   contentLanguage: '...',           // Blob's content language (optional)
+   metadata: '...',                  // Name-value pairs that correspond to the user-defined metadata
+                                     // associated with this blob.
+   contentDisposition: '...',        // Blob's content disposition
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not been
+                                     // modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+   committedBlockIds: [],            // List of block ids to indicate that the Blob service should search only
+                                     // the committed block list for the named blocks(optional)
+   uncommittedBlockIds: [],          // List of block ids to indicate that the Blob service should search only
+                                     // the uncommitted block list for the named blocks (optional)
+   latestBlockIds: [],               // List of block ids to indicate that the Blob service should first
+                                     // search the uncommitted block list. If the block is found in the
+                                     // uncommitted list, that version of the block is the latest and should
+                                     // be written to the blob.
+                                     // If the block is not found in the uncommitted list, then the service
+                                     // should search the committed block list for the named block and write
+                                     // that block to the blob if it is found. (optional)
+}</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<ul>
+<li>A promise for an object on the form:</li>
+</ul>
+<pre><code class="language-js">{
+   eTag: '...',         // The entity tag of the blob
+   lastModified: '...', // The date/time the blob was last modified.
+}</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-request" class="method item private">
+	<div class="method-signature">
+	<span class="name"><code>request</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>method</code>
+				</li>
+				<li class="arg">
+						<code>path</code>
+				</li>
+				<li class="arg">
+						<code>query</code>
+				</li>
+				<li class="arg">
+						<code>header</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+		<span class="flag private">private</span>
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l374"><code>lib&#x2F;blob.js:374</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Make a signed request to <code>path</code> using <code>method</code> in upper-case and all <code>query</code>
+parameters and <code>headers</code> keys in lower-case. The request will carry <code>data</code>
+as payload and will be retried using the configured retry policy,</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">method</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>HTTP verb in upper case, e.g. <code>GET</code>.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">path</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Path on blob resource for storage account.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">query</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Query-string parameters.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">header</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from header key in lowercase to value.</li>
+</ul>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for HTTPS response with <code>payload</code> property as
+string containing the response payload.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-sas" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>sas</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">String</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l213"><code>lib&#x2F;blob.js:213</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Generate a SAS string on the form 'key1=va1&amp;key2=val2&amp;...'.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container that this SAS string applies to.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob that this SAS string applies to.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options for the following form:</li>
+</ul>
+<pre><code class="language-js">{
+  start:               new Date(),             // Time from which signature is valid (optional)
+  expiry:              new Date(),             // Expiration of signature (required).
+  resourceType:        'blob|container',       // Specifies which resources are accessible via the SAS(required)
+                                               // Possible values are: 'blob' or 'container'.
+                                               // Specify 'blob' if the shared resource is a 'blob'.
+                                               // This grants access to the content and metadata of the blob.
+                                               // Specify 'container' if the shared resource is a 'container'.
+                                               // This grants access to the content and metadata of any
+                                               // blob in the container, and to the list of blobs in
+                                               // the container.
+  permissions: {                               // Set of permissions delegated (required)
+                                               // It must be omitted if it has been specified in the associated
+                                               // stored access policy.
+    read:              false,                  // Read the content, properties, metadata or block list of a blob
+                                               // or of any blob in the container if the resourceType is
+                                               // a container.
+    add:               false,                  // Add a block to an append blob or to any append blob if the
+                                               // resourceType is a container.
+    create:            false,                  // Write a new blob, snapshot a blob, or copy a blob
+                                               // to a new blob.
+                                               // These operations can be done to any blob in the container
+                                               // if the resourceType is a container.
+    write:             false,                  // Create or write content, properties, metadata, or block list.
+                                               // Snapshot or lease the blob. Resize the blob (page blob only).
+                                               // These operations can be done for every blob in the container
+                                               // if the resourceType is a container.
+    delete:            false,                  // Delete the blob or any blob in the container if the
+                                               // resourceType is a container.
+    list:              false,                  // List blobs in the container.
+  },
+  cacheControl:        '...',                  // The value of the Cache-Control response header
+                                               // to be returned. (optional)
+  contentDisposition:  '...',                  // The value of the Content-Disposition response header
+                                               // to be returned. (optional)
+  contentEncoding:     '...',                  // The value of the Content-Encoding response header
+                                               // to be returned. (optional)
+  contentLanguage:     '...',                  // The value of the Content-Language response header
+                                               // to be returned. (optional)
+  contentType:         '...',                  // The value of the Content-Type response header to
+                                               // be returned. (optional)
+  accessPolicy:        '...'                   // Reference to stored access policy (optional)
+                                               // A GUID string
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">String</span>:
+					<p>Shared-Access-Signature on string form.</p>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setBlobMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setBlobMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>metadata</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l2013"><code>lib&#x2F;blob.js:2013</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Sets metadata for the specified blob.
+Overwrites all existing metadata that is associated with that blob.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">metadata</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from metadata keys to values.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   ifModifiedSince: new Date(),      // Specify this to perform the operation only if the resource has been
+                                     // modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),    // Specify this to perform the operation only if the resource has not
+                                     // been modified since the specified date/time. (optional)
+   ifMatch: '...',                   // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag matches the value specified. (optional)
+   ifNoneMatch: '...',               // ETag value. Specify this to perform the operation only if the resource's
+                                     // ETag does not match the value specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the blob
+     lastModified: '...'        // The date/time the blob was last modified.
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setBlobProperties" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setBlobProperties</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>container</code>
+				</li>
+				<li class="arg">
+						<code>blob</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1830"><code>lib&#x2F;blob.js:1830</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Sets system properties on the blob</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">container</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">blob</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the blob</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   cacheControl: '...',                      // The cache control string for the blob (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   contentType: '...',                       // The MIME content type of the blob (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   contentMD5: '...',                        // The MD5 hash of the blob (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   contentEncoding: '...',                   // The content encodings of the blob. (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   contentLanguage: '...',                   // The content language of the blob. (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   contentDisposition: '...',                // The content disposition (optional)
+                                             // If this property is not specified, then the property
+                                             // will be cleared for the blob.
+   pageBlobContentLength: '...',             // The new size of a page blob. If the specified value is
+                                             // less than the current size of the blob, then all pages
+                                             // above the specified value are cleared.
+                                             // This property applies to page blobs only.
+   pageBlobSequenceNumberAction:
+             'max|update|increment',         // Indicates how the service should modify the blob's
+                                             // sequence number.
+                                             // - max: Sets the sequence number to be the higher of the
+                                             //        value included with the request and the value
+                                             //        currently stored for the blob.
+                                             // - update: Sets the sequence number to the value
+                                             //           included with the request.
+                                             // - increment: Increments the value of the sequence
+                                             //              number by 1.
+                                             // This property applies to page blobs only. (optional)
+   pageBlobSequenceNumber: '...',            // The page blob sequence number.
+                                             // Optional, but required if the
+                                             // <code>pageBlobSequenceNumberAction</code> option is set to <code>max</code>
+                                             // or <code>update</code>.
+                                             // This property applies to page blobs only.
+   ifModifiedSince: new Date(),              // Specify this to perform the operation only if the
+                                             // resource has been modified since the specified time.
+                                             // (optional)
+   ifUnmodifiedSince: new Date(),            // Specify this to perform the operation only if the
+                                             // resource has not been modified since the specified
+                                             // date/time. (optional)
+   ifMatch: '...',                           // ETag value. Specify this to perform the operation only
+                                             // if the resource's ETag matches the value specified.
+                                             // (optional)
+   ifNoneMatch: '...',                       // ETag value. Specify this to perform the operation only
+                                             // if the resource's ETag does not match the value
+                                             // specified. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the blob
+     lastModified: '...',       // The date/time the blob was last modified
+     blobSequenceNumber: '...', // The blob's current sequence number (if the blob is a page blob)
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setContainerACL" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setContainerACL</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l1138"><code>lib&#x2F;blob.js:1138</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Sets the permissions for the container with the given name.
+The permissions indicate whether blobs in a container may be accessed publicly.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container to set ACL to</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   publicAccessLevel: '...',       // Indicate whether blobs in a container may be accessed publicly.(optional)
+                                   // Possible values: container (full public read access for container
+                                   // and blob data) or blob (public read access for blobs).
+                                   // If it is not specified, the resource will be private and will be accessed
+                                   // only by the account owner.
+   accessPolicies: [{              // The container ACL settings.
+                                   // An array with five maximum access policies objects (optional)
+     id:     '...',                // Unique identifier, up to 64 chars in length
+     start:  new Date(),           // Time from which access policy is valid
+     expiry: new Date(),           // Expiration of access policy
+     permission: {                 // Set of permissions delegated
+       read:              false,   // Read the content, properties, metadata or block list of a blob or of
+                                   // any blob in the container if the resourceType is a container.
+       add:               false,   // Add a block to an append blob or to any append blob
+                                   // if the resourceType is a container.
+       create:            false,   // Write a new blob, snapshot a blob, or copy a blob to a new blob.
+                                   // These operations can be done to any blob in the container
+                                   // if the resourceType is a container.
+       write:             false,   // Create or write content, properties, metadata, or block list.
+                                   // Snapshot or lease the blob. Resize the blob (page blob only).
+                                   // These operations can be done for every blob in the container
+                                   // if the resourceType is a container.
+       delete:            false,   // Delete the blob or any blob in the container
+                                   // if the resourceType is a container.
+       list:              false,   // List blobs in the container.
+     }
+   }],
+   leaseId: '...',                 // GUID string; lease unique identifier (optional)
+   ifModifiedSince: new Date(),    // Specify this to perform the operation only if the resource has
+                                   // been modified since the specified time. (optional)
+   ifUnmodifiedSince: new Date(),  // Specify this to perform the operation only if the resource has
+                                   // not been modified since the specified date/time. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>a promise for metadata key/value pair
+A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the container
+     lastModified: '...',       // The date/time the container was last modified
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setContainerMetadata" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setContainerMetadata</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>name</code>
+				</li>
+				<li class="arg">
+						<code>metadata</code>
+				</li>
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l772"><code>lib&#x2F;blob.js:772</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Sets metadata for the specified container.
+Overwrites all existing metadata that is associated with the container.</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">name</code>
+						<span class="type">String</span>
+
+
+					<div class="param-description"><ul>
+<li>Name of the container to set metadata on</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">metadata</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Mapping from metadata keys to values.</li>
+</ul>
+</div>
+
+				</li>
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form</li>
+</ul>
+<pre><code class="language-js">{
+   leaseId: '...',               // Lease unique identifier. A GUID string.(optional)
+   ifModifiedSince: new Date(),  // Specify this to perform the operation only if the resource has been
+                                 // modified since the specified time. (optional)
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>a promise for metadata key/value pair
+A promise for an object on the form:</p>
+<pre><code class="language-js">{
+     eTag: '...',               // The entity tag of the container
+     lastModified: '...',       // The date/time the container was last modified
+}
+</code></pre>
+
+			</div>
+		</div>
+
+</div>
+<div id="method-setServiceProperties" class="method item">
+	<div class="method-signature">
+	<span class="name"><code>setServiceProperties</code></span>
+
+		<div class="args">
+			<span class="paren">(</span><ul class="args-list inline commas">
+				<li class="arg">
+						<code>options</code>
+				</li>
+			</ul><span class="paren">)</span>
+		</div>
+		<span class="returns-inline">
+			<span class="type">Promise</span>
+		</span>
+	</div>
+
+
+
+
+
+
+	<div class="meta">
+				<p>
+				Defined in
+		<a href="../files/lib_blob.js.html#l442"><code>lib&#x2F;blob.js:442</code></a>
+		</p>
+
+
+
+	</div>
+
+	<div class="description"><p>Sets properties for a storage account’s Blob service endpoint</p>
+</div>
+
+		<div class="params">
+			<h4>Parameters:</h4>
+
+			<ul class="params-list">
+				<li class="param">
+						<code class="param-name">options</code>
+						<span class="type">Object</span>
+
+
+					<div class="param-description"><ul>
+<li>Options on the following form:</li>
+</ul>
+<pre><code class="language-js">{
+   logging: {                 // The Azure Analytics Logging settings.
+     version: '...',          // The version of Storage Analytics to configure (required if logging specified)
+     delete: true|false,      // Indicates whether all delete requests should be logged
+                              // (required if logging specified)
+     read: true|false,        // Indicates whether all read requests should be logged
+                              // (required if logging specified)
+     write: true|false,       // Indicates whether all write requests should be logged
+                              // (required if logging specified)
+     retentionPolicy: {
+       enabled: true|false,   // Indicates whether a retention policy is enabled for the
+                              // storage service. (required)
+       days: '...',           // Indicates the number of days that metrics or logging data should be retained.
+                              // Required only if a retention policy is enabled.
+     },
+   },
+   hourMetrics: {             // The Azure Analytics HourMetrics settings
+     version: '...',          // The version of Storage Analytics to configure
+                              // (required if hourMetrics specified)
+     enabled: true|false,     // Indicates whether metrics are enabled for the Blob service
+                              //(required if hourMetrics specified).
+     includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API
+                              // operations (Required only if metrics are enabled).
+     retentionPolicy: {
+       enabled: true|false,
+       days: '...',
+     },
+   },
+   minuteMetrics: {           // The Azure Analytics MinuteMetrics settings
+     version: '...',          // The version of Storage Analytics to configure
+                              // (required if minuteMetrics specified)
+     enabled: true|false,     // Indicates whether metrics are enabled for the Blob service
+                              // (required if minuteMetrics specified).
+     includeAPIs: true|false, // Indicates whether metrics should generate summary statistics for called API
+                              // operations (Required only if metrics are enabled).
+     retentionPolicy: {
+       enabled: true|false,
+       days: '...',
+     },
+   },
+   corsRules: [{              // CORS rules
+     allowedOrigins: [],      // A list of origin domains that will be allowed via CORS,
+                              // or "*" to allow all domains
+     allowedMethods: [],      // List of HTTP methods that are allowed to be executed by the origin
+     maxAgeInSeconds: [],     // The number of seconds that the client/browser should cache a
+                              // preflight response
+     exposedHeaders: [],      // List of response headers to expose to CORS clients
+     allowedHeaders: [],      // List of headers allowed to be part of the cross-origin request
+   }]
+}
+</code></pre>
+</div>
+
+				</li>
+			</ul>
+		</div>
+
+		<div class="returns">
+			<h4>Returns:</h4>
+
+			<div class="returns-description">
+						<span class="type">Promise</span>:
+					<p>A promise that the properties have been set</p>
+
+			</div>
+		</div>
+
+</div>
+        </div>
+    </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery/jquery-1.8.2.min.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.js"></script>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script src="../assets/js/yuidoc-bootstrap.js"></script>
+<script>prettyPrint();</script>
+</body>
+</html>
