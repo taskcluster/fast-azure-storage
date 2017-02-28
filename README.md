@@ -7,7 +7,7 @@ This library implements a low-level and highly optimized interface to Azure
 Storage Services. Existing node libraries for Azure suffers of excessive
 complexity, dependencies, being slow and not managing connection correctly.
 
-At this point this library implement most of the APIs for queue and table
+At this point this library implement most of the APIs for queue, table and blob
 storage. Pull request with additional feature additions will generally be
 accepted, as long as patches don't compromise efficiency.
 
@@ -18,7 +18,7 @@ or extensive comments in the sources.
 
 Common Client Options
 ---------------------
-Both `Queue` and `Table` takes a range of common configuration options.
+All three clients, `Queue`, `Table` and `Blob`, take a range of common configuration options.
 
 ### Authentication Options
 The following example illustrates how to create clients using
@@ -33,9 +33,10 @@ var options = {
   accessKey:          '...'
 };
 
-// Create queue and table clients
+// Create queue, table and blob clients
 var queue = new azure.Queue(options);
 var table = new azure.Table(options);
+var blob  = new azure.Blob(options);
 ```
 
 It's also possible to configure clients with **Shared-Access-Signatures** as
@@ -65,7 +66,7 @@ var options = {
 ### Custom HTTPS Agent Configuration
 The fast-azure-storage library comes with a custom `https.Agent` implementation,
 optimized for Azure Storage service to reduce latency and avoid errors.
-By default both `Table` and `Queue` clients will use a global instance of this
+By default,`Blob`,`Table` and `Queue` clients will use a global instance of this
 custom agent configured to allow 100 connections per host.
 
 You may override this behavior by supplying your own `agent` as follows.
@@ -175,3 +176,61 @@ See also [reference documentation](https://taskcluster.github.io/fast-azure-stor
  * `Queue#updateMessage(queue, text, messageId, popReceipt, options)`
  * `Queue#sas(queue, options)`
 
+Azure Blob Storage Client
+--------------------------
+The Azure Blob Storage client aims at interfacing Azure Blob Storage.
+Using this client, text and binary data can be stored in one of the following types
+of blob:
+* Block blobs, which are optimized for upload large blobs
+* Append blobs, which are optimized for append operations, making it ideal for
+eg. logging, auditing
+
+Simple example of a container and blob creation.
+```js
+// Load fast-azure-storage client
+var azure = require('fast-azure-storage');
+
+var blob = new azure.Blob({
+  accountId:    '...',
+  accessKey:    '...'
+});
+
+var blobContent = 'Sample content'; // The content can be a string or a Buffer
+// Create container and upload a blob
+blob.createContainer('mycontainer').then(function() {
+  return blob.putBlob('mycontainer', 'myblob', {
+    type:  'BlockBlob',     // Type of the blob 
+  }, blobContent);
+});
+```
+
+### Blob API Reference
+
+See also [reference documentation](https://taskcluster.github.io/fast-azure-storage/).
+
+ * `Blob(options)`
+ * `Blob#setServiceProperties(options)`
+ * `Blob#getServiceProperties()`
+ * `Blob#createContainer(name, options)`
+ * `Blob#setContainerMetadata(name, metadata, options)`
+ * `Blob#getContainerMetadata(name, options)`
+ * `Blob#deleteContainer(name, options)`
+ * `Blob#listContainers(options)`
+ * `Blob#getContainerProperties(name, options)`
+ * `Blob#getContainerACL(name, options)`
+ * `Blob#setContainerACL(name, options)`
+ * `Blob#listBlobs(container, options)`
+ * `Blob#leaseContainer(name, options)`
+ * `Blob#putBlob(container, blob, options, content)`
+ * `Blob#getBlob(container, blob, options)`
+ * `Blob#getBlobProperties(container, blob, options)`
+ * `Blob#setBlobProperties(container, blob, options)`
+ * `Blob#getBlobMetadata(container, blob, options)`
+ * `Blob#setBlobMetadata(container, blob, metadata, options)`
+ * `Blob#deleteBlob(container, blob, options)`
+ * `Blob#putBlock(container, blob, options, content)`
+ * `Blob#putBlockList(container, blob, options)`
+ * `Blob#getBlockList(container, blob, options)`
+ * `Blob#getBlockId(prefix, blockNumber, length)`
+ * `Blob#appendBlock(container, blob, options, content)`
+ * `Blob#sas(container, blob, options)`

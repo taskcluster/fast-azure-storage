@@ -226,4 +226,39 @@ suite("Utils", function() {
     assert(utils.dateToISOWithoutMS(date) === '2015-07-23T20:53:51Z',
            "Expected '2015-07-23T20:53:51Z' but got something else");
   });
+
+  test("isValidGUID", function() {
+    var value = 'f11489dc-f5bb-4eee-a205-b6bbe3a09cc5';
+    assert(utils.isValidGUID(value));
+
+    var value = '   f11\f489dc-f5  bb- 4eee-a2 05-b6bbe3a\n09cc5\r';
+    assert(utils.isValidGUID(value));
+
+    var value = 'f114-f5-4ee-a-000b6bbe3a0';
+    assert(utils.isValidGUID(value));
+
+    var value = '{f11489dc-f5bb-4eee-a205-b6bbe3a09cc5}';
+    assert(utils.isValidGUID(value));
+
+    var value = 'f11489dc-f5bb-4eee-a205-b6bbe3a09cc5}';
+    assert(utils.isValidGUID(value) === false);
+
+    var value = '{f114-f5-4ee-a-000b6bbe3a0}';
+    assert(utils.isValidGUID(value));
+
+    var value = '(f11489dc-f5bb-4eee-a205-b6bbe3a09cc5)';
+    assert(utils.isValidGUID(value));
+
+    var value = '(f11489dc-f5bb-4eee-a205-b6bbe3a09cc5';
+    assert(utils.isValidGUID(value) ===  false);
+
+    var value = '(f114-f5-4ee-a-000b6bbe3a0)';
+    assert(utils.isValidGUID(value));
+
+    var value = '{0xf11489dc,0xf5bb,0x4eee,{0xa2,0x05,0xb6,0xbb,0xe3,0xa0,0x9c,0xc5}}';
+    assert(utils.isValidGUID(value));
+
+    var value = '{0xf11489dc,f5bb,0x4eee,{0xa2,0x05,0xb6,0xbb,0xe3,0xa0,0x9c,0xc5}}';
+    assert(utils.isValidGUID(value) === false);
+  });
 });
