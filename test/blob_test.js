@@ -565,10 +565,6 @@ suite("Azure Blob", function() {
       }).catch(function (error) {
         assert(error.code === 'ConditionNotMet');
         assert(error.statusCode === 412);
-
-        return utils.sleep(1000);
-      }).then(function () {
-        return blob.deleteContainer(containerName, {ifUnmodifiedSince: new Date(Date.now())});
       });
     });
 
