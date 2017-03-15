@@ -1,6 +1,6 @@
 {
   "name": "fast-azure-storage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Jonas Finnemann Jensen <jopsen@gmail.com>, Elena Solomon <elenasolomon28@gmail.com>",
   "description": "Fast client library for azure storage services",
   "license": "MPL-2.0",
@@ -19,16 +19,16 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "promise": "^7.0.4",
-    "pixl-xml": "^1.0.10"
+    "pixl-xml": "^1.0.10",
+    "promise": "^7.0.4"
   },
   "optionalDependencies": {
     "libxmljs": "^0.18.0"
   },
   "devDependencies": {
-    "mocha": "^2.2.1",
     "jsdoc": "^3.3.0-beta3",
-    "yuidocjs": "^0.9.0",
-    "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme"
+    "mocha": "^2.2.1",
+    "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
+    "yuidocjs": "^0.9.0"
   }
 }
