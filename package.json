@@ -18,9 +18,9 @@
     "node": ">=4"
   },
   "dependencies": {
-    "debug": "^2.2.0",
-    "pixl-xml": "^1.0.10",
-    "promise": "^7.0.4"
+    "debug": "^3.1.0",
+    "pixl-xml": "^1.0.13",
+    "promise": "^8.0.1"
   },
   "optionalDependencies": {
     "libxmljs": "^0.18.7"
