@@ -3,12 +3,12 @@ suite("Table", function() {
   var Promise = require('promise');
   var azure   = require('../');
   var utils   = require('../lib/utils');
+  var config  = require('typed-env-config');
+
+  var cfg = config({});
 
   // Create azure table client
-  var table = new azure.Table({
-    accountId:  process.env.AZURE_STORAGE_ACCOUNT,
-    accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
-  });
+  var table = new azure.Table(cfg);
 
   // Table name for testing
   var tableName     = 'fastAzureStorageTestTable';
