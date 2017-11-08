@@ -26,10 +26,10 @@
     "libxmljs": "^0.18.7"
   },
   "devDependencies": {
-    "jsdoc": "^3.3.0-beta3",
-    "mocha": "^2.2.1",
+    "jsdoc": "^3.5.5",
+    "mocha": "^4.0.1",
     "typed-env-config": "^1.1.1",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
-    "yuidocjs": "^0.9.0"
+    "yuidocjs": "^0.10.2"
   }
 }
