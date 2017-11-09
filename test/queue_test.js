@@ -3,6 +3,9 @@ suite("Queue", function() {
   var Promise = require('promise');
   var azure   = require('../');
   var utils   = require('../lib/utils');
+  var config  = require('typed-env-config');
+
+  var cfg = config({});
 
   // Hack overwriting methods on xml-parser to call both libxmljs and xmljs
   // based parsers so we can compare their result and assert it is the same.
@@ -24,10 +27,7 @@ suite("Queue", function() {
   });
 
   // Create azure queue client
-  var queue = new azure.Queue({
-    accountId:  process.env.AZURE_STORAGE_ACCOUNT,
-    accessKey:  process.env.AZURE_STORAGE_ACCESS_KEY
-  });
+  var queue = new azure.Queue(cfg);
 
   // Queue to play with (change these when changing metadata)
   var queueName     = 'fast-azure-test-queue-v2';

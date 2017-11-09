@@ -1,10 +1,8 @@
 language: node_js
 sudo: false
 node_js:
-- '0.12'
-- '4'
-- '6'
 - '7'
+- '8'
 addons:
   apt:
     sources:
@@ -30,6 +28,7 @@ notifications:
 deploy:
   provider: npm
   email: taskcluster-accounts@mozilla.com
+  skip_cleanup: true
   api_key:
     secure: A2RXl34pn8/zgyrO4IuEFx8FhDYLXKT2UYjEaDowKq9+cmkGfx6f3ZAqvJoAyBM3tCYtGPKKDD5FtWxjp/XNDmVnvuKC5sYKk0n2mvde/SGzA8RvkLgxBa3vs7kOPncl5UORdizsjhwWp5FWrsmpcw5MB4WVarj6IiuZqZeDjVw=
   on:

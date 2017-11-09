@@ -2,15 +2,15 @@ suite("Azure Blob", function() {
   var azure   = require('../');
   var assert  = require('assert');
   var utils   = require('../lib/utils');
+  var config  = require('typed-env-config');
+
+  var cfg = config({});
 
   // Create azure blob client
-  var blob = new azure.Blob({
-    accountId: process.env.AZURE_STORAGE_ACCOUNT,
-    accessKey: process.env.AZURE_STORAGE_ACCESS_KEY
-  });
+  var blob = new azure.Blob(cfg);
 
   var anonymousBlob = new azure.Blob({
-    accountId: process.env.AZURE_STORAGE_ACCOUNT,
+    accountId: cfg.accountId,
     accountKey: null
   });
 

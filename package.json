@@ -18,17 +18,18 @@
     "node": ">=4"
   },
   "dependencies": {
-    "debug": "^2.2.0",
-    "pixl-xml": "^1.0.10",
-    "promise": "^7.0.4"
+    "debug": "^3.1.0",
+    "pixl-xml": "^1.0.13",
+    "promise": "^8.0.1"
   },
   "optionalDependencies": {
-    "libxmljs": "^0.18.0"
+    "libxmljs": "^0.18.7"
   },
   "devDependencies": {
-    "jsdoc": "^3.3.0-beta3",
-    "mocha": "^2.2.1",
+    "jsdoc": "^3.5.5",
+    "mocha": "^4.0.1",
+    "typed-env-config": "^1.1.1",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
-    "yuidocjs": "^0.9.0"
+    "yuidocjs": "^0.10.2"
   }
 }
