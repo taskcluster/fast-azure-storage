@@ -391,7 +391,7 @@ suite("Azure Blob", function() {
       var refreshSAS = function() {
         refreshCount += 1;
         return blob.sas(containerName, null, {
-          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 1000),
           resourceType: 'container',
           permissions: {
             read: true,
@@ -410,11 +410,11 @@ suite("Azure Blob", function() {
       });
       return blobWithSas.listBlobs(containerName, {}).then(function() {
         assert(refreshCount === 1);
-        return utils.sleep(200);
+        return utils.sleep(2000);
       }).then(function() {
         return blobWithSas.listBlobs(containerName, {});
       }).then(function() {
-        assert(refreshCount === 2);
+        assert.equal(refreshCount, 2);
       });
     });
 
