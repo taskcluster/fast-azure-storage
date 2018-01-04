@@ -632,7 +632,7 @@ suite("Table", function() {
     var refreshSAS = function() {
       refreshCount += 1;
       return table.sas(tableName, {
-        expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+        expiry:   new Date(Date.now() + 15 * 60 * 1000 + 1000),
         permissions: {
           read:   true,
           add:    true,
@@ -653,7 +653,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return utils.sleep(2000);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -691,7 +691,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return utils.sleep(1000);
     }).then(function() {
       return table2.insertEntity(tableName, {
         PartitionKey:       pk,
@@ -709,7 +709,7 @@ suite("Table", function() {
       refreshCount += 1;
       return utils.sleep(100).then(function() {
         return table.sas(tableName, {
-          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 1000),
           permissions: {
             read:   true,
             add:    true,
@@ -731,7 +731,7 @@ suite("Table", function() {
       value:              'some-value',
     }).then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return utils.sleep(2000);
     }).then(function() {
       return Promise.all([
         table2.insertEntity(tableName, {
@@ -747,7 +747,7 @@ suite("Table", function() {
       ]);
     }).then(function() {
       // Refreshes should only happen once, not twice in parallel
-      assert(refreshCount === 2);
+      assert.equal(refreshCount, 2);
     });
   });
 

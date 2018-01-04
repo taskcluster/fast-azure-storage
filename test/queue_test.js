@@ -284,7 +284,7 @@ suite("Queue", function() {
     var refreshSAS = function() {
       refreshCount += 1;
       return queue.sas(queueName, {
-        expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+        expiry:   new Date(Date.now() + 15 * 60 * 1000 + 1000),
         permissions: {
           read:     true,
           add:      true,
@@ -300,11 +300,11 @@ suite("Queue", function() {
     });
     return queue2.putMessage(queueName, 'my-message').then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return utils.sleep(2000);
     }).then(function() {
       return queue2.putMessage(queueName, 'my-message')
     }).then(function() {
-      assert(refreshCount === 2);
+      assert.equal(refreshCount, 2);
     });
   });
 
@@ -337,13 +337,13 @@ suite("Queue", function() {
     });
   });
 
-  test("Shared-Access-Signature (will refresh)", function() {
+  test("Shared-Access-Signature (will refresh, slower refresh)", function() {
     var refreshCount = 0;
     var refreshSAS = function() {
       refreshCount += 1;
       return utils.sleep(100).then(function() {
         return queue.sas(queueName, {
-          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 100),
+          expiry:   new Date(Date.now() + 15 * 60 * 1000 + 1000),
           permissions: {
             read:     true,
             add:      true,
@@ -360,7 +360,7 @@ suite("Queue", function() {
     });
     return queue2.putMessage(queueName, 'my-message').then(function() {
       assert(refreshCount === 1);
-      return utils.sleep(200);
+      return utils.sleep(2000);
     }).then(function() {
       return Promise.all([
         queue2.putMessage(queueName, 'my-message-1'),
