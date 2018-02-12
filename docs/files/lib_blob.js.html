@@ -1719,7 +1719,7 @@ Blob.prototype.putBlob = function putBlob(container, blob, options, content) {
     return {
       eTag: response.headers[&#x27;etag&#x27;],
       lastModified: new Date(response.headers[&#x27;last-modified&#x27;]),
-      contentMd5: response.headers[&#x27;content-md5&#x27;]
+      contentMD5: response.headers[&#x27;content-md5&#x27;]
     }
   });
 };
