@@ -31,7 +31,7 @@ deploy:
   email: taskcluster-accounts@mozilla.com
   skip_cleanup: true
   api_key:
-    secure: A2RXl34pn8/zgyrO4IuEFx8FhDYLXKT2UYjEaDowKq9+cmkGfx6f3ZAqvJoAyBM3tCYtGPKKDD5FtWxjp/XNDmVnvuKC5sYKk0n2mvde/SGzA8RvkLgxBa3vs7kOPncl5UORdizsjhwWp5FWrsmpcw5MB4WVarj6IiuZqZeDjVw=
+    secure: "UF8Y/5fNQyUzmWtCjv35OWogLgTZU6ZWDuicwlO5sgS4A6Ih6U7fspz8oFFVzn1MBU2PvKAbWGJ6dWWO56HlOSXhujL2gcAoXR0U247vDWGmSdIGIdmgCP2SRk8TrZrn+qLX3pPOrFbxMCwca/GvNF8CV7/Vd9AE/rdTwMdXDMs="
   on:
     tags: true
     repo: taskcluster/fast-azure-storage
