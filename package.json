@@ -1,6 +1,6 @@
 {
   "name": "fast-azure-storage",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "author": "Jonas Finnemann Jensen <jopsen@gmail.com>, Elena Solomon <elenasolomon28@gmail.com>",
   "description": "Fast client library for azure storage services",
   "license": "MPL-2.0",
