@@ -13,8 +13,6 @@ addons:
 env:
   global:
   - CXX=g++-4.8
-  - secure: OCRGkJ4DhmwEboxmy5GYXp9W0EV3MjuCWkV9HUsHMH06kIhG56TpKK1ebecprBW3MUlZO/UNdRCyKz8hNzGGeYDpdUg4UbBQT6jL365wE0p5u+6AZ111Dcu0NEJt0mchSEC54N8aaI4lv2w1FRuhggwfVqYE849vTIY1cRJDaHE=
-  - secure: B3DSMqcK4FDj5nPlWFtXoYIazPXsZlrHR23aY1XaFqWtjJPZ/4gLBgxI1rx2PXXwYbbgYN93wpkVxeFJ2sF9wqpzXCFEZ9ewKhjF0h7zze/LPhIaW5RfrFlfMIvSeHJB5L1bsL2lHbpAHUSBoyN8GDkjnjAqKXISjXqy6EaRUKw=
 notifications:
   irc:
     channels:
