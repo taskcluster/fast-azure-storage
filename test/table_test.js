@@ -844,4 +844,46 @@ suite("Table", function() {
     var expected = "guid'de305d54-75b4-431b-adb2-eb6b9e546014'";
     assert(val === expected, "Expected '" + expected + "' got '" + val + "'");
   });
+
+  test("failing sas function is retried", function() {
+    var realSas = table.sas(tableName, {
+      start:    new Date(Date.now() - 15 * 60 * 1000),
+      expiry:   new Date(Date.now() + 30 * 60 * 1000),
+      permissions: {
+        read:   true,
+        add:    true,
+        update: true,
+        delete: true
+      }
+    });
+    var sasFails = true;
+    var badSas = function() {
+      if (sasFails) {
+        return Promise.reject(new Error('uhoh'));
+      }
+      return realSas;
+    };
+    var table2 = new azure.Table({
+      accountId:    table.options.accountId,
+      sas:          badSas
+    });
+    var pk = 'test-pk-' + Math.random();
+    var rk = 'rk';
+    var insert = {PartitionKey: pk, RowKey: rk, value: 'v'};
+    return table2.insertEntity(tableName, insert)
+    .then(function() {
+      throw new Error('expected an error');
+    }, function(err) {
+      // check that this was the expected error
+      if (!/uhoh/.test(err.toString())) {
+        throw err;
+      }
+    })
+    .then(function() {
+      // make another insert attempt, this time allowing the SAS
+      // request to succeed
+      sasFails = false;
+      return table2.insertEntity(tableName, insert);
+    });
+  });
 });
