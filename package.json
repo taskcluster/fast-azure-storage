@@ -26,7 +26,7 @@
     "promise": "^8.0.1"
   },
   "optionalDependencies": {
-    "libxmljs": "^0.18.7"
+    "libxmljs": "^0.19.5"
   },
   "devDependencies": {
     "jsdoc": "^3.5.5",
