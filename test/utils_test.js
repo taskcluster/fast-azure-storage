@@ -1,6 +1,5 @@
 suite("Utils", function() {
   var assert  = require('assert');
-  var Promise = require('promise');
   var utils   = require('../lib/utils');
   var https   = require('https');
   var fs      = require('fs');
