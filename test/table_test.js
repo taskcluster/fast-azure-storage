@@ -1,6 +1,5 @@
 suite("Table", function() {
   var assert  = require('assert');
-  var Promise = require('promise');
   var azure   = require('../');
   var utils   = require('../lib/utils');
   var config  = require('typed-env-config');
