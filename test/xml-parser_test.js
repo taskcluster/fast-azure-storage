@@ -7,7 +7,7 @@ const stripWS = xml =>
   xml.replace(/>[ \n]*</g, '><');
 
 suite('xml-parser', function() {
-  for (let parser of ['pixl-xml-parser', 'libxmljs-parser']) {
+  for (let parser of ['xml2js-parser', 'pixl-xml-parser', 'libxmljs-parser']) {
     let xml;
     try {
       xml = require(`../lib/xml-parser/${parser}`);
@@ -438,6 +438,9 @@ suite('xml-parser', function() {
                   <LeaseState>available</LeaseState>
                   <ServerEncrypted>true</ServerEncrypted>
                 </Properties>
+                <Metadata>
+                  <purpose>testing</purpose>
+                </Metadata>
               </Blob>
             </Blobs>
         </EnumerationResults>`);
@@ -470,9 +473,23 @@ suite('xml-parser', function() {
             leaseStatus: 'unlocked',
             name: 'tempBlockBlob_if_none_matching_conditional_header',
             serverEncrypted: 'true',
-            type: 'BlockBlob'
+            type: 'BlockBlob',
+            metadata: {purpose: 'testing'},
           }],
           prefix: 'tempBlockBlob'
+        });
+      });
+
+      test('blobParseListBlock empty', function() {
+        const payload = stripWS(`<?xml version="1.0" encoding="utf-8"?>
+          <BlockList>
+            <CommittedBlocks />
+            <UncommittedBlocks />
+          </BlockList>`);
+
+        assert.deepEqual(xml.blobParseListBlock({payload}), {
+          committedBlocks: [],
+          uncommittedBlocks: [],
         });
       });
 
