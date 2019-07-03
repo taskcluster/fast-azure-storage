@@ -21,13 +21,19 @@
     "node": ">=4"
   },
   "dependencies": {
-    "debug": "^3.1.0",
+    "debug": "^4.1.1",
     "xml2js": "^0.4.19"
   },
+  "resolutions": {
+    "yuidocjs/**/request": "^2.88.0",
+    "yuidocjs/**/fresh": "^0.5.2",
+    "yuidocjs/**/forwarded": "^0.1.2",
+    "yuidocjs/**/mime": "^1.4.1"
+  },
   "devDependencies": {
-    "jsdoc": "^3.5.5",
-    "mocha": "^4.0.1",
-    "typed-env-config": "^1.1.1",
+    "jsdoc": "^3.6.2",
+    "mocha": "^6.1.4",
+    "typed-env-config": "^3.0.0",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "^0.10.2"
   }
