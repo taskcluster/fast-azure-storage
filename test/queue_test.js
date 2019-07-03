@@ -6,25 +6,6 @@ suite("Queue", function() {
 
   var cfg = config({});
 
-  // Hack overwriting methods on xml-parser to call both libxmljs and xmljs
-  // based parsers so we can compare their result and assert it is the same.
-  var libxmljsParser = require('../lib/xml-parser/libxmljs-parser');
-  var pixlXmlParser = require('../lib/xml-parser/pixl-xml-parser');
-  var xml = require('../lib/xml-parser');
-  Object.keys(xml).forEach(function(method) {
-    // Store methods here as we are overwriting one of these objects!
-    var m1 = libxmljsParser[method];
-    var m2 = pixlXmlParser[method];
-    xml[method] = function(res) {
-      assert.deepEqual(
-        m1(res),
-        m2(res),
-        "Expected libxmljs and pixl-xml based parsers to return the same!"
-      );
-      return m1(res);
-    };
-  });
-
   // Create azure queue client
   var queue = new azure.Queue(cfg);
 

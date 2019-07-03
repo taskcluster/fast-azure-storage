@@ -134,10 +134,7 @@ See also [reference documentation](https://taskcluster.github.io/fast-azure-stor
 
 Azure Queue Storage Client
 --------------------------
-The Azure Storage Queue client aims at interfacing Azure Queue Storage
-and handling all the XML parsing using `libxmljs` if available, if `libxmljs`
-isn't available it'll fall-back to use `pixl-xml` which is a pure Javascript,
-but also a tiny bit slower.
+The Azure Storage Queue client aims at interfacing Azure Queue Storage.
 
 Simple example of queue and message creation.
 ```js
