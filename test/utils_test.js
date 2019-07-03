@@ -7,7 +7,7 @@ suite("Utils", function() {
 
   // Server for testing utils.request
   var server = null;
-  before(function() {
+  suiteSetup(function() {
     server = https.createServer({
       key:  fs.readFileSync(path.join(__dirname, 'certs', 'server.key')),
       cert: fs.readFileSync(path.join(__dirname, 'certs', 'server.crt'))
@@ -47,7 +47,7 @@ suite("Utils", function() {
     });
   });
 
-  after(function() {
+  suiteTeardown(function() {
     return new Promise(function(accept, reject) {
       server.on('close', accept);
       server.on('error', reject);
