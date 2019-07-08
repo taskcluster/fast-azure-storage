@@ -148,6 +148,13 @@ suite('xml-parser', function() {
     ]);
   });
 
+  test('queueParseGetMessages none', function() {
+    const payload = stripWS(`<?xml version="1.0" encoding="utf-8"?>
+      <QueueMessagesList>
+      </QueueMessagesList>`);
+    assert.deepEqual(xml.queueParseGetMessages({payload}), []);
+  });
+
   test('queueParseGetMessages single', function() {
     const payload = stripWS(`<?xml version="1.0" encoding="utf-8"?>
       <QueueMessagesList>
