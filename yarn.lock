@@ -724,7 +724,7 @@ jsbn@~0.1.0:
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
-jsdoc@^3.6.2:
+jsdoc@3.6.2:
   version "3.6.2"
   resolved "https://registry.yarnpkg.com/jsdoc/-/jsdoc-3.6.2.tgz#ee289fc6ba9263b7e4eceb99921179fe1c31489a"
   integrity sha512-S2vzg99C5+gb7FWlrK4TVdyzVPGGkdvpDkCEJH1JABi2PKzPeLu5/zZffcJUifgWUJqXWl41Hoc+MmuM2GukIg==
@@ -950,7 +950,7 @@ mkdirp@0.5.1, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mocha@^6.1.4:
+mocha@6.1.4:
   version "6.1.4"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-6.1.4.tgz#e35fada242d5434a7e163d555c705f6875951640"
   integrity sha512-PN8CIy4RXsIoxoFJzS4QNnCH4psUCPWc4/rPrst/ecSJJbLBkubMiyGCP2Kj/9YnWbotFqAoeXyXMucj7gwCFg==
@@ -1457,7 +1457,7 @@ type-is@~1.6.14:
     media-typer "0.3.0"
     mime-types "~2.1.13"
 
-typed-env-config@^3.0.0:
+typed-env-config@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/typed-env-config/-/typed-env-config-3.0.0.tgz#5c14aaf616d8e5cb291dac4f1c071dab7a87bde5"
   integrity sha512-58QZ5bgwyXYO4utpYz2R6qem1YkFJYUQ11nuQasnEvpo0lL2h6N8clnpr3UNsYBVXjPfmAFMrBz/lW95Tqf13g==
@@ -1651,7 +1651,7 @@ yuidoc-lucid-theme@jonasfj/yuidoc-lucid-theme:
   version "0.1.1"
   resolved "https://codeload.github.com/jonasfj/yuidoc-lucid-theme/tar.gz/32bedfa8d9aba86c7265bfc48e80c674b6e237e7"
 
-yuidocjs@^0.10.2:
+yuidocjs@0.10.2:
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/yuidocjs/-/yuidocjs-0.10.2.tgz#33924967ce619024cd70ef694e267d2f988f73f6"
   integrity sha1-M5JJZ85hkCTNcO9pTiZ9L5iPc/Y=
