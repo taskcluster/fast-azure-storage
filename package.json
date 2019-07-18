@@ -31,10 +31,10 @@
     "yuidocjs/**/mime": "^1.4.1"
   },
   "devDependencies": {
-    "jsdoc": "^3.6.2",
-    "mocha": "^6.1.4",
-    "typed-env-config": "^3.0.0",
+    "jsdoc": "3.6.2",
+    "mocha": "6.1.4",
+    "typed-env-config": "3.0.0",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
-    "yuidocjs": "^0.10.2"
+    "yuidocjs": "0.10.2"
   }
 }
