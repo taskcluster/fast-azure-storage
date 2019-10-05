@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "jsdoc": "3.6.3",
-    "mocha": "6.2.0",
+    "mocha": "6.2.1",
     "typed-env-config": "3.0.0",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
