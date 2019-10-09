@@ -1,17 +1,18 @@
+const azure = require('../');
+const assert = require('assert');
+const utils = require('../lib/utils');
+const helpers = require('./helpers');
+
 suite("Azure Blob", function() {
-  var azure   = require('../');
-  var assert  = require('assert');
-  var utils   = require('../lib/utils');
-  var config  = require('typed-env-config');
-
-  var cfg = config({});
-
   // Create azure blob client
-  var blob = new azure.Blob(cfg);
+  let blob, anonymousBlob;
 
-  var anonymousBlob = new azure.Blob({
-    accountId: cfg.accountId,
-    accountKey: null
+  suiteSetup(function() {
+    blob = new azure.Blob(helpers.credentials);
+    anonymousBlob = new azure.Blob({
+      ...helpers.credentials, 
+      accessKey: null
+    });
   });
 
   var containerNamePrefix = 'fast-azure-blob-container';

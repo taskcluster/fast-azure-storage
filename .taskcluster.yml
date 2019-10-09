@@ -1,39 +1,42 @@
-version: 0
-metadata:
-  name: fast-azure-storage
-  description: 'Helpers for testing taskcluster'
-  owner: '{{ event.head.user.email }}'
-  source: '{{ event.head.repo.url }}'
+version: 1
+policy:
+  pullRequests: public
 tasks:
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - push
-        branches:
-          - master
+  $let:
+    head_rev:
+      $if: 'tasks_for == "github-pull-request"'
+      then: ${event.pull_request.head.sha}
+      else: ${event.after}
+    repository:
+      $if: 'tasks_for == "github-pull-request"'
+      then: ${event.pull_request.head.repo.html_url}
+      else: ${event.repository.html_url}
+  in:
+  - provisionerId: 'proj-taskcluster'
+    workerType: 'ci'
+    created: {$fromNow: ''}
+    deadline: {$fromNow: '1 hour'}
     scopes:
-      - auth:aws-s3:read-write:taskcluster-raw-docs/fast-azure-storage/
+      # it's OK that this secret is accessible in PRs
+      - secrets:get:project/taskcluster/testing/azure
     payload:
       maxRunTime: 3600
-      image: taskcluster/upload-project-docs:latest
+      image: node:10
       features:
-        taskclusterProxy:
-          true
+        taskclusterProxy: true
       command:
         - /bin/bash
         - '--login'
-        - '-cx'
+        - '-c'
         - >-
-          git clone {{event.head.repo.url}} repo &&
+          git clone ${repository} repo &&
           cd repo &&
           git config advice.detachedHead false &&
-          git checkout {{event.head.sha}} &&
-          export DOCS_PROJECT=fast-azure-storage DOCS_TIER=libraries DOCS_FOLDER=docs DOCS_README=README.md &&
-          upload-project-docs
+          git checkout ${head_rev} &&
+          yarn &&
+          yarn test
     metadata:
-      name: "fast-azure-storage docs upload"
-      description: "Upload documentation for this project"
-      owner: '{{ event.head.user.email }}'
-      source: '{{ event.head.repo.url }}'
+      name: test
+      description: Tests for fast-azure-storage
+      owner: nobody@mozilla.com
+      source: https://github.com/taskcluster/fast-azure-storage

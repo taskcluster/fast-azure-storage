@@ -1,13 +1,14 @@
+const assert  = require('assert');
+const azure   = require('../');
+const utils   = require('../lib/utils');
+const helpers = require('./helpers');
+
 suite("Table", function() {
-  var assert  = require('assert');
-  var azure   = require('../');
-  var utils   = require('../lib/utils');
-  var config  = require('typed-env-config');
-
-  var cfg = config({});
-
   // Create azure table client
-  var table = new azure.Table(cfg);
+  let table;
+  suiteSetup(function() {
+    table = new azure.Table(helpers.credentials);
+  });
 
   // Table name for testing
   var tableName     = 'fastAzureStorageTestTable';

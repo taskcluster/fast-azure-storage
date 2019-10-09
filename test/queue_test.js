@@ -1,13 +1,14 @@
+const assert = require('assert');
+const azure = require('../');
+const utils = require('../lib/utils');
+const helpers = require('./helpers');
+
 suite("Queue", function() {
-  var assert  = require('assert');
-  var azure   = require('../');
-  var utils   = require('../lib/utils');
-  var config  = require('typed-env-config');
-
-  var cfg = config({});
-
   // Create azure queue client
-  var queue = new azure.Queue(cfg);
+  let queue;
+  suiteSetup(function() {
+    queue = new azure.Queue(helpers.credentials);
+  });
 
   // Queue to play with (change these when changing metadata)
   var queueName     = 'fast-azure-test-queue-v2';
