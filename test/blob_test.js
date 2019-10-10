@@ -15,7 +15,12 @@ suite("Azure Blob", function() {
     });
   });
 
-  var containerNamePrefix = 'fast-azure-blob-container';
+  // generate a reasonably-unique container name.  There is a task in
+  // https://github.com/taskcluster/taskcluster/blob/master/services/auth/test/cleanup.js]
+  // to clean these up if they are left around.
+  var rand = Math.floor(Math.random() * 1000).toString();
+  var containerNamePrefix = 'azure-blob-storage-test-' + rand;
+
   var date15MinAgo = new Date(Date.now() - 15 * 60 * 1000);
   var options = null;
   var containerName = null;
