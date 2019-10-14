@@ -1,4 +1,0 @@
----
-defaults:
-  accountId:  !env AZURE_STORAGE_ACCOUNT
-  accessKey:  !env AZURE_STORAGE_ACCESS_KEY
