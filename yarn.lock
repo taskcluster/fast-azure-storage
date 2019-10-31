@@ -1382,10 +1382,10 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@21.2.0:
-  version "21.2.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-21.2.0.tgz#a158022a46fcbfe595fc6ae861de7312ecfd2db2"
-  integrity sha512-VC6VEwTMrXF3Ei7Rk9XzGJlxEsDBTyHJtJCzZxysx6LOxvWOhjulgXH5IH7a5K59FncR7NsVhlW4H65o4uKt5w==
+taskcluster-client@21.3.0:
+  version "21.3.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-21.3.0.tgz#defb365cfef55ff7974171ac6557e2ab57f3579e"
+  integrity sha512-q2g0lrGqAT+BRIu21C2aqBNUddhl5VrDCJBx+9UC8yt9TCvZFofIOAzak9J2boVmWhP12ngmO4wZGIKrdS1HnA==
   dependencies:
     debug "^4.0.0"
     hawk "^7.0.10"
