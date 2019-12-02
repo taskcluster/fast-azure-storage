@@ -304,7 +304,7 @@ debug@3.2.6:
   dependencies:
     ms "^2.1.1"
 
-debug@^4.0.0, debug@^4.1.1:
+debug@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz#3b72260255109c6b589cee050f1d516139664791"
   integrity sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
@@ -1387,13 +1387,13 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@23.0.0:
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-23.0.0.tgz#31ce7f4936dcbc198ae39a6ef533f13b48a300e3"
-  integrity sha512-3z8lr73Kijy5ykLwCEa9YuCuucvioPfDB3f+H65qPpHgJVEdFpGPRYv5C4rOVk/gBdVm1ywScbhqz3gb5JTVrQ==
+taskcluster-client@24.0.0:
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-24.0.0.tgz#a633f6ec144d7f14d253c998a1750f9cc3ceb8d9"
+  integrity sha512-Wtdg3JtZLaz1tZvMXZhd3YLYLQgDjrsxSycJ5WD6ydUac6Nj8hQnN6/s6RbYcxSjqepeba3xGqqXLojbWDVdhg==
   dependencies:
     "@hapi/hawk" "^7.1.2"
-    debug "^4.0.0"
+    debug "^4.1.1"
     lodash "^4.17.4"
     slugid "^2.0.0"
     superagent "^5.0.0"
