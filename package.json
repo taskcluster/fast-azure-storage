@@ -28,7 +28,7 @@
     "yuidocjs/**/request": "^2.88.0",
     "yuidocjs/**/fresh": "^0.5.2",
     "yuidocjs/**/forwarded": "^0.1.2",
-    "yuidocjs/**/mime": "^1.4.1"
+    "yuidocjs/**/mime": "^2.0.0"
   },
   "devDependencies": {
     "jsdoc": "3.6.3",
