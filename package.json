@@ -33,8 +33,22 @@
   "devDependencies": {
     "jsdoc": "3.6.4",
     "mocha": "7.1.1",
-    "taskcluster-client": "29.0.0",
+    "taskcluster-client": "29.0.1",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
+  },
+  "renovate": {
+    "packageRules": [
+      {
+        "packageNames": "taskcluster-client",
+        "minor": {
+          "enabled": false
+        },
+        "patch": {
+          "enabled": false
+        },
+        "automerge": true
+      }
+    ]
   }
 }
