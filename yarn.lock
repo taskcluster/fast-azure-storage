@@ -1488,10 +1488,10 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@29.0.1:
-  version "29.0.1"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-29.0.1.tgz#8aeb501d080a7bcc71debe884ff0725259241d55"
-  integrity sha512-YUDXn4LgwKf+1jlNeKbIzfzBbqaTNFRqLWTJVGdHc5ANZCbea32gdqLKsnCHc9uKk5ulpdJuo42PryvtIUD8Ig==
+taskcluster-client@29.1.2:
+  version "29.1.2"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-29.1.2.tgz#09d0638939581413cdff18365399711ad06471aa"
+  integrity sha512-Qm9abJJHVlEI3PJR1JlbFThtm3KSevNN9sbu0PusuHxLdzvm8qfUodaWvdQXGdKl1xu+xV70SrsDJxqA9OjJUA==
   dependencies:
     "@hapi/hawk" "^7.1.2"
     debug "^4.1.1"
