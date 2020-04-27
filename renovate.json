@@ -1,5 +1,17 @@
 {
   "extends": [
     "config:base"
+  ],
+  "packageRules": [
+    {
+      "packageNames": "taskcluster-client",
+      "minor": {
+        "enabled": false
+      },
+      "patch": {
+        "enabled": false
+      },
+      "automerge": true
+    }
   ]
 }

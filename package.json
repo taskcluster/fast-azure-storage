@@ -36,19 +36,5 @@
     "taskcluster-client": "29.1.2",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
-  },
-  "renovate": {
-    "packageRules": [
-      {
-        "packageNames": "taskcluster-client",
-        "minor": {
-          "enabled": false
-        },
-        "patch": {
-          "enabled": false
-        },
-        "automerge": true
-      }
-    ]
   }
 }
