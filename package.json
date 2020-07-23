@@ -31,7 +31,7 @@
     "yuidocjs/**/mime": "^2.0.0"
   },
   "devDependencies": {
-    "jsdoc": "3.6.4",
+    "jsdoc": "3.6.5",
     "mocha": "8.0.1",
     "taskcluster-client": "34.0.1",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
