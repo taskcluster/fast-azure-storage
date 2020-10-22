@@ -1,8 +1,6 @@
 Fast Azure Storage Client for Node.js
 =====================================
 
-[![Build Status](https://travis-ci.org/taskcluster/fast-azure-storage.svg?branch=master)](https://travis-ci.org/taskcluster/fast-azure-storage)
-
 This library implements a low-level and highly optimized interface to Azure
 Storage Services. Existing node libraries for Azure suffers of excessive
 complexity, dependencies, being slow and not managing connection correctly.
