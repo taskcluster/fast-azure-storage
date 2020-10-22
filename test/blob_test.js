@@ -16,7 +16,7 @@ suite("Azure Blob", function() {
   });
 
   // generate a reasonably-unique container name.  There is a task in
-  // https://github.com/taskcluster/taskcluster/blob/master/services/auth/test/cleanup.js]
+  // https://github.com/taskcluster/taskcluster/blob/main/services/auth/test/cleanup.js]
   // to clean these up if they are left around.
   var rand = Math.floor(Math.random() * 1000).toString();
   var containerNamePrefix = 'azure-blob-storage-test-' + rand;
