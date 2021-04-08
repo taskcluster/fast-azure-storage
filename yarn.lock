@@ -1500,10 +1500,10 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@42.0.0:
-  version "42.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-42.0.0.tgz#9f61055255eaa2d442e6adf9ac374ad2725a84a4"
-  integrity sha512-LIqTZ/yrOFEjr3H6p0njgT7UYybS2dDOpxgC/gImI6+8A+IywXsnJKJrpIKHuVOtVRSvPyX3G85QbRfkBR9odA==
+taskcluster-client@43.0.0:
+  version "43.0.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-43.0.0.tgz#c903d35fc5e49bc28f3973c8c13288d73a30ecbe"
+  integrity sha512-DSAEzUYY7+tHjqzy//wdey5aw/WA5dnIZMZuL29MJccoR+bcXtiwaEeqMEzsck6D9gFoLea4YkKiG/9V0MkqfQ==
   dependencies:
     debug "^4.1.1"
     got "^11.8.1"
