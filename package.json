@@ -33,7 +33,7 @@
   "devDependencies": {
     "jsdoc": "3.6.7",
     "mocha": "8.4.0",
-    "taskcluster-client": "43.0.0",
+    "taskcluster-client": "44.0.0",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
   },
