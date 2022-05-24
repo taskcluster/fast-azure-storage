@@ -3,14 +3,14 @@ const assert = require('assert');
 const utils = require('../lib/utils');
 const helpers = require('./helpers');
 
-suite("Azure Blob", function() {
+suite.skip("Azure Blob", function() {
   // Create azure blob client
   let blob, anonymousBlob;
 
   suiteSetup(function() {
     blob = new azure.Blob(helpers.credentials);
     anonymousBlob = new azure.Blob({
-      ...helpers.credentials, 
+      ...helpers.credentials,
       accessKey: null
     });
   });

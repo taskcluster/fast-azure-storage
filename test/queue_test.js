@@ -3,7 +3,7 @@ const azure = require('../');
 const utils = require('../lib/utils');
 const helpers = require('./helpers');
 
-suite("Queue", function() {
+suite.skip("Queue", function() {
   // Create azure queue client
   let queue;
   suiteSetup(function() {
