@@ -7,6 +7,8 @@ suiteSetup(async () => {
   credentials.accountId = process.env.AZURE_ACCOUNT;
   credentials.accessKey = process.env.AZURE_ACCOUNT_KEY;
 
+  console.warn('Tests require live azure accounts and are disabled on CI. To test locally, please set AZURE_ACCOUNT and AZURE_ACCOUNT_KEY');
+
   if (credentials.accountId && credentials.accessKey) {
     return;
   }
@@ -22,5 +24,5 @@ suiteSetup(async () => {
   }
 
   console.error('set $AZURE_ACCOUNT and $AZURE_ACCOUNT_KEY to a testing Azure storage account.');
-  process.exit(1);
+  // process.exit(1);
 });

@@ -3,7 +3,7 @@ const azure   = require('../');
 const utils   = require('../lib/utils');
 const helpers = require('./helpers');
 
-suite("Table", function() {
+suite.skip("Table", function() {
   // Create azure table client
   let table;
   suiteSetup(function() {
