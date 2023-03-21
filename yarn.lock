@@ -700,7 +700,7 @@ has-flag@^4.0.0:
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
   integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
 
-hawk@^9.0.0:
+hawk@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/hawk/-/hawk-9.0.1.tgz#0be51769103e76fe97a97ae7fa356c313bb93160"
   integrity sha512-H2E+5ATFEXmorgVzYl3NzG3PCo2e+euYrHDnRpLLdOtJrQHGRXrJT9/joWnrkHCtzDZkaNoLXg/+TsSkD06eNg==
@@ -1389,13 +1389,12 @@ setprototypeof@1.0.3:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.0.3.tgz#66567e37043eeb4f04d91bd658c0cbefb55b8e04"
   integrity sha1-ZlZ+NwQ+608E2RvWWMDL77VbjgQ=
 
-slugid@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/slugid/-/slugid-2.0.0.tgz#f08f651b677e666093e6617e10486aa2e73ed8a6"
-  integrity sha512-zTCivUfTk2GC6MU4Fjcz0iXwAjhe0NweMJqpfWcGrBbrm2dWtVAUupAonfsc7ysw4M0kZ934Nle5ljwM2dR+/g==
+slugid@^3.1.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/slugid/-/slugid-3.2.0.tgz#3731f4debe46b319f6fbbefda58de30316af957d"
+  integrity sha512-f0vZb6VyjUdZG5kaxd9CNpfhy+eUUTC8RnbDolC3ZLjYa7n5AdPkQnqnIjmoZYoPS9dWMOXQdoBREAGQqdZb9A==
   dependencies:
-    uuid "^3.2.1"
-    uuid-parse "^1.0.0"
+    uuid "^8.3.2"
 
 sprintf-js@~1.0.2:
   version "1.0.3"
@@ -1467,16 +1466,16 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@44.0.0:
-  version "44.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-44.0.0.tgz#b918527c07f8e768cd98f711c65f702d0a482fa5"
-  integrity sha512-JGyS0GVDUrE4wWnjqmNicCU3HA0uOfA8zLiUvTkfbv7VTDFOfyJFdmbxY3G2L2zZ57JwxU0vPNs4Up08Ppbrrw==
+taskcluster-client@48.1.0:
+  version "48.1.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-48.1.0.tgz#cb17244771eef4ec1e9820c119687c577eea4430"
+  integrity sha512-MiE4rHYhZoDrG0QCjynyIXATyEgOfjHHViJZZvEtVSIy88LbV9eZmCmUs4eSITPkhwd9RmV9Ivmb5rkAttEw1A==
   dependencies:
     debug "^4.1.1"
     got "^11.8.1"
-    hawk "^9.0.0"
+    hawk "^9.0.1"
     lodash "^4.17.4"
-    slugid "^2.0.0"
+    slugid "^3.1.0"
     taskcluster-lib-urls "^13.0.0"
 
 taskcluster-lib-urls@^13.0.0:
@@ -1551,20 +1550,15 @@ utils-merge@1.0.0:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.0.tgz#0294fb922bb9375153541c4f7096231f287c8af8"
   integrity sha1-ApT7kiu5N1FTVBxPcJYjHyh8ivg=
 
-uuid-parse@^1.0.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/uuid-parse/-/uuid-parse-1.1.0.tgz#7061c5a1384ae0e1f943c538094597e1b5f3a65b"
-  integrity sha512-OdmXxA8rDsQ7YpNVbKSJkNzTw2I+S5WsbMDnCtIWSQaosNAcWtFuI/YK1TjzUI6nbkgiqEyh8gWngfcv8Asd9A==
-
-uuid@^3.2.1:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.3.tgz#4568f0216e78760ee1dbf3a4d2cf53e224112866"
-  integrity sha512-pW0No1RGHgzlpHJO1nsVrHKpOEIxkGg1xB+v0ZmdNH5OAeAwzAVrCnI2/6Mtx+Uys6iaylxa+D3g4j63IKKjSQ==
-
 uuid@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
+
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
 vary@~1.1.0:
   version "1.1.0"
