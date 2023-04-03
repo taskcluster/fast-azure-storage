@@ -1567,10 +1567,10 @@ taffydb@2.6.2:
   resolved "https://registry.yarnpkg.com/taffydb/-/taffydb-2.6.2.tgz#7cbcb64b5a141b6a2efc2c5d2c67b4e150b2a268"
   integrity sha1-fLy2S1oUG2ou/CxdLGe04VCyomg=
 
-taskcluster-client@48.1.0:
-  version "48.1.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-48.1.0.tgz#cb17244771eef4ec1e9820c119687c577eea4430"
-  integrity sha512-MiE4rHYhZoDrG0QCjynyIXATyEgOfjHHViJZZvEtVSIy88LbV9eZmCmUs4eSITPkhwd9RmV9Ivmb5rkAttEw1A==
+taskcluster-client@49.0.0:
+  version "49.0.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-49.0.0.tgz#7712004f59fcaa298456292191f423d88c277e78"
+  integrity sha512-3DeGPcxFBGdhYx2JslF003tjR3k8SJ9Cueh/J6KEZBrf4p2f8I+1ZO14O7O/8zsknpJfA+1YTVWasjpsMovFtw==
   dependencies:
     debug "^4.1.1"
     got "^11.8.1"
