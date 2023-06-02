@@ -21,7 +21,7 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>1.0.0</b>
+                    API Docs for Version: <b>3.1.5</b>
                 </p>
             </li>
         </div>
@@ -83,7 +83,6 @@
 
 var assert      = require(&#x27;assert&#x27;);
 var debug       = require(&#x27;debug&#x27;)(&#x27;azure:table&#x27;);
-var Promise     = require(&#x27;promise&#x27;);
 var querystring = require(&#x27;querystring&#x27;);
 var crypto      = require(&#x27;crypto&#x27;);
 var events      = require(&#x27;events&#x27;);
@@ -230,6 +229,7 @@ function Table(options) {
     agent:                agent.globalAgent,
     retries:              5,
     delayFactor:          100,
+    randomizationFactor:  0.25,
     maxDelay:             30 * 1000,
     transientErrorCodes:  TRANSIENT_ERROR_CODES,
     accountId:            undefined,
@@ -478,20 +478,31 @@ Table.prototype.request = function request(method, path, query, headers, json) {
           message = &quot;No error message given, in payload &#x27;&quot; + res.payload + &quot;&#x27;&quot;
         }
 
-        // Construct error object
-        var err         = new Error(message);
-        err.name        = code + &#x27;Error&#x27;;
-        err.code        = code;
-        err.statusCode  = res.statusCode;
-        err.payload     = res.payload;
-        err.method      = method;
-        err.path        = path;
-        err.query       = query;
-        err.headers     = headers;
-        err.requestBody = json;
+        var resMSHeaders = {};
+        Object.keys(res.headers).forEach(h =&gt; {
+          if (h.startsWith(&#x27;x-ms-&#x27;)) {
+            resMSHeaders[h] = res.headers[h];
+          }
+        });
 
-        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
-              code, method, path, retry);
+        // Construct error object, capturing only the first line in the
+        // error message, as subsequent lines from Azure are usually just
+        // a requestId and timestamp.
+        var err = new Error(message.split(&#x27;\n&#x27;)[0]);
+        err.name = code + &#x27;Error&#x27;;
+        err.code = code;
+        err.statusCode = res.statusCode;
+        err.payload = res.payload;
+        err.method = method;
+        err.path = path;
+        err.query = query;
+        err.headers = headers;
+        err.resMSHeaders = resMSHeaders;
+        err.requestBody = json;
+        err.message = message;
+
+        debug(&quot;Error code: %s (%s) for %s %s on retry: %s&quot;,
+              code, res.statusCode, method, path, retry);
 
         // Throw the constructed error
         throw err;
@@ -773,7 +784,10 @@ Table.prototype.queryEntities = function queryEntities(table, options) {
       query.$filter = options.filter;
     }
     if (options.top) {
-     query.$top = &#x27;&#x27; + options.top;
+      if (options.top &gt; 1000) {
+        throw new Error(&#x27;queryEntities: Too Large Query: top of &#x27; + options.top + &#x27; &gt; 1000&#x27;);
+      }
+      query.$top = &#x27;&#x27; + options.top;
     }
     if (options.nextPartitionKey) {
       query.NextPartitionKey = options.nextPartitionKey;

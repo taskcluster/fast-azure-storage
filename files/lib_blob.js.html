@@ -21,7 +21,7 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>1.0.0</b>
+                    API Docs for Version: <b>3.1.5</b>
                 </p>
             </li>
         </div>
@@ -84,7 +84,6 @@
 var assert            = require(&#x27;assert&#x27;);
 var crypto            = require(&#x27;crypto&#x27;);
 var debug             = require(&#x27;debug&#x27;)(&#x27;azure:blob&#x27;);
-var Promise           = require(&#x27;promise&#x27;);
 var utils             = require(&#x27;./utils&#x27;);
 var querystring       = require(&#x27;querystring&#x27;);
 var xml               = require(&#x27;./xml-parser&#x27;);
@@ -238,6 +237,7 @@ function Blob(options) {
     agent:                agent.globalAgent,
     retries:              5,
     delayFactor:          100,
+    randomizationFactor:  0.25,
     maxDelay:             30 * 1000,
     transientErrorCodes:  TRANSIENT_ERROR_CODES,
     accountId:            undefined,
@@ -502,16 +502,24 @@ Blob.prototype.request = function request(method, path, query, headers, data) {
         // Parse error message
         var data = xml.parseError(res);
 
-        // Construct error object
-        var err         = new Error(data.message);
-        err.name        = data.code + &#x27;Error&#x27;;
-        err.code        = data.code;
-        err.statusCode  = res.statusCode;
-        err.message     = data.message;
-        err.retries     = retry;
+        var resMSHeaders = {};
+        Object.keys(res.headers).forEach(h =&gt; {
+          if (h.startsWith(&#x27;x-ms-&#x27;)) {
+            resMSHeaders[h] = res.headers[h];
+          }
+        });
 
-        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
-          err.code, method, path, retry);
+        // Construct error object
+        var err = new Error(data.message);
+        err.name = data.code + &#x27;Error&#x27;;
+        err.code = data.code;
+        err.statusCode = res.statusCode;
+        err.message = data.message;
+        err.retries = retry;
+        err.resMSHeaders = resMSHeaders;
+
+        debug(&quot;Error code: %s (%s) for %s %s on retry: %s&quot;,
+              data.code, res.statusCode, method, path, retry);
 
         // Throw the constructed error
         throw err;
@@ -1748,6 +1756,7 @@ Blob.prototype.putBlob = function putBlob(container, blob, options, content) {
  * {
  *    eTag: &#x27;...&#x27;,                    // The entity tag of the blob
  *    lastModified: &#x27;...&#x27;,            // The date/time the blob was last modified.
+ *    contentType: &#x27;...&#x27;,             // The content type specified for the blob
  *    contentMD5: &#x27;...&#x27;,              // The MD5 hash fo the blob
  *    contentEncoding: &#x27;...&#x27;,         // The content encoding of the blob
  *    contentLanguage: &#x27;...&#x27;,         // The content language of the blob
@@ -1779,6 +1788,7 @@ Blob.prototype.getBlob = function getBlob(container, blob, options) {
     var responseHeaders = response.headers;
 
     return {
+      contentType: response.headers[&#x27;content-type&#x27;],
       contentMD5: responseHeaders[&#x27;content-md5&#x27;],
       contentEncoding: responseHeaders[&#x27;content-encoding&#x27;],
       contentLanguage: responseHeaders[&#x27;content-language&#x27;],
@@ -2550,6 +2560,7 @@ Blob.prototype.appendBlock = function appendBlock(container, blob, options, cont
     };
   });
 };
+
     </pre>
 </div>
                     </div>
