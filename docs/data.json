@@ -3,7 +3,7 @@
         "name": "fast-azure-storage",
         "description": "Fast client library for azure storage services",
         "url": "https://github.com/taskcluster/fast-azure-storage",
-        "version": "1.0.0"
+        "version": "3.1.5"
     },
     "files": {
         "docs/assets/vendor/bootstrap/js/bootstrap.min.js": {
@@ -74,7 +74,7 @@
             "namespaces": {},
             "tag": "module",
             "file": "lib/table.js",
-            "line": 70,
+            "line": 69,
             "description": "The `fast-azure-storage` package provides a fast and minimalistic interface\nfor Azure Storage Service."
         }
     },
@@ -111,7 +111,7 @@
             "extension_for": [],
             "module": "azure",
             "file": "lib/blob.js",
-            "line": 90,
+            "line": 89,
             "description": "Blob client class for interacting with Azure Blob Storage.",
             "is_constructor": 1,
             "params": [
@@ -133,7 +133,7 @@
             "module": "azure",
             "namespace": "",
             "file": "lib/queue.js",
-            "line": 51,
+            "line": 50,
             "description": "Queue client class for interacting with Azure Queue Storage.",
             "is_constructor": 1,
             "params": [
@@ -155,7 +155,7 @@
             "module": "azure",
             "namespace": "",
             "file": "lib/table.js",
-            "line": 70,
+            "line": 69,
             "description": "Table client class for interacting with Azure Table Storage.\n\nSubclasses `EventEmitter` and emits the `error` event on failure to refresh\nshared-access-signature, if `options.sas` is a function.",
             "is_constructor": 1,
             "params": [
@@ -298,7 +298,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 442,
+            "line": 450,
             "description": "Sets properties for a storage account’s Blob service endpoint",
             "itemtype": "method",
             "name": "setServiceProperties",
@@ -317,7 +317,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 648,
+            "line": 656,
             "description": "Gets the properties of a storage account’s Blob service, including properties for Storage Analytics and\nCORS (Cross-Origin Resource Sharing) rules.",
             "itemtype": "method",
             "name": "getServiceProperties",
@@ -329,7 +329,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 711,
+            "line": 719,
             "description": "Create a new container with the given 'name' under the storage account.",
             "itemtype": "method",
             "name": "createContainer",
@@ -353,7 +353,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 772,
+            "line": 780,
             "description": "Sets metadata for the specified container.\nOverwrites all existing metadata that is associated with the container.",
             "itemtype": "method",
             "name": "setContainerMetadata",
@@ -382,7 +382,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 835,
+            "line": 843,
             "description": "Get the metadata for the container with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
             "itemtype": "method",
             "name": "getContainerMetadata",
@@ -406,7 +406,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 884,
+            "line": 892,
             "description": "Delete container with the given 'name'.\n\nNote, when a container is deleted, a container with the same name cannot be created for at least 30 seconds;\nthe container may not be available for more than 30 seconds if the service is still processing the request.\nPlease see the documentation for more details.",
             "itemtype": "method",
             "name": "deleteContainer",
@@ -430,7 +430,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 929,
+            "line": 937,
             "description": "List the containers under the storage account",
             "itemtype": "method",
             "name": "listContainers",
@@ -449,7 +449,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 990,
+            "line": 998,
             "description": "Get all user-defined metadata and system properties for the container with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
             "itemtype": "method",
             "name": "getContainerProperties",
@@ -473,7 +473,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1065,
+            "line": 1073,
             "description": "Gets the permissions for the container with the given name",
             "itemtype": "method",
             "name": "getContainerACL",
@@ -497,7 +497,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1138,
+            "line": 1146,
             "description": "Sets the permissions for the container with the given name.\nThe permissions indicate whether blobs in a container may be accessed publicly.",
             "itemtype": "method",
             "name": "setContainerACL",
@@ -521,7 +521,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1264,
+            "line": 1272,
             "description": "Get the list of blobs under the specified container.",
             "itemtype": "method",
             "name": "listBlobs",
@@ -545,7 +545,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1365,
+            "line": 1373,
             "description": "Establishes and manages a lock on a container for delete operations.\nThe lock duration can be 15 to 60 seconds, or can be infinite.",
             "itemtype": "method",
             "name": "leaseContainer",
@@ -568,7 +568,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1477,
+            "line": 1485,
             "description": "Creates a new block, page, or append blob, or updates the content of an existing block blob.\nUpdating an existing block blob overwrites any existing metadata on the blob,\nand the content of the existing blob is overwritten with the content of the new blob.\n\nNote that a call to a putBlob to create a page blob or an append blob only initializes the blob.\nTo add content to a page blob, call the putPage. To add content to an append blob, call the appendBlock.",
             "itemtype": "method",
             "name": "putBlob",
@@ -602,7 +602,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1646,
+            "line": 1654,
             "description": "Reads or downloads a blob from the system, including its metadata and properties.",
             "itemtype": "method",
             "name": "getBlob",
@@ -624,14 +624,14 @@
                 }
             ],
             "return": {
-                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',                    // The entity tag of the blob\n   lastModified: '...',            // The date/time the blob was last modified.\n   contentMD5: '...',              // The MD5 hash fo the blob\n   contentEncoding: '...',         // The content encoding of the blob\n   contentLanguage: '...',         // The content language of the blob\n   cacheControl: '...',            // The cache control of the blob\n   contentDisposition: '...',      // The content disposition of the blob\n   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.\n   type: '...',                    // The blob type: block, page or append blob.\n   blobCommittedBlockCount: '...', // The number of committed blocks present in the blob.\n                                   // This is returned only for append blobs.\n   metadata: '...',                // Name-value pairs associated with the blob as metadata\n   content: '...'                  // The content\n}\n```",
+                "description": "A promise for an object on the form:\n```js\n{\n   eTag: '...',                    // The entity tag of the blob\n   lastModified: '...',            // The date/time the blob was last modified.\n   contentType: '...',             // The content type specified for the blob\n   contentMD5: '...',              // The MD5 hash fo the blob\n   contentEncoding: '...',         // The content encoding of the blob\n   contentLanguage: '...',         // The content language of the blob\n   cacheControl: '...',            // The cache control of the blob\n   contentDisposition: '...',      // The content disposition of the blob\n   pageBlobSequenceNumber: '...',  // The current sequence number for a page blob.\n   type: '...',                    // The blob type: block, page or append blob.\n   blobCommittedBlockCount: '...', // The number of committed blocks present in the blob.\n                                   // This is returned only for append blobs.\n   metadata: '...',                // Name-value pairs associated with the blob as metadata\n   content: '...'                  // The content\n}\n```",
                 "type": "Promise"
             },
             "class": "Blob"
         },
         {
             "file": "lib/blob.js",
-            "line": 1717,
+            "line": 1727,
             "description": "Returns all user-defined metadata, standard HTTP properties, and system properties for the blob.",
             "itemtype": "method",
             "name": "getBlobProperties",
@@ -660,13 +660,13 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1776,
+            "line": 1786,
             "description": "TODO information about:\n- copyCompletionTime,\n- copyStatusDescription,\n- copyStatusDescription,\n- copyId,\n- copyProgress,\n- copySource,\n- copyStatus,\n- copyDestinationSnapshot\n- incrementalCopy\n\nwill be added after the copyBlob will be implemented",
             "class": "Blob"
         },
         {
             "file": "lib/blob.js",
-            "line": 1830,
+            "line": 1840,
             "description": "Sets system properties on the blob",
             "itemtype": "method",
             "name": "setBlobProperties",
@@ -695,7 +695,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 1953,
+            "line": 1963,
             "description": "Get the metadata for the blob with the given name.\n\nNote, this is a `HEAD` request, so if the container is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`.",
             "itemtype": "method",
             "name": "getBlobMetadata",
@@ -724,7 +724,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2013,
+            "line": 2023,
             "description": "Sets metadata for the specified blob.\nOverwrites all existing metadata that is associated with that blob.",
             "itemtype": "method",
             "name": "setBlobMetadata",
@@ -758,7 +758,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2073,
+            "line": 2083,
             "description": "Marks the specified blob for deletion. The blob is later deleted during garbage collection.",
             "itemtype": "method",
             "name": "deleteBlob",
@@ -787,7 +787,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2111,
+            "line": 2121,
             "description": "Creates a new block to be committed as part of a blob.",
             "itemtype": "method",
             "name": "putBlock",
@@ -821,7 +821,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2177,
+            "line": 2187,
             "description": "Writes a blob by specifying the list of block IDs that make up the blob.\nIn order to be written as part of a blob, a block must have been successfully written\nto the server in a prior putBlock operation.",
             "itemtype": "method",
             "name": "putBlockList",
@@ -850,7 +850,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2293,
+            "line": 2303,
             "description": "Retrieves the list of committed list blocks (that that have been successfully committed to a given blob with\nputBlockList()), and uncommitted list blocks (that have been uploaded for a blob using Put Block, but that have\nnot yet been committed)",
             "itemtype": "method",
             "name": "getBlockList",
@@ -879,7 +879,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2363,
+            "line": 2373,
             "description": "Generates a base64 string that identifies a block.",
             "itemtype": "method",
             "name": "getBlockId",
@@ -908,7 +908,7 @@
         },
         {
             "file": "lib/blob.js",
-            "line": 2385,
+            "line": 2395,
             "description": "Commits a new block of data to the end of an existing append blob.",
             "itemtype": "method",
             "name": "appendBlock",
@@ -1046,7 +1046,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 339,
+            "line": 347,
             "description": "List queues under the storage account.",
             "itemtype": "method",
             "name": "listQueues",
@@ -1066,7 +1066,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 391,
+            "line": 399,
             "description": "Create queue with given `name`, returns promise that resolves to `true`, if\nthe queue didn't already exist. Do not rely on this behavior unless you\ndisable the retry logic. Note, if queue exists with different\nmeta-data an error will be thrown.",
             "itemtype": "method",
             "name": "createQueue",
@@ -1091,7 +1091,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 426,
+            "line": 434,
             "description": "Delete queue, return promise queue is deleted.\nNote, Azure may take a while to garbage collect the queue, see documentation\nfor relevant details, if you plan to recreate the queue again.",
             "itemtype": "method",
             "name": "deleteQueue",
@@ -1111,7 +1111,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 443,
+            "line": 451,
             "description": "Get meta-data for given `queue`. This includes approximate message count,\nnote that the approximate message is an upper-bound on the number of messages\nin the queue.\n\nWarning, this is a `HEAD` request, so if the queue is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`. The same goes for all other error codes.",
             "itemtype": "method",
             "name": "getMetadata",
@@ -1131,7 +1131,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 483,
+            "line": 491,
             "description": "Set meta-data for given `queue`, note that this overwrites all existing\nmeta-data key/value pairs.",
             "itemtype": "method",
             "name": "setMetadata",
@@ -1156,7 +1156,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 516,
+            "line": 524,
             "description": "Put a message with XML-safe `text` into `queue` with TTL and visibility-\ntimeout, as given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "putMessage",
@@ -1186,7 +1186,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 561,
+            "line": 569,
             "description": "Peek messages from `queue`, returns up to `options.numberOfMessages`, note,\nthat Azure Queue Storage only allows up to 32 messages at once.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "peekMessages",
@@ -1211,7 +1211,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 605,
+            "line": 613,
             "description": "Get messages from `queue`, returns up to `options.numberOfMessages` of\nmessages, note, that Azure Queue Storage only allows up to 32 messages per\nrequest.\nSee, `deleteMessage` for how to delete messages once you have processed them.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "getMessages",
@@ -1236,7 +1236,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 657,
+            "line": 665,
             "description": "Delete a message from `queue` using `messageId` and `popReceipt`",
             "itemtype": "method",
             "name": "deleteMessage",
@@ -1266,7 +1266,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 687,
+            "line": 695,
             "description": "Clear all messages from `queue`, note this may timeout if there is a lot of\nmessages in the queue, in this case you'll get a error with the code:\n`OperationTimedOut`, and you should retry until the operation is successful.\nSee Azure Queue Storage REST API documentation for details.",
             "itemtype": "method",
             "name": "clearMessages",
@@ -1286,7 +1286,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 708,
+            "line": 716,
             "description": "Update a message from `queue` with XML-safe `text` and visibility-timeout,\nas given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "updateMessage",
@@ -1430,7 +1430,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 422,
+            "line": 433,
             "description": "Query for tables on the storage account.",
             "itemtype": "method",
             "name": "queryTables",
@@ -1450,7 +1450,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 461,
+            "line": 472,
             "description": "Create table with given `name`.",
             "itemtype": "method",
             "name": "createTable",
@@ -1470,7 +1470,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 484,
+            "line": 495,
             "description": "Delete table with given `name`",
             "itemtype": "method",
             "name": "deleteTable",
@@ -1490,7 +1490,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 502,
+            "line": 513,
             "description": "Convert nested array structure to filter string.\nSee `Table.Operators` for details and examples.",
             "itemtype": "method",
             "name": "filter",
@@ -1510,7 +1510,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 528,
+            "line": 539,
             "description": "Operators and helpers for constructing $filter strings using `Table.filter`.\n\nWe have the following comparison operators:\n - `azure.Table.Operators.Equal`,\n - `azure.Table.Operators.GreaterThan`,\n - `azure.Table.Operators.GreaterThanOrEqual`,\n - `azure.Table.Operators.LessThan`,\n - `azure.Table.Operators.LessThanOrEqual`, and\n - `azure.Table.Operators.NotEqual`.\n\nThey should be used in the middle of a triple as follows:\n`['key1', op.Equal, op.string('my-string')]`.\n\nThe boolean operators `And`, `Not` and `Or` should be used to connect\ntriples made with comparison operators. Note, that each set of array brackets\ntranslates into a parentheses. Boolean operators:\n - `azure.Table.Operators.And`,\n - `azure.Table.Operators.Not`, and\n - `azure.Table.Operators.Or`.\n\nWe also have formatting helpers, `string`, `number`, `bool`, `date` and\n`guid` which takes constant values and encodes them correctly for use in\nfilter expression. It's strongly recommended that you employ these, as Azure\nhas some undocumented and semi obscure escaping rules. Constant formatters:\n - `azure.Table.Operators.string(\"...\")`,\n - `azure.Table.Operators.number(42.2)`,\n - `azure.Table.Operators.bool(true)`,\n - `azure.Table.Operators.date(new Date())`, and\n - `azure.Table.Operators.guid('...')`.\n\nComplete example:\n```js\nvar op = azure.Table.Operators;\nvar filter = azure.Table.filter([\n ['key1', op.Equal, op.string('my-string')],\n  op.And,\n ['key2', op.LessThan, op.date(new Date())]\n]) // \"((key1 eq 'my-string') and (key2 le datetime'...'))\"\n```",
             "itemtype": "attribute",
             "name": "Operators",
@@ -1521,7 +1521,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 604,
+            "line": 615,
             "description": "Get entity from `table` with given `partitionKey` and `rowKey`.",
             "itemtype": "method",
             "name": "getEntity",
@@ -1556,7 +1556,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 649,
+            "line": 660,
             "description": "Query entities from `table`.",
             "itemtype": "method",
             "name": "queryEntitites",
@@ -1581,7 +1581,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 727,
+            "line": 741,
             "description": "Insert `entity` into `table`, the `entity` object must be on the format\naccepted by azure table storage. See Azure Table Storage documentation for\ndetails. Essentially, data-types will be inferred if `...@odata.type`\nproperties aren't specified. Also note that `PartitionKey` and `RowKey`\nproperties must be specified.",
             "itemtype": "method",
             "name": "insertEntity",
@@ -1606,7 +1606,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 758,
+            "line": 772,
             "description": "Update entity from `table` identified by `entity.partitionKey` and\n`entity.rowKey`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  mode:  'replace' || 'merge'  // Replace entity or merge entity\n  eTag:  '...' || '*' || null  // Update specific entity, any or allow insert\n}\n```\n\nIf `options.mode` is `'replace'` the remote entity will be completely\nreplaced by the structure given as `entity`. If `options.mode` is `'merge'`\nproperties from `entity` will overwrite existing properties on remote entity.\n\nIf **`options.eTag` is not given** (or `null`) the remote entity will be\ninserted if it does not exist, and otherwise replaced or merged depending\non `mode`.\n\nIf **`options.eTag` is the string `'*'`** the remote entity will be replaced\nor merged depending on `mode`, but it will not be inserted if it doesn't\nexist.\n\nIf **`options.eTag` is a string** (other than `'*'`) the remote entity will be\nreplaced or merged depending on `mode`, if the ETag of the remote entity\nmatches the string given in `options.eTag`.\n\nCombining `mode` and `eTag` options this method implements the following\noperations:\n * Insert or replace (regardless of existence or ETag),\n * Replace if exists (regardless of ETag),\n * Replace if exists and has given ETag,\n * Insert or merge (regardless of existence or ETag),\n * Merge if exists (regardless of ETag), and\n * Merge if exists and has given ETag.",
             "itemtype": "method",
             "name": "updateEntity",
@@ -1631,7 +1631,7 @@
         },
         {
             "file": "lib/table.js",
-            "line": 839,
+            "line": 853,
             "description": "Delete entity identified by `partitionKey` and `rowKey` from `table`.\nOptions are **required** for this method and takes form as follows:\n```js\n{\n  eTag:   '...' || '*'   // ETag to delete, or '*' to ignore ETag\n}\n```\n\nNote, `options.eTag` is `'*'` will delete the entity regardless of its ETag.",
             "itemtype": "method",
             "name": "deleteEntity",
@@ -1676,55 +1676,55 @@
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:711"
+            "line": " lib/blob.js:719"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:772"
+            "line": " lib/blob.js:780"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:835"
+            "line": " lib/blob.js:843"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:884"
+            "line": " lib/blob.js:892"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:929"
+            "line": " lib/blob.js:937"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:990"
+            "line": " lib/blob.js:998"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:1065"
+            "line": " lib/blob.js:1073"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:1138"
+            "line": " lib/blob.js:1146"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:1264"
+            "line": " lib/blob.js:1272"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:1365"
+            "line": " lib/blob.js:1373"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:1953"
+            "line": " lib/blob.js:1963"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:2013"
+            "line": " lib/blob.js:2023"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/blob.js:2111"
+            "line": " lib/blob.js:2121"
         },
         {
             "message": "replacing incorrect tag: returns with return",
@@ -1736,43 +1736,43 @@
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:339"
+            "line": " lib/queue.js:347"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:391"
+            "line": " lib/queue.js:399"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:426"
+            "line": " lib/queue.js:434"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:443"
+            "line": " lib/queue.js:451"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:483"
+            "line": " lib/queue.js:491"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:516"
+            "line": " lib/queue.js:524"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:561"
+            "line": " lib/queue.js:569"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:605"
+            "line": " lib/queue.js:613"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:657"
+            "line": " lib/queue.js:665"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:687"
+            "line": " lib/queue.js:695"
         },
         {
             "message": "replacing incorrect tag: returns with return",
@@ -1788,15 +1788,15 @@
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:422"
+            "line": " lib/table.js:433"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:502"
+            "line": " lib/table.js:513"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/table.js:839"
+            "line": " lib/table.js:853"
         },
         {
             "message": "Missing item type\nBootstrap.js by @fat & @mdo\nplugins: bootstrap-transition.js, bootstrap-modal.js, bootstrap-dropdown.js, bootstrap-scrollspy.js, bootstrap-tab.js, bootstrap-tooltip.js, bootstrap-popover.js, bootstrap-affix.js, bootstrap-alert.js, bootstrap-button.js, bootstrap-collapse.js, bootstrap-carousel.js, bootstrap-typeahead.js\nCopyright 2012 Twitter, Inc.\nhttp://www.apache.org/licenses/LICENSE-2.0.txt",
@@ -1804,7 +1804,7 @@
         },
         {
             "message": "Missing item type\nTODO information about:\n- copyCompletionTime,\n- copyStatusDescription,\n- copyStatusDescription,\n- copyId,\n- copyProgress,\n- copySource,\n- copyStatus,\n- copyDestinationSnapshot\n- incrementalCopy\n\nwill be added after the copyBlob will be implemented",
-            "line": " lib/blob.js:1776"
+            "line": " lib/blob.js:1786"
         }
     ]
 }

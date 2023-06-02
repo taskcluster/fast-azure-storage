@@ -21,7 +21,7 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>1.0.0</b>
+                    API Docs for Version: <b>3.1.5</b>
                 </p>
             </li>
         </div>
@@ -83,7 +83,6 @@
 
 var assert      = require(&#x27;assert&#x27;);
 var debug       = require(&#x27;debug&#x27;)(&#x27;azure:queue&#x27;);
-var Promise     = require(&#x27;promise&#x27;);
 var querystring = require(&#x27;querystring&#x27;);
 var crypto      = require(&#x27;crypto&#x27;);
 var events      = require(&#x27;events&#x27;);
@@ -199,6 +198,7 @@ function Queue(options) {
     agent:                agent.globalAgent,
     retries:              5,
     delayFactor:          100,
+    randomizationFactor:  0.25,
     maxDelay:             30 * 1000,
     transientErrorCodes:  TRANSIENT_ERROR_CODES,
     accountId:            undefined,
@@ -398,17 +398,25 @@ Queue.prototype.request = function request(method, path, query, headers, data) {
         // Parse error message
         var data = xml.parseError(res);
 
-        // Construct error object
-        var err         = new Error(data.message);
-        err.name        = data.code + &#x27;Error&#x27;;
-        err.code        = data.code;
-        err.statusCode  = res.statusCode;
-        err.detail      = data.detail;
-        err.payload     = res.payload;
-        err.retries     = retry;
+        var resMSHeaders = {};
+        Object.keys(res.headers).forEach(h =&gt; {
+          if (h.startsWith(&#x27;x-ms-&#x27;)) {
+            resMSHeaders[h] = res.headers[h];
+          }
+        });
 
-        debug(&quot;Error code: %s for %s %s on retry: %s&quot;,
-              err.code, method, path, retry);
+        // Construct error object
+        var err = new Error(data.message);
+        err.name = data.code + &#x27;Error&#x27;;
+        err.code = data.code;
+        err.statusCode = res.statusCode;
+        err.detail = data.detail;
+        err.payload = res.payload;
+        err.retries = retry;
+        err.resMSHeaders = resMSHeaders;
+
+        debug(&quot;Error code: %s (%s) for %s %s on retry: %s&quot;,
+              data.code, res.statusCode, method, path, retry);
 
         // Throw the constructed error
         throw err;
