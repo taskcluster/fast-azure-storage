@@ -1498,12 +1498,12 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-slugid@^3.1.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/slugid/-/slugid-3.2.0.tgz#3731f4debe46b319f6fbbefda58de30316af957d"
-  integrity sha512-f0vZb6VyjUdZG5kaxd9CNpfhy+eUUTC8RnbDolC3ZLjYa7n5AdPkQnqnIjmoZYoPS9dWMOXQdoBREAGQqdZb9A==
+slugid@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/slugid/-/slugid-4.0.0.tgz#27c548953584b89891a35048f00e332b882542ab"
+  integrity sha512-NJ3Sd6NkVIoC8h3Tpn74Ez+SkvukgCror6jIqhSzJYMyK3nbhAmJFKKwOYu2ZulrfvRe1BJDE+CBm/N9t2dENg==
   dependencies:
-    uuid "^8.3.2"
+    uuid "^9.0.0"
 
 sprintf-js@~1.0.2:
   version "1.0.3"
@@ -1570,16 +1570,16 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
-taskcluster-client@54.0.0:
-  version "54.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-54.0.0.tgz#0a4658e648f9a1007c5ee88beac2551bc7d7ac62"
-  integrity sha512-GognbJ9iRVw8pGwt1G6zoLWrPKDxXywyguXT9P2c0YaJ0qyYtCwBLMIXHjC8aMw7mLb0RBURvKHQrB4YhIqLIQ==
+taskcluster-client@55.0.0:
+  version "55.0.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-55.0.0.tgz#a4fb171d2baa9c0964ca1831387d9e07f66cc906"
+  integrity sha512-miPaWwVoN97WkQ3hTZhMnTbjp3TkK74xqKgABazmurl3TE2MvMpSJOfP1anzmgZw13yj5XD6iOxIr1C796PeXg==
   dependencies:
     debug "^4.1.1"
     got "^11.8.1"
     hawk "^9.0.1"
     lodash "^4.17.4"
-    slugid "^3.1.0"
+    slugid "^4.0.0"
     taskcluster-lib-urls "^13.0.0"
 
 taskcluster-lib-urls@^13.0.0:
@@ -1664,10 +1664,10 @@ uuid@^3.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
-uuid@^8.3.2:
-  version "8.3.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 vary@~1.1.2:
   version "1.1.2"
