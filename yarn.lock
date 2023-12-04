@@ -1498,10 +1498,10 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-slugid@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/slugid/-/slugid-4.0.0.tgz#27c548953584b89891a35048f00e332b882542ab"
-  integrity sha512-NJ3Sd6NkVIoC8h3Tpn74Ez+SkvukgCror6jIqhSzJYMyK3nbhAmJFKKwOYu2ZulrfvRe1BJDE+CBm/N9t2dENg==
+slugid@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/slugid/-/slugid-5.0.1.tgz#850c1834de6c2f3e4614836a30c38287e2244457"
+  integrity sha512-T1QJB+kML/DmjdrX+RjeowCzvbjfwzJEw6bam1ft+yUv+h9/RwAfMpoXqCjxuItrGN7CgtYW/0tMp+UEIZmx4Q==
   dependencies:
     uuid "^9.0.0"
 
@@ -1570,16 +1570,16 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
-taskcluster-client@58.0.0:
-  version "58.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-58.0.0.tgz#24b15ae1da92707f5c5bc16af158ce561ce54705"
-  integrity sha512-f1TjS9Vdrkb/d4YSPG7f0PRjDmynZ4fk3U8RkvlL0gtnK0w18CJma+daYfoBzR4R447zKd2jc5sPMF73o8UDNw==
+taskcluster-client@59.0.0:
+  version "59.0.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-59.0.0.tgz#c973ccb62744b8765481c093e3468de415f1ce2a"
+  integrity sha512-ZKwgmcV3IoBooWm4JSH46WqNpGTVv1ohBQn1Cnes54y+iImjn0RKWHjt1pX1zyUpN11kM521BrQsRPyFY1LLvQ==
   dependencies:
     debug "^4.1.1"
     got "^11.8.1"
     hawk "^9.0.1"
     lodash "^4.17.4"
-    slugid "^4.0.0"
+    slugid "^5.0.1"
     taskcluster-lib-urls "^13.0.0"
 
 taskcluster-lib-urls@^13.0.0:
