@@ -21,7 +21,7 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>3.1.5</b>
+                    API Docs for Version: <b>3.1.6</b>
                 </p>
             </li>
         </div>
@@ -79,11 +79,11 @@
 
 <div class="file">
     <pre class="prettyprint linenums">
-&#x27;use strict&#x27;;
+import https from &quot;https&quot;;
+import debugModule from &quot;debug&quot;;
+import util from &quot;util&quot;;
 
-var https   = require(&#x27;https&#x27;);
-var debug   = require(&#x27;debug&#x27;)(&#x27;azure:agent&#x27;);
-var util    = require(&#x27;util&#x27;);
+const debug = debugModule(&quot;azure:agent&quot;);
 
 /*
  * Idle socket timeout, set to 55 seconds because the Azure load balancer will
@@ -127,11 +127,11 @@ function freeSocketTimeoutHandler() {
  * @constructor
  * @param {object} options - &#x60;options&#x60; compatible with &#x60;http.Agent&#x60;.
  */
-var Agent = function(options) {
+var Agent = function (options) {
   https.Agent.call(this, options);
 
   // Listen for free sockets
-  this.on(&#x27;free&#x27;, function(socket) {
+  this.on(&#x27;free&#x27;, function (socket) {
     // Ignore errors from free sockets
     socket.on(&#x27;error&#x27;, freeSocketErrorHandler);
     // Set idle timeout to avoid connection drops from azure
@@ -172,25 +172,15 @@ Agent.prototype.removeSocket = function removeSocket(socket, options) {
   return https.Agent.prototype.removeSocket.call(this, socket, options);
 };
 
-// Don&#x27;t do anything for node 0.10
-if (/^0\.10/.test(process.versions.node)) {
-  Agent = https.Agent;
-}
+// Some relatively sane defaults, 100 is a bit high depending on hardware
+Agent.globalAgent = new Agent({
+  keepAlive: true,
+  maxSockets: 100,
+  maxFreeSockets: 100,
+});
 
-// Create global agent
-if (/^0\.10/.test(process.versions.node)) {
-  Agent.globalAgent = https.globalAgent;
-} else {
-  // Some relatively sane defaults, 100 is a bit high depending on hardware
-  Agent.globalAgent = new Agent({
-    keepAlive:      true,
-    maxSockets:     100,
-    maxFreeSockets: 100
-  });
-}
-
-// Export Agent
-module.exports = Agent;
+export default Agent;
+export { Agent };
     </pre>
 </div>
                     </div>

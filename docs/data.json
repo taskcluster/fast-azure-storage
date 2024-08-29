@@ -3,7 +3,7 @@
         "name": "fast-azure-storage",
         "description": "Fast client library for azure storage services",
         "url": "https://github.com/taskcluster/fast-azure-storage",
-        "version": "3.1.5"
+        "version": "3.1.6"
     },
     "files": {
         "docs/assets/vendor/bootstrap/js/bootstrap.min.js": {
@@ -133,7 +133,7 @@
             "module": "azure",
             "namespace": "",
             "file": "lib/queue.js",
-            "line": 50,
+            "line": 52,
             "description": "Queue client class for interacting with Azure Queue Storage.",
             "is_constructor": 1,
             "params": [
@@ -942,7 +942,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 174,
+            "line": 176,
             "description": "Generate a SAS string on the form `'key1=val1&key2=val2&...'`.",
             "itemtype": "method",
             "name": "sas",
@@ -967,7 +967,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 252,
+            "line": 254,
             "description": "Construct authorized request options by adding signature or\nshared-access-signature, return promise for the request options.",
             "access": "protected",
             "tagname": "",
@@ -1004,7 +1004,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 269,
+            "line": 271,
             "description": "Make a signed request to `path` using `method` in upper-case and all `query`\nparameters and `headers` keys in lower-case. The request will carry `data`\nas payload and will be retried using the configured retry policy,",
             "access": "private",
             "tagname": "",
@@ -1046,7 +1046,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 347,
+            "line": 349,
             "description": "List queues under the storage account.",
             "itemtype": "method",
             "name": "listQueues",
@@ -1066,7 +1066,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 399,
+            "line": 401,
             "description": "Create queue with given `name`, returns promise that resolves to `true`, if\nthe queue didn't already exist. Do not rely on this behavior unless you\ndisable the retry logic. Note, if queue exists with different\nmeta-data an error will be thrown.",
             "itemtype": "method",
             "name": "createQueue",
@@ -1091,7 +1091,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 434,
+            "line": 436,
             "description": "Delete queue, return promise queue is deleted.\nNote, Azure may take a while to garbage collect the queue, see documentation\nfor relevant details, if you plan to recreate the queue again.",
             "itemtype": "method",
             "name": "deleteQueue",
@@ -1111,7 +1111,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 451,
+            "line": 453,
             "description": "Get meta-data for given `queue`. This includes approximate message count,\nnote that the approximate message is an upper-bound on the number of messages\nin the queue.\n\nWarning, this is a `HEAD` request, so if the queue is missing you get an\nerror with `err.statusCode = 404`, but `err.code` property will be\n`ErrorWithoutCode`. The same goes for all other error codes.",
             "itemtype": "method",
             "name": "getMetadata",
@@ -1131,7 +1131,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 491,
+            "line": 493,
             "description": "Set meta-data for given `queue`, note that this overwrites all existing\nmeta-data key/value pairs.",
             "itemtype": "method",
             "name": "setMetadata",
@@ -1156,7 +1156,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 524,
+            "line": 526,
             "description": "Put a message with XML-safe `text` into `queue` with TTL and visibility-\ntimeout, as given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "putMessage",
@@ -1186,7 +1186,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 569,
+            "line": 571,
             "description": "Peek messages from `queue`, returns up to `options.numberOfMessages`, note,\nthat Azure Queue Storage only allows up to 32 messages at once.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "peekMessages",
@@ -1211,7 +1211,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 613,
+            "line": 615,
             "description": "Get messages from `queue`, returns up to `options.numberOfMessages` of\nmessages, note, that Azure Queue Storage only allows up to 32 messages per\nrequest.\nSee, `deleteMessage` for how to delete messages once you have processed them.\n\nNote, Azure may return zero messages giving you an empty array. This is not\nnecessarily proof the that the queue is empty. See REST documentation for\nconsistency levels.",
             "itemtype": "method",
             "name": "getMessages",
@@ -1236,7 +1236,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 665,
+            "line": 667,
             "description": "Delete a message from `queue` using `messageId` and `popReceipt`",
             "itemtype": "method",
             "name": "deleteMessage",
@@ -1266,7 +1266,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 695,
+            "line": 697,
             "description": "Clear all messages from `queue`, note this may timeout if there is a lot of\nmessages in the queue, in this case you'll get a error with the code:\n`OperationTimedOut`, and you should retry until the operation is successful.\nSee Azure Queue Storage REST API documentation for details.",
             "itemtype": "method",
             "name": "clearMessages",
@@ -1286,7 +1286,7 @@
         },
         {
             "file": "lib/queue.js",
-            "line": 716,
+            "line": 718,
             "description": "Update a message from `queue` with XML-safe `text` and visibility-timeout,\nas given in `options`.\n\nNotice that the `text` must be XML-safe, for JSON it's useful to base64\nencode the message. This is what many other libraries does, so make sense for\ninteroperability. Encoding this way is trivial in node.js:\n```js\nvar text = new Buffer(JSON.stringify(jsonMessage)).toString('base64');\n```",
             "itemtype": "method",
             "name": "updateMessage",
@@ -1728,51 +1728,51 @@
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:174"
+            "line": " lib/queue.js:176"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:252"
+            "line": " lib/queue.js:254"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:347"
+            "line": " lib/queue.js:349"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:399"
+            "line": " lib/queue.js:401"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:434"
+            "line": " lib/queue.js:436"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:451"
+            "line": " lib/queue.js:453"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:491"
+            "line": " lib/queue.js:493"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:524"
+            "line": " lib/queue.js:526"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:569"
+            "line": " lib/queue.js:571"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:613"
+            "line": " lib/queue.js:615"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:665"
+            "line": " lib/queue.js:667"
         },
         {
             "message": "replacing incorrect tag: returns with return",
-            "line": " lib/queue.js:695"
+            "line": " lib/queue.js:697"
         },
         {
             "message": "replacing incorrect tag: returns with return",

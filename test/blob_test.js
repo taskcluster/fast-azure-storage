@@ -1,7 +1,7 @@
-const azure = require('../');
-const assert = require('assert');
-const utils = require('../lib/utils');
-const helpers = require('./helpers');
+import azure from '../lib/index.js';
+import assert from 'assert';
+import * as utils from '../lib/utils.js';
+import * as helpers from './helpers.js';
 
 suite.skip("Azure Blob", function() {
   // Create azure blob client

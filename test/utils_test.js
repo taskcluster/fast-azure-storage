@@ -1,10 +1,14 @@
-suite("Utils", function() {
-  var assert  = require('assert');
-  var utils   = require('../lib/utils');
-  var https   = require('https');
-  var fs      = require('fs');
-  var path    = require('path');
+import assert from 'assert';
+import * as utils from '../lib/utils.js';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
+const __dirname = new URL('.', import.meta.url).pathname;
+
+const port = 61038;
+
+suite("Utils", function() {
   // Server for testing utils.request
   var server = null;
   suiteSetup(function() {
@@ -43,7 +47,7 @@ suite("Utils", function() {
     return new Promise(function(accept, reject) {
       server.on('listening', accept);
       server.on('error', reject);
-      server.listen(61037);
+      server.listen(port);
     });
   });
 
@@ -152,7 +156,7 @@ suite("Utils", function() {
   test("request", function() {
     return utils.request({
       host:               'localhost',
-      port:               61037,
+      port:               port,
       method:             'get',
       path:               '/hello',
       headers:            {},
@@ -165,7 +169,7 @@ suite("Utils", function() {
   test("request (delayed-header)", function() {
     return utils.request({
       host:               'localhost',
-      port:               61037,
+      port:               port,
       method:             'get',
       path:               '/delayed-header',
       headers:            {},
@@ -178,7 +182,7 @@ suite("Utils", function() {
   test("request (delayed-body)", function() {
     return utils.request({
       host:               'localhost',
-      port:               61037,
+      port:               port,
       method:             'get',
       path:               '/delayed-body',
       headers:            {},
@@ -191,7 +195,7 @@ suite("Utils", function() {
   test("request (delayed-header - timeout)", function() {
     return utils.request({
       host:               'localhost',
-      port:               61037,
+      port:               port,
       method:             'get',
       path:               '/delayed-header',
       headers:            {},
@@ -207,7 +211,7 @@ suite("Utils", function() {
   test("request (delayed-body - timeout)", function() {
     return utils.request({
       host:               'localhost',
-      port:               61037,
+      port:               port,
       method:             'get',
       path:               '/delayed-body',
       headers:            {},
