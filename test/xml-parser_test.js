@@ -1,5 +1,5 @@
-const assert = require('assert');
-const xml = require('../lib/xml-parser');
+import assert from 'assert';
+import * as xml from '../lib/xml-parser.js';
 
 // the libxmljs implementation gets confused by whitespace nodes between
 // elements, which are added below for readability, so strip them.

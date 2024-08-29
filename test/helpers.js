@@ -1,7 +1,6 @@
-const taskcluster = require('taskcluster-client');
+import taskcluster from 'taskcluster-client';
 
-const credentials = {};
-exports.credentials = credentials;
+export const credentials = {};
 
 suiteSetup(async () => {
   credentials.accountId = process.env.AZURE_ACCOUNT;

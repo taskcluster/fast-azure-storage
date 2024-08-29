@@ -1,7 +1,7 @@
-const assert = require('assert');
-const azure = require('../');
-const utils = require('../lib/utils');
-const helpers = require('./helpers');
+import assert from 'assert';
+import azure from '../lib/index.js';
+import * as utils from '../lib/utils.js';
+import * as helpers from './helpers.js';
 
 suite.skip("Queue", function() {
   // Create azure queue client

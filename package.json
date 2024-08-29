@@ -5,6 +5,7 @@
   "description": "Fast client library for azure storage services",
   "license": "MPL-2.0",
   "main": "lib/index.js",
+  "type": "module",
   "scripts": {
     "test": "mocha test/*.js",
     "docs": "yuidoc .",
@@ -18,7 +19,7 @@
     "lib"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=20"
   },
   "dependencies": {
     "debug": "^4.1.1",

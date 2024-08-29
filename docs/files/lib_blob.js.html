@@ -21,7 +21,7 @@
             <li class="divider-vertical"></li>
             <li>
                 <p class="navbar-text">
-                    API Docs for Version: <b>3.1.5</b>
+                    API Docs for Version: <b>3.1.6</b>
                 </p>
             </li>
         </div>
@@ -81,16 +81,16 @@
     <pre class="prettyprint linenums">
 &#x27;use strict&#x27;;
 
-var assert            = require(&#x27;assert&#x27;);
-var crypto            = require(&#x27;crypto&#x27;);
-var debug             = require(&#x27;debug&#x27;)(&#x27;azure:blob&#x27;);
-var utils             = require(&#x27;./utils&#x27;);
-var querystring       = require(&#x27;querystring&#x27;);
-var xml               = require(&#x27;./xml-parser&#x27;);
-var util              = require(&#x27;util&#x27;);
-var events            = require(&#x27;events&#x27;);
-var agent             = require(&#x27;./agent&#x27;);
-var auth              = require(&#x27;./authorization&#x27;);
+import assert from &#x27;assert&#x27;;
+import debugFactory from &#x27;debug&#x27;;
+const debug = debugFactory(&#x27;azure:blob&#x27;);
+import * as utils from &#x27;./utils.js&#x27;;
+import querystring from &#x27;querystring&#x27;;
+import * as xml from &#x27;./xml-parser.js&#x27;;
+import util from &#x27;util&#x27;;
+import events from &#x27;events&#x27;;
+import * as agent from &#x27;./agent.js&#x27;;
+import * as auth from &#x27;./authorization.js&#x27;;
 
 /*
  * Azure storage service version
@@ -225,7 +225,7 @@ function anonymous(method, path, query, headers) {
  * }
  * &#x60;&#x60;&#x60;
  */
-function Blob(options) {
+export function Blob(options) {
   // Initialize EventEmitter parent class
   events.EventEmitter.call(this);
   // Set default options
@@ -286,7 +286,7 @@ function Blob(options) {
 };
 
 // Export Blob
-module.exports = Blob;
+export default Blob;
 
 // Subclass EventEmitter
 util.inherits(Blob, events.EventEmitter);
