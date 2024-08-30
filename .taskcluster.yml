@@ -1,4 +1,6 @@
 version: 1
+reporting: checks-v1
+autoCancelPreviousChecks: true
 policy:
   pullRequests: public
 tasks:
@@ -34,7 +36,8 @@ tasks:
           git config advice.detachedHead false &&
           git checkout ${head_rev} &&
           yarn &&
-          yarn test
+          yarn test &&
+          yarn docs # ensure docs build
     metadata:
       name: test
       description: Tests for fast-azure-storage
