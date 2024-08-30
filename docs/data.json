@@ -3,7 +3,7 @@
         "name": "fast-azure-storage",
         "description": "Fast client library for azure storage services",
         "url": "https://github.com/taskcluster/fast-azure-storage",
-        "version": "3.1.6"
+        "version": "4.0.0"
     },
     "files": {
         "docs/assets/vendor/bootstrap/js/bootstrap.min.js": {
