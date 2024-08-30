@@ -23,7 +23,7 @@ The following example illustrates how to create clients using
 **shared key authentication**.
 ```js
 // Load fast-azure-storage client
-var azure = require('fast-azure-storage');
+import * as azure from 'fast-azure-storage';
 
 // Common options using shared key authentication
 var options = {
@@ -93,7 +93,7 @@ necessary.
 Simple example of table and entity creation.
 ```js
 // Load fast-azure-storage client
-var azure = require('fast-azure-storage');
+import azure from 'fast-azure-storage';
 
 var table = new azure.Table({
   accountId:    '...',
@@ -137,7 +137,7 @@ The Azure Storage Queue client aims at interfacing Azure Queue Storage.
 Simple example of queue and message creation.
 ```js
 // Load fast-azure-storage client
-var azure = require('fast-azure-storage');
+import azure from 'fast-azure-storage';
 
 var queue = new azure.Queue({
   accountId:    '...',
@@ -183,7 +183,7 @@ eg. logging, auditing
 Simple example of a container and blob creation.
 ```js
 // Load fast-azure-storage client
-var azure = require('fast-azure-storage');
+import azure from 'fast-azure-storage';
 
 var blob = new azure.Blob({
   accountId:    '...',
@@ -194,7 +194,7 @@ var blobContent = 'Sample content'; // The content can be a string or a Buffer
 // Create container and upload a blob
 blob.createContainer('mycontainer').then(function() {
   return blob.putBlob('mycontainer', 'myblob', {
-    type:  'BlockBlob',     // Type of the blob 
+    type:  'BlockBlob',     // Type of the blob
   }, blobContent);
 });
 ```
