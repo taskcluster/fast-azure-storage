@@ -14,32 +14,34 @@ tasks:
       then: ${event.pull_request.head.repo.html_url}
       else: ${event.repository.html_url}
   in:
-  - provisionerId: 'proj-taskcluster'
-    workerType: 'ci'
-    created: {$fromNow: ''}
-    deadline: {$fromNow: '1 hour'}
-    scopes:
-      # it's OK that this secret is accessible in PRs
-      - secrets:get:project/taskcluster/testing/azure
-    payload:
-      maxRunTime: 3600
-      image: node:20.16
-      features:
-        taskclusterProxy: true
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          git clone ${repository} repo &&
-          cd repo &&
-          git config advice.detachedHead false &&
-          git checkout ${head_rev} &&
-          yarn &&
-          yarn test &&
-          yarn docs # ensure docs build
-    metadata:
-      name: test
-      description: Tests for fast-azure-storage
-      owner: nobody@mozilla.com
-      source: https://github.com/taskcluster/fast-azure-storage
+    $match:
+      (tasks_for == "github-pull-request" && event["action"] in ["opened", "synchronize"]) || (tasks_for == "github-push" && event["ref"] == "refs/heads/main"):
+        provisionerId: "proj-taskcluster"
+        workerType: "ci"
+        created: { $fromNow: "" }
+        deadline: { $fromNow: "1 hour" }
+        scopes:
+          # it's OK that this secret is accessible in PRs
+          - secrets:get:project/taskcluster/testing/azure
+        payload:
+          maxRunTime: 3600
+          image: node:20.16
+          features:
+            taskclusterProxy: true
+          command:
+            - /bin/bash
+            - "--login"
+            - "-c"
+            - >-
+              git clone ${repository} repo &&
+              cd repo &&
+              git config advice.detachedHead false &&
+              git checkout ${head_rev} &&
+              yarn &&
+              yarn test &&
+              yarn docs # ensure docs build
+        metadata:
+          name: test
+          description: Tests for fast-azure-storage
+          owner: nobody@mozilla.com
+          source: https://github.com/taskcluster/fast-azure-storage
