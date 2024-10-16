@@ -25,7 +25,7 @@ tasks:
           - secrets:get:project/taskcluster/testing/azure
         payload:
           maxRunTime: 3600
-          image: node:20.16
+          image: node:20.17
           features:
             taskclusterProxy: true
           command:
