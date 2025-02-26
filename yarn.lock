@@ -1539,10 +1539,10 @@ supports-color@^8.1.1:
   dependencies:
     has-flag "^4.0.0"
 
-taskcluster-client@73.0.0:
-  version "73.0.0"
-  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-73.0.0.tgz#195ed3cb975b8d669942769ef7ff12bc5327d7db"
-  integrity sha512-xxiLo74736Bu/BBnqFKaYGNYQ3C/yPGR8jsaWyeVLl2vOeDfglCEsKAJcLzdUpMMm5oMK5GxjPqg6eER2lL9ew==
+taskcluster-client@82.1.0:
+  version "82.1.0"
+  resolved "https://registry.yarnpkg.com/taskcluster-client/-/taskcluster-client-82.1.0.tgz#8cd02a7dd308af4c2b38eb3fe2e3620153332e6f"
+  integrity sha512-mtL5vBqjkwFrvsamSbSFGQbzmoMdAy36rfRTGsc8drtWIIPj/id2TMT/tb+cVn3BmF7bdlmP74itFXS5BkhegA==
   dependencies:
     debug "^4.1.1"
     got "^14.4.2"
