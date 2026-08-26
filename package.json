@@ -32,28 +32,8 @@
     "yuidocjs/**/mime": "^4.0.0"
   },
   "devDependencies": {
-    "jsdoc": "4.0.4",
     "mocha": "11.8.0",
-    "taskcluster-client": "83.5.2",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
-  },
-  "renovate": {
-    "extends": [
-      "config:base"
-    ],
-    "packageRules": [
-      {
-        "updateTypes": [
-          "minor",
-          "patch"
-        ],
-        "matchCurrentVersion": "!/^0/",
-        "paths": [
-          "+(package.json)"
-        ],
-        "automerge": true
-      }
-    ]
   }
 }

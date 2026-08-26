@@ -20,14 +20,9 @@ tasks:
         workerType: "ci"
         created: { $fromNow: "" }
         deadline: { $fromNow: "1 hour" }
-        scopes:
-          # it's OK that this secret is accessible in PRs
-          - secrets:get:project/taskcluster/testing/azure
         payload:
           maxRunTime: 3600
           image: node:22.14
-          features:
-            taskclusterProxy: true
           command:
             - /bin/bash
             - "--login"
