@@ -32,7 +32,7 @@
     "yuidocjs/**/mime": "^4.0.0"
   },
   "devDependencies": {
-    "mocha": "11.8.0",
+    "mocha": "12.0.1",
     "yuidoc-lucid-theme": "jonasfj/yuidoc-lucid-theme",
     "yuidocjs": "0.10.2"
   }
